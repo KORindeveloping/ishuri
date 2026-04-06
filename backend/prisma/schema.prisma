@@ -1,0 +1,77 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id          String   @id @default(cuid())
+  name        String
+  email       String   @unique
+  password    String
+  trade       String
+  educationLevel String?  // e.g. "Upper Secondary", "TVET"
+  combination    String?  // e.g. "PCM", "SOD"
+  subjects    String?  // Concatenated subjects they need to learn
+  studyTime   String?  // e.g. "Afternoon", "Night"
+  role        String   @default("Student")
+  streak      Int      @default(0)
+  lastLogin   DateTime?
+  competencies String?  // JSON string of competencies
+  createdAt   DateTime @default(now())
+
+  quizHistory QuizHistory[]
+  portfolio   PortfolioItem[]
+  goals       Goal[]
+}
+
+
+model Quiz {
+  id          String     @id @default(cuid())
+  title       String
+  trade       String
+  timeLimit   Int        @default(45)
+  questions   String
+  createdAt   DateTime   @default(now())
+
+  history     QuizHistory[]
+}
+
+model QuizHistory {
+  id          String   @id @default(cuid())
+  userId      String
+  quizId      String
+  score       Int
+  totalPoints Int
+  userAnswers String
+  completedAt DateTime @default(now())
+
+  user        User     @relation(fields: [userId], references: [id])
+  quiz        Quiz     @relation(fields: [quizId], references: [id])
+}
+
+model PortfolioItem {
+  id          String   @id @default(cuid())
+  userId      String
+  title       String
+  description String
+  mediaUrl    String
+  mediaType   String    // image | video
+  status      String    @default("Pending")
+  createdAt   DateTime  @default(now())
+
+  user        User      @relation(fields: [userId], references: [id])
+}
+
+model Goal {
+  id          String   @id @default(cuid())
+  userId      String
+  text        String
+  completed   Boolean  @default(false)
+  createdAt   DateTime @default(now())
+
+  user        User     @relation(fields: [userId], references: [id])
+}
