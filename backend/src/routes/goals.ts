@@ -7,7 +7,7 @@ const prisma = new PrismaClient();
 
 // Add new goal
 router.post('/', requireAuth, async (req: AuthRequest, res: Response) => {
-  const { text } = req.body;
+  const { text, urgency } = req.body;
   const userId = req.user?.id;
 
   if (!userId || !text) {
@@ -19,6 +19,7 @@ router.post('/', requireAuth, async (req: AuthRequest, res: Response) => {
       data: {
         userId,
         text,
+        urgency: urgency || 'soon',
         completed: false
       }
     });

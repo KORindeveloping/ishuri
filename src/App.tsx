@@ -195,11 +195,17 @@ const DashboardView = ({ user, onStartQuiz, onLogout, history, onNavigate }: {
     { label: 'Quizzes Taken', value: history.length.toString(), icon: Hourglass, color: 'text-white' },
   ];
 
-  const upcomingExams = [
-    { id: 1, title: 'Final Theory Exam', date: 'In 3 days', urgency: 'critical', trade: user.trade || 'General' },
-    { id: 2, title: 'Practical Assessment', date: 'In 8 days', urgency: 'soon', trade: user.trade || 'General' },
-    { id: 3, title: 'Safety Certification', date: 'In 15 days', urgency: 'later', trade: 'General' },
-  ];
+  const upcomingExams = tasks
+    .filter(t => !t.completed && (t.text.toLowerCase().includes('exam') || t.text.toLowerCase().includes('assessment') || t.text.toLowerCase().includes('test')))
+    .map(t => ({
+      id: t.id,
+      title: t.text,
+      date: 'Personal Goal',
+      urgency: (t as any).urgency || 'soon',
+      trade: user.trade || 'General'
+    }));
+
+  const [newGoalUrgency, setNewGoalUrgency] = useState<'critical' | 'soon' | 'later'>('soon');
 
   return (
     <div className="space-y-8 pb-12">
@@ -434,16 +440,40 @@ const DashboardView = ({ user, onStartQuiz, onLogout, history, onNavigate }: {
                   exit={{ opacity: 0, scale: 0.9 }}
                   className="bg-zinc-900 p-8 rounded-[2.5rem] border border-zinc-800 w-full max-w-md shadow-2xl"
                 >
-                  <h3 className="text-xl font-black text-white mb-6 uppercase tracking-tight">Set New Study Goal</h3>
-                  <div className="space-y-4">
-                    <input 
-                      type="text" 
-                      value={newGoal}
-                      onChange={(e) => setNewGoal(e.target.value)}
-                      placeholder="e.g. Master engine timing diagrams"
-                      className="w-full bg-black border border-zinc-800 rounded-2xl py-4 px-6 text-white outline-none focus:ring-2 focus:ring-white/10"
-                    />
-                    <div className="flex gap-4">
+                  <h3 className="text-xl font-black text-white mb-6 uppercase tracking-tight">New Study Goal / Exam</h3>
+                  <div className="space-y-6">
+                    <div className="space-y-2">
+                      <label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest ml-1">Title</label>
+                      <input 
+                        type="text" 
+                        value={newGoal}
+                        onChange={(e) => setNewGoal(e.target.value)}
+                        placeholder="e.g. Final Theory Exam"
+                        className="w-full bg-black border border-zinc-800 rounded-2xl py-4 px-6 text-white outline-none focus:ring-2 focus:ring-white/10"
+                      />
+                    </div>
+
+                    <div className="space-y-2">
+                      <label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest ml-1">Priority</label>
+                      <div className="grid grid-cols-3 gap-3">
+                        {(['critical', 'soon', 'later'] as const).map((u) => (
+                          <button
+                            key={u}
+                            onClick={() => setNewGoalUrgency(u)}
+                            className={cn(
+                              "py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all border",
+                              newGoalUrgency === u 
+                                ? "bg-white text-black border-white" 
+                                : "bg-black text-zinc-500 border-zinc-800 hover:border-zinc-700"
+                            )}
+                          >
+                            {u}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+
+                    <div className="flex gap-4 pt-2">
                       <button 
                         onClick={() => setIsAddingGoal(false)}
                         className="flex-1 py-4 bg-zinc-800 text-white rounded-2xl font-bold hover:bg-zinc-700 transition-all"
@@ -454,8 +484,8 @@ const DashboardView = ({ user, onStartQuiz, onLogout, history, onNavigate }: {
                         onClick={async () => {
                           if (newGoal) {
                             try {
-                              const goal = await api.createGoal(newGoal);
-                              setTasks([...tasks, goal]);
+                              const goal = await api.createGoal(newGoal, newGoalUrgency);
+                              setTasks([goal, ...tasks]);
                               setNewGoal('');
                               setIsAddingGoal(false);
                             } catch (e) {
@@ -465,7 +495,7 @@ const DashboardView = ({ user, onStartQuiz, onLogout, history, onNavigate }: {
                         }}
                         className="flex-1 py-4 bg-white text-black rounded-2xl font-bold hover:bg-zinc-100 transition-all"
                       >
-                        Add Goal
+                        Save
                       </button>
                     </div>
                   </div>

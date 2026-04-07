@@ -71,6 +71,7 @@ model Goal {
   userId      String
   text        String
   completed   Boolean  @default(false)
+  urgency     String   @default("soon") // critical | soon | later
   createdAt   DateTime @default(now())
 
   user        User     @relation(fields: [userId], references: [id])
