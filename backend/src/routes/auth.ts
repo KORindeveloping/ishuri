@@ -109,15 +109,22 @@ router.post('/login', async (req: Request, res: Response) => {
     const today = now.toISOString().split('T')[0];
     const lastDay = last ? last.toISOString().split('T')[0] : null;
 
-    if (newStreak === 0) {
+    if (!last) {
+      // First time ever logging in
       newStreak = 1;
-    } else if (lastDay && today !== lastDay) {
-      const diffDays = Math.floor(Math.abs(now.getTime() - last!.getTime()) / (1000 * 60 * 60 * 24));
+    } else if (today !== lastDay) {
+      // It's a new day
+      const diffTime = now.getTime() - last.getTime();
+      const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+      
       if (diffDays === 1) {
+        // Consecutive day
         newStreak++;
       } else if (diffDays > 1) {
+        // Streak broken
         newStreak = 1;
       }
+      // If diffDays is 0 (same day), we do nothing to the streak
     }
 
     const updatedUser = await prisma.user.update({
@@ -209,10 +216,12 @@ router.get('/profile', requireAuth, async (req: AuthRequest, res: Response) => {
     const today = now.toISOString().split('T')[0];
     const lastDay = last ? last.toISOString().split('T')[0] : null;
 
-    if (newStreak === 0) {
+    if (!last) {
       newStreak = 1;
-    } else if (lastDay && today !== lastDay) {
-      const diffDays = Math.floor(Math.abs(now.getTime() - last!.getTime()) / (1000 * 60 * 60 * 24));
+    } else if (today !== lastDay) {
+      const diffTime = now.getTime() - last.getTime();
+      const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+      
       if (diffDays === 1) {
         newStreak++;
       } else if (diffDays > 1) {

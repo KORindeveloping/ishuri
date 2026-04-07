@@ -36,23 +36,22 @@ router.post('/', requireAuth, async (req: AuthRequest, res: Response) => {
       let newStreak = user.streak || 0;
       const now = new Date();
       const last = user.lastLogin ? new Date(user.lastLogin) : null;
-      
+
       const today = now.toISOString().split('T')[0];
       const lastDay = last ? last.toISOString().split('T')[0] : null;
 
-      if (newStreak === 0) {
+      if (!last) {
         newStreak = 1;
-      } else if (lastDay && today !== lastDay) {
-        const diffTime = Math.abs(now.getTime() - last!.getTime());
+      } else if (today !== lastDay) {
+        const diffTime = now.getTime() - last.getTime();
         const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
-        
+
         if (diffDays === 1) {
           newStreak++;
         } else if (diffDays > 1) {
           newStreak = 1;
         }
       }
-
       // 2. Competency Logic (Simplified mastery update)
       let compArray = [];
       try {

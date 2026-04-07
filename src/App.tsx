@@ -213,7 +213,7 @@ const DashboardView = ({ user, onStartQuiz, onLogout, history, onNavigate }: {
               <Zap className="w-3 h-3 fill-current" /> Exam Prep Mode
             </div>
           </div>
-          <p className="text-zinc-500 text-sm font-bold uppercase tracking-widest">Sunday, April 5, 2026</p>
+          <p className="text-zinc-500 text-sm font-bold uppercase tracking-widest">{new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' })}</p>
         </div>
         
         <div className="flex items-center gap-8 relative z-10">
@@ -480,17 +480,26 @@ const DashboardView = ({ user, onStartQuiz, onLogout, history, onNavigate }: {
               <Flame className="w-6 h-6 text-zinc-500" /> Consistency
             </h2>
             <div className="flex justify-between mb-10">
-              {['M', 'T', 'W', 'T', 'F', 'S', 'S'].map((day, i) => (
-                <div key={i} className="flex flex-col items-center gap-3">
-                  <div className={cn(
-                    "w-9 h-9 rounded-xl flex items-center justify-center text-[10px] font-black transition-all",
-                    i < 5 ? "bg-white text-black shadow-[0_0_20px_rgba(255,255,255,0.2)]" : "bg-zinc-800 text-zinc-600"
-                  )}>
-                    {i < 5 ? <Check className="w-5 h-5 stroke-[3]" /> : day}
+              {['M', 'T', 'W', 'T', 'F', 'S', 'S'].map((day, i) => {
+                // Calculate if this day should be marked as "complete"
+                // 0 for Mon, 6 for Sun
+                const todayIndex = (new Date().getDay() + 6) % 7; 
+                const isToday = i === todayIndex;
+                const isPastInStreak = i < todayIndex && i >= (todayIndex - ((user.streak || 1) - 1));
+                const isActive = isToday || isPastInStreak;
+
+                return (
+                  <div key={i} className="flex flex-col items-center gap-3">
+                    <div className={cn(
+                      "w-9 h-9 rounded-xl flex items-center justify-center text-[10px] font-black transition-all",
+                      isActive ? "bg-white text-black shadow-[0_0_20px_rgba(255,255,255,0.2)]" : "bg-zinc-800 text-zinc-600"
+                    )}>
+                      {isActive ? <Check className="w-5 h-5 stroke-[3]" /> : day}
+                    </div>
+                    <span className={cn("text-[10px] font-black uppercase", isActive ? "text-white" : "text-zinc-700")}>{day}</span>
                   </div>
-                  <span className="text-[10px] font-black text-zinc-700 uppercase">{day}</span>
-                </div>
-              ))}
+                );
+              })}
             </div>
             
             <div className="space-y-6">
