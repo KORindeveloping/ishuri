@@ -16,7 +16,10 @@ export const api = {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(credentials)
     });
-    if (!res.ok) throw new Error('Login failed');
+    if (!res.ok) {
+      const errorData = await res.json().catch(() => ({}));
+      throw new Error(errorData.error || 'Login failed');
+    }
     return res.json();
   },
 
@@ -26,7 +29,10 @@ export const api = {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(data)
     });
-    if (!res.ok) throw new Error('Signup failed');
+    if (!res.ok) {
+      const errorData = await res.json().catch(() => ({}));
+      throw new Error(errorData.error || 'Signup failed');
+    }
     return res.json();
   },
 
@@ -36,7 +42,10 @@ export const api = {
       headers: getHeaders(),
       body: JSON.stringify(data)
     });
-    if (!res.ok) throw new Error('Failed to update onboarding data');
+    if (!res.ok) {
+      const errorData = await res.json().catch(() => ({}));
+      throw new Error(errorData.error || 'Failed to update onboarding data');
+    }
     return res.json();
   },
   
@@ -46,7 +55,10 @@ export const api = {
       headers: getHeaders(),
       body: JSON.stringify(data)
     });
-    if (!res.ok) throw new Error('Failed to update profile');
+    if (!res.ok) {
+      const errorData = await res.json().catch(() => ({}));
+      throw new Error(errorData.error || 'Failed to update profile');
+    }
     return res.json();
   },
 
@@ -54,7 +66,10 @@ export const api = {
     const res = await fetch(`${API_URL}/auth/profile`, {
       headers: getHeaders()
     });
-    if (!res.ok) throw new Error('Failed to fetch profile');
+    if (!res.ok) {
+      const errorData = await res.json().catch(() => ({}));
+      throw new Error(errorData.error || 'Failed to fetch profile');
+    }
     return res.json();
   },
 
@@ -85,7 +100,10 @@ export const api = {
       headers: getHeaders(),
       body: JSON.stringify(data)
     });
-    if (!res.ok) throw new Error('Failed to save history');
+    if (!res.ok) {
+      const errorData = await res.json().catch(() => ({}));
+      throw new Error(errorData.error || 'Failed to save history');
+    }
     return res.json();
   },
 
@@ -93,7 +111,10 @@ export const api = {
     const res = await fetch(`${API_URL}/history`, {
       headers: getHeaders()
     });
-    if (!res.ok) throw new Error('Failed to fetch history');
+    if (!res.ok) {
+      const errorData = await res.json().catch(() => ({}));
+      throw new Error(errorData.error || 'Failed to fetch history');
+    }
     return res.json();
   },
 
@@ -102,7 +123,10 @@ export const api = {
     const res = await fetch(`${API_URL}/goals`, {
       headers: getHeaders()
     });
-    if (!res.ok) throw new Error('Failed to fetch goals');
+    if (!res.ok) {
+      const errorData = await res.json().catch(() => ({}));
+      throw new Error(errorData.error || 'Failed to fetch goals');
+    }
     return res.json();
   },
 
@@ -112,7 +136,10 @@ export const api = {
       headers: getHeaders(),
       body: JSON.stringify({ text })
     });
-    if (!res.ok) throw new Error('Failed to create goal');
+    if (!res.ok) {
+      const errorData = await res.json().catch(() => ({}));
+      throw new Error(errorData.error || 'Failed to create goal');
+    }
     return res.json();
   },
 
@@ -122,7 +149,10 @@ export const api = {
       headers: getHeaders(),
       body: JSON.stringify({ completed })
     });
-    if (!res.ok) throw new Error('Failed to update goal');
+    if (!res.ok) {
+      const errorData = await res.json().catch(() => ({}));
+      throw new Error(errorData.error || 'Failed to update goal');
+    }
     return res.json();
   },
 
@@ -131,7 +161,10 @@ export const api = {
     const res = await fetch(`${API_URL}/portfolio`, {
       headers: getHeaders()
     });
-    if (!res.ok) throw new Error('Failed to fetch portfolio');
+    if (!res.ok) {
+      const errorData = await res.json().catch(() => ({}));
+      throw new Error(errorData.error || 'Failed to fetch portfolio');
+    }
     return res.json();
   },
 
@@ -142,7 +175,10 @@ export const api = {
       headers: token ? { 'Authorization': `Bearer ${token}` } : {},
       body: formData
     });
-    if (!res.ok) throw new Error('Upload failed');
+    if (!res.ok) {
+      const errorData = await res.json().catch(() => ({}));
+      throw new Error(errorData.error || 'Upload failed');
+    }
     return res.json();
   }
 };

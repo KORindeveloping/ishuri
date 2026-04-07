@@ -2069,7 +2069,8 @@ const AuthView = ({ onLogin }: { onLogin: (userData: any, token?: string, isSign
       
       onLogin(res.user, res.token, !isLogin);
     } catch (error: any) {
-      alert(isLogin ? 'Login failed. Check your data.' : 'Signup failed. Email might exist.');
+      const message = error.message || (isLogin ? 'Login failed. Check your data.' : 'Signup failed. Email might exist.');
+      alert(message);
     } finally {
       setLoading(false);
     }
