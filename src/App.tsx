@@ -2351,9 +2351,16 @@ export default function App() {
     setActiveTab('assessments');
   };
 
+  const handleTabChange = (tab: string) => {
+    setActiveTab(tab);
+    if (window.innerWidth < 1024) {
+      setIsSidebarOpen(false);
+    }
+  };
+
   const renderContent = () => {
     switch (activeTab) {
-      case 'dashboard': return <DashboardView user={user} onStartQuiz={handleStartCustomQuiz} onLogout={handleLogout} history={history} onNavigate={setActiveTab} />;
+      case 'dashboard': return <DashboardView user={user} onStartQuiz={handleStartCustomQuiz} onLogout={handleLogout} history={history} onNavigate={handleTabChange} />;
       case 'assessments': return (
         <AssessmentView 
           assessments={MOCK_ASSESSMENTS} 
@@ -2373,7 +2380,7 @@ export default function App() {
       case 'portfolio': return <PortfolioView user={user} />;
       case 'papers': return <PastPapers onStartQuiz={handleStartCustomQuiz} />;
       case 'settings': return <SettingsView user={user} setUser={setUser} />;
-      default: return <DashboardView user={user} onStartQuiz={handleStartCustomQuiz} onLogout={handleLogout} history={history} onNavigate={setActiveTab} />;
+      default: return <DashboardView user={user} onStartQuiz={handleStartCustomQuiz} onLogout={handleLogout} history={history} onNavigate={handleTabChange} />;
     }
   };
 
@@ -2392,7 +2399,20 @@ export default function App() {
           }} 
         />
       )}
-      {/* Sidebar ... */}
+
+      {/* Mobile Overlay */}
+      <AnimatePresence>
+        {isSidebarOpen && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            onClick={() => setIsSidebarOpen(false)}
+            className="fixed inset-0 bg-black/60 backdrop-blur-sm z-30 lg:hidden"
+          />
+        )}
+      </AnimatePresence>
+
       {/* Sidebar */}
       <aside className={cn(
         "fixed inset-y-0 left-0 z-40 w-64 bg-zinc-950 border-r border-zinc-900 transition-transform duration-300 lg:static lg:translate-x-0",
@@ -2411,17 +2431,17 @@ export default function App() {
 
           <nav className="flex-1">
             <div className="text-[10px] font-bold text-zinc-600 uppercase tracking-widest mb-4 px-2">Main Menu</div>
-            <SidebarItem icon={LayoutDashboard} label="Dashboard" active={activeTab === 'dashboard'} onClick={() => setActiveTab('dashboard')} />
-            <SidebarItem icon={BookOpen} label="Assessments" active={activeTab === 'assessments'} onClick={() => setActiveTab('assessments')} />
-            <SidebarItem icon={HistoryIcon} label="Quiz History" active={activeTab === 'history'} onClick={() => setActiveTab('history')} />
-            <SidebarItem icon={BarChart3} label="Analytics" active={activeTab === 'analytics'} onClick={() => setActiveTab('analytics')} />
-            <SidebarItem icon={Type} label="Flashcards" active={activeTab === 'flashcards'} onClick={() => setActiveTab('flashcards')} />
-            <SidebarItem icon={Calendar} label="Planner" active={activeTab === 'planner'} onClick={() => setActiveTab('planner')} />
-            <SidebarItem icon={FolderOpen} label="E-Portfolio" active={activeTab === 'portfolio'} onClick={() => setActiveTab('portfolio')} />
-            <SidebarItem icon={ClipboardCheck} label="Past Papers" active={activeTab === 'papers'} onClick={() => setActiveTab('papers')} />
+            <SidebarItem icon={LayoutDashboard} label="Dashboard" active={activeTab === 'dashboard'} onClick={() => handleTabChange('dashboard')} />
+            <SidebarItem icon={BookOpen} label="Assessments" active={activeTab === 'assessments'} onClick={() => handleTabChange('assessments')} />
+            <SidebarItem icon={HistoryIcon} label="Quiz History" active={activeTab === 'history'} onClick={() => handleTabChange('history')} />
+            <SidebarItem icon={BarChart3} label="Analytics" active={activeTab === 'analytics'} onClick={() => handleTabChange('analytics')} />
+            <SidebarItem icon={Type} label="Flashcards" active={activeTab === 'flashcards'} onClick={() => handleTabChange('flashcards')} />
+            <SidebarItem icon={Calendar} label="Planner" active={activeTab === 'planner'} onClick={() => handleTabChange('planner')} />
+            <SidebarItem icon={FolderOpen} label="E-Portfolio" active={activeTab === 'portfolio'} onClick={() => handleTabChange('portfolio')} />
+            <SidebarItem icon={ClipboardCheck} label="Past Papers" active={activeTab === 'papers'} onClick={() => handleTabChange('papers')} />
             
             <div className="mt-10 text-[10px] font-bold text-zinc-600 uppercase tracking-widest mb-4 px-2">System</div>
-            <SidebarItem icon={Settings} label="Settings" active={activeTab === 'settings'} onClick={() => setActiveTab('settings')} />
+            <SidebarItem icon={Settings} label="Settings" active={activeTab === 'settings'} onClick={() => handleTabChange('settings')} />
           </nav>
 
           <div className="mt-auto pt-6 border-t border-zinc-900">
