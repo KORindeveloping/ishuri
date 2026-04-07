@@ -130,11 +130,11 @@ export const api = {
     return res.json();
   },
 
-  createGoal: async (text: string, urgency?: string) => {
+  createGoal: async (text: string, urgency?: string, dueDate?: string) => {
     const res = await fetch(`${API_URL}/goals`, {
       method: 'POST',
       headers: getHeaders(),
-      body: JSON.stringify({ text, urgency })
+      body: JSON.stringify({ text, urgency, dueDate })
     });
     if (!res.ok) {
       const errorData = await res.json().catch(() => ({}));

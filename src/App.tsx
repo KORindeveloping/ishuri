@@ -200,12 +200,13 @@ const DashboardView = ({ user, onStartQuiz, onLogout, history, onNavigate }: {
     .map(t => ({
       id: t.id,
       title: t.text,
-      date: 'Personal Goal',
+      date: (t as any).dueDate ? new Date((t as any).dueDate).toLocaleDateString() : 'Personal Goal',
       urgency: (t as any).urgency || 'soon',
       trade: user.trade || 'General'
     }));
 
   const [newGoalUrgency, setNewGoalUrgency] = useState<'critical' | 'soon' | 'later'>('soon');
+  const [newGoalDate, setNewGoalDate] = useState('');
 
   return (
     <div className="space-y-8 pb-12">
@@ -454,6 +455,16 @@ const DashboardView = ({ user, onStartQuiz, onLogout, history, onNavigate }: {
                     </div>
 
                     <div className="space-y-2">
+                      <label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest ml-1">Due Date</label>
+                      <input 
+                        type="date" 
+                        value={newGoalDate}
+                        onChange={(e) => setNewGoalDate(e.target.value)}
+                        className="w-full bg-black border border-zinc-800 rounded-2xl py-4 px-6 text-white outline-none focus:ring-2 focus:ring-white/10 [color-scheme:dark]"
+                      />
+                    </div>
+
+                    <div className="space-y-2">
                       <label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest ml-1">Priority</label>
                       <div className="grid grid-cols-3 gap-3">
                         {(['critical', 'soon', 'later'] as const).map((u) => (
@@ -475,7 +486,11 @@ const DashboardView = ({ user, onStartQuiz, onLogout, history, onNavigate }: {
 
                     <div className="flex gap-4 pt-2">
                       <button 
-                        onClick={() => setIsAddingGoal(false)}
+                        onClick={() => {
+                          setIsAddingGoal(false);
+                          setNewGoal('');
+                          setNewGoalDate('');
+                        }}
                         className="flex-1 py-4 bg-zinc-800 text-white rounded-2xl font-bold hover:bg-zinc-700 transition-all"
                       >
                         Cancel
@@ -484,9 +499,10 @@ const DashboardView = ({ user, onStartQuiz, onLogout, history, onNavigate }: {
                         onClick={async () => {
                           if (newGoal) {
                             try {
-                              const goal = await api.createGoal(newGoal, newGoalUrgency);
+                              const goal = await api.createGoal(newGoal, newGoalUrgency, newGoalDate);
                               setTasks([goal, ...tasks]);
                               setNewGoal('');
+                              setNewGoalDate('');
                               setIsAddingGoal(false);
                             } catch (e) {
                               alert('Failed to save goal.');
