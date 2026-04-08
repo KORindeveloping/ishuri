@@ -9,9 +9,9 @@ const upload = multer({ dest: 'uploads/' });
 const router = Router();
 const prisma = new PrismaClient();
 
-// Add new portfolio item (evidence)
+// Add new portfolio item (evidence or certificate)
 router.post('/', requireAuth, upload.single('media'), async (req: AuthRequest, res: Response) => {
-  const { title, description, mediaType } = req.body;
+  const { title, description, mediaType, type } = req.body; // Added 'type' to body
   const userId = req.user?.id;
   const file = req.file;
 
@@ -20,9 +20,9 @@ router.post('/', requireAuth, upload.single('media'), async (req: AuthRequest, r
   }
 
   try {
-    const mediaUrl = file 
+    const mediaUrl = file
       ? `${req.protocol}://${req.get('host')}/uploads/${file.filename}`
-      : 'https://images.unsplash.com/photo-1503376780353-7e6692767b70?auto=format&fit=crop&q=80&w=800';
+      : 'https://images.unsplash.com/photo-1503376780353-7e6692767b70?auto=format&fit=crop&q=80&w=800'; // Default placeholder image
 
     const portfolioItem = await prisma.portfolioItem.create({
       data: {
@@ -30,8 +30,9 @@ router.post('/', requireAuth, upload.single('media'), async (req: AuthRequest, r
         title,
         description: description || '',
         mediaUrl,
-        mediaType: mediaType || 'image',
-        status: 'Pending'
+        mediaType: mediaType || 'image', // Default to image if not specified
+        status: 'Pending', // Default status
+        type: type || 'evidence' // Set type, default to 'evidence' if not provided
       }
     });
 
