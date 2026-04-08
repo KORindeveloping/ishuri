@@ -38,13 +38,16 @@ router.post('/signup', async (req: Request, res: Response) => {
     const hashedPassword = await bcrypt.hash(password, 12);
     console.log('[Signup] Password hashed successfully');
     
+    const now = new Date();
     const user = await prisma.user.create({
       data: {
         name,
         email: normalizedEmail,
         password: hashedPassword,
         trade,
-        role: 'Student'
+        role: 'Student',
+        streak: 1,
+        lastLogin: now
       }
     });
 
@@ -63,7 +66,7 @@ router.post('/signup', async (req: Request, res: Response) => {
       user: { 
         ...userWithoutPassword, 
         competencies,
-        streak: userWithoutPassword.streak || 0
+        streak: 1
       }, 
       token 
     });
@@ -110,7 +113,7 @@ router.post('/login', async (req: Request, res: Response) => {
     const token = jwt.sign({ id: user.id, role: user.role }, JWT_SECRET, { expiresIn: '7d' });
     
     // --- Robust Streak Logic ---
-    let newStreak = user.streak || 0;
+    let newStreak = user.streak || 1;
     const now = new Date();
     const last = user.lastLogin ? new Date(user.lastLogin) : null;
     
@@ -233,7 +236,7 @@ router.get('/profile', requireAuth, async (req: AuthRequest, res: Response) => {
     if (!user) return res.status(404).json({ error: 'User not found' });
 
     // --- Robust Streak Logic ---
-    let newStreak = user.streak || 0;
+    let newStreak = user.streak || 1;
     const now = new Date();
     const last = user.lastLogin ? new Date(user.lastLogin) : null;
     

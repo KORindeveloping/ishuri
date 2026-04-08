@@ -33,7 +33,7 @@ router.post('/', requireAuth, async (req: AuthRequest, res: Response) => {
     const user = (await prisma.user.findUnique({ where: { id: userId } })) as any;
     if (user) {
       // --- Robust Streak Logic ---
-      let newStreak = user.streak || 0;
+      let newStreak = user.streak || 1;
       const now = new Date();
       const last = user.lastLogin ? new Date(user.lastLogin) : null;
 
