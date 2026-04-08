@@ -38,18 +38,21 @@ router.post('/', requireAuth, async (req: AuthRequest, res: Response) => {
       const last = user.lastLogin ? new Date(user.lastLogin) : null;
 
       const today = now.toISOString().split('T')[0];
-      const lastDay = last ? last.toISOString().split('T')[0] : null;
+      const lastDay = (last && !isNaN(last.getTime())) ? last.toISOString().split('T')[0] : null;
 
       if (!last || isNaN(last.getTime())) {
         newStreak = 1;
       } else if (today !== lastDay) {
+        // It's a new day - check if it was exactly yesterday
         const yesterday = new Date(now);
         yesterday.setDate(yesterday.getDate() - 1);
         const yesterdayDay = yesterday.toISOString().split('T')[0];
 
         if (lastDay === yesterdayDay) {
+          // Consecutive calendar day
           newStreak++;
         } else {
+          // Streak broken (more than 1 day gap)
           newStreak = 1;
         }
       }

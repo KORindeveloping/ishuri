@@ -174,6 +174,7 @@ router.patch('/onboarding', async (req: Request, res: Response) => {
   }
 
   try {
+    const now = new Date();
     const user = await prisma.user.update({
       where: { id: userId },
       data: {
@@ -181,12 +182,20 @@ router.patch('/onboarding', async (req: Request, res: Response) => {
         studyTime,
         trade,
         educationLevel,
-        combination
+        combination,
+        lastLogin: now
       }
     });
 
     const { password: _, ...userData } = user;
-    res.status(200).json({ user: { ...userData, competencies: [] } });
+    let competencies = [];
+    try {
+      competencies = userData.competencies ? JSON.parse(userData.competencies) : [];
+    } catch (e) {
+      console.error('Failed to parse competencies during onboarding:', e);
+      competencies = [];
+    }
+    res.status(200).json({ user: { ...userData, competencies } });
   } catch (error) {
     console.error('Onboarding update error:', error);
     res.status(500).json({ error: 'Update failed' });
