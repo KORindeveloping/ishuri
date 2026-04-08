@@ -60,6 +60,7 @@ model PortfolioItem {
   description String
   mediaUrl    String
   mediaType   String    // image | video
+  type        String    @default("evidence") // Added field: evidence | certificate
   status      String    @default("Pending")
   createdAt   DateTime  @default(now())
 
