@@ -211,7 +211,7 @@ const DashboardView = ({ user, onStartQuiz, onLogout, history, onNavigate }: {
   return (
     <div className="space-y-8 pb-12">
       {/* Top Bar */}
-      <header className="flex flex-col md:flex-row md:items-center justify-between gap-6 bg-zinc-900 p-8 rounded-[2rem] border border-zinc-800 shadow-2xl relative overflow-hidden">
+      <header className="flex flex-col md:flex-row md:items-center justify-between gap-6 bg-zinc-900 p-8 rounded-[2rem] border border-zinc-800 shadow-2xl relative overflow-hidden dashboard-header">
         <div className="absolute top-0 right-0 w-64 h-64 bg-white/5 blur-[100px] -mr-32 -mt-32 rounded-full" />
         <div className="relative z-10">
           <div className="flex items-center gap-3 mb-2">
@@ -245,7 +245,10 @@ const DashboardView = ({ user, onStartQuiz, onLogout, history, onNavigate }: {
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: i * 0.1 }}
             key={stat.label} 
-            className="p-6 bg-zinc-900 rounded-3xl border border-zinc-800 hover:border-zinc-700 transition-all group relative overflow-hidden"
+            className={cn(
+              "p-6 bg-zinc-900 rounded-3xl border border-zinc-800 hover:border-zinc-700 transition-all group relative overflow-hidden",
+              `dashboard-card-${i}`
+            )}
           >
             <div className="absolute bottom-0 right-0 w-16 h-16 bg-white/5 blur-2xl rounded-full -mb-8 -mr-8" />
             <div className="flex items-center justify-between mb-4">
@@ -277,12 +280,13 @@ const DashboardView = ({ user, onStartQuiz, onLogout, history, onNavigate }: {
               </button>
             </div>
             <div className="space-y-8">
-              {subjects.map((subject) => (
+              {subjects.map((subject, idx) => (
                 <div 
                   key={subject.name}
                   onClick={() => !generatingQuiz && startPracticeQuiz(subject.name)}
                   className={cn(
                     "p-4 rounded-2xl border border-transparent hover:bg-black/40 hover:border-zinc-800 transition-all cursor-pointer group/subject relative",
+                    `dashboard-card-${(idx + 4) % 10}`,
                     generatingQuiz === subject.name && "opacity-60 cursor-wait"
                   )}
                 >
@@ -2414,29 +2418,67 @@ export default function App() {
   };
 
   const renderContent = () => {
-    switch (activeTab) {
-      case 'dashboard': return <DashboardView user={user} onStartQuiz={handleStartCustomQuiz} onLogout={handleLogout} history={history} onNavigate={handleTabChange} />;
-      case 'assessments': return (
-        <AssessmentView 
-          assessments={MOCK_ASSESSMENTS} 
-          customQuiz={customQuiz} 
-          onClearCustomQuiz={() => {
-            setCustomQuiz(null);
-            setReviewHistoryItem(null);
-          }}
-          onComplete={handleQuizComplete}
-          reviewHistoryItem={reviewHistoryItem}
-        />
-      );
-      case 'history': return <QuizHistoryView history={history} onReviewQuiz={handleReviewHistoryQuiz} />;
-      case 'analytics': return <AnalyticsView history={history} user={user} onStartQuiz={handleStartCustomQuiz} />;
-      case 'flashcards': return <FlashcardsView />;
-      case 'planner': return <PlannerView />;
-      case 'portfolio': return <PortfolioView user={user} />;
-      case 'papers': return <PastPapers onStartQuiz={handleStartCustomQuiz} />;
-      case 'settings': return <SettingsView user={user} setUser={setUser} />;
-      default: return <DashboardView user={user} onStartQuiz={handleStartCustomQuiz} onLogout={handleLogout} history={history} onNavigate={handleTabChange} />;
-    }
+    const isNursery = user.educationLevel === 'Pre Primary';
+    const isPrimary = user.educationLevel?.includes('Primary');
+
+    const themeCSS = isNursery ? `
+      .dashboard-header { border-color: #ef4444 !important; }
+      .dashboard-card-0 { border-color: #ef4444 !important; }
+      .dashboard-card-1 { border-color: #3b82f6 !important; }
+      .dashboard-card-2 { border-color: #eab308 !important; }
+      .dashboard-card-3 { border-color: #22c55e !important; }
+      .dashboard-card-4 { border-color: #ef4444 !important; }
+      .dashboard-card-5 { border-color: #3b82f6 !important; }
+      .dashboard-card-6 { border-color: #eab308 !important; }
+      .dashboard-card-7 { border-color: #22c55e !important; }
+      .dashboard-card-8 { border-color: #ef4444 !important; }
+      .dashboard-card-9 { border-color: #3b82f6 !important; }
+    ` : isPrimary ? `
+      .dashboard-header { border-color: #f97316 !important; }
+      .dashboard-card-0 { border-color: #f97316 !important; }
+      .dashboard-card-1 { border-color: #a855f7 !important; }
+      .dashboard-card-2 { border-color: #ec4899 !important; }
+      .dashboard-card-3 { border-color: #78350f !important; }
+      .dashboard-card-4 { border-color: #000000 !important; }
+      .dashboard-card-5 { border-color: #ffffff !important; }
+      .dashboard-card-6 { border-color: #ef4444 !important; }
+      .dashboard-card-7 { border-color: #3b82f6 !important; }
+      .dashboard-card-8 { border-color: #eab308 !important; }
+      .dashboard-card-9 { border-color: #22c55e !important; }
+    ` : '';
+
+    const view = (() => {
+      switch (activeTab) {
+        case 'dashboard': return <DashboardView user={user} onStartQuiz={handleStartCustomQuiz} onLogout={handleLogout} history={history} onNavigate={handleTabChange} />;
+        case 'assessments': return (
+          <AssessmentView 
+            assessments={MOCK_ASSESSMENTS} 
+            customQuiz={customQuiz} 
+            onClearCustomQuiz={() => {
+              setCustomQuiz(null);
+              setReviewHistoryItem(null);
+            }}
+            onComplete={handleQuizComplete}
+            reviewHistoryItem={reviewHistoryItem}
+          />
+        );
+        case 'history': return <QuizHistoryView history={history} onReviewQuiz={handleReviewHistoryQuiz} />;
+        case 'analytics': return <AnalyticsView history={history} user={user} onStartQuiz={handleStartCustomQuiz} />;
+        case 'flashcards': return <FlashcardsView />;
+        case 'planner': return <PlannerView />;
+        case 'portfolio': return <PortfolioView user={user} />;
+        case 'papers': return <PastPapers onStartQuiz={handleStartCustomQuiz} />;
+        case 'settings': return <SettingsView user={user} setUser={setUser} />;
+        default: return <DashboardView user={user} onStartQuiz={handleStartCustomQuiz} onLogout={handleLogout} history={history} onNavigate={handleTabChange} />;
+      }
+    })();
+
+    return (
+      <>
+        {themeCSS && <style dangerouslySetInnerHTML={{ __html: themeCSS }} />}
+        {view}
+      </>
+    );
   };
 
   if (!isAuthenticated) {
