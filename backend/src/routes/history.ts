@@ -67,11 +67,12 @@ router.post('/', requireAuth, async (req: AuthRequest, res: Response) => {
       const newScorePercent = (score / totalPoints) * 100;
       const historyItemWithQuiz = historyItem as any;
       const topicName = historyItemWithQuiz.quiz?.title?.split(':')[0]?.trim() || 'General';
+      const userTrade = user.trade || 'General';
       
-      // Find or create competency for this topic
-      let topic = compArray[0]; // For now, assume top level trade competency has skills
+      // Find or create competency for this trade
+      let topic = (compArray as any[]).find((c: any) => c.trade === userTrade);
       if (!topic) {
-        topic = { trade: user.trade, skills: [] };
+        topic = { trade: userTrade, skills: [] };
         compArray.push(topic);
       }
       
