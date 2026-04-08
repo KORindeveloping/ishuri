@@ -40,15 +40,16 @@ router.post('/', requireAuth, async (req: AuthRequest, res: Response) => {
       const today = now.toISOString().split('T')[0];
       const lastDay = last ? last.toISOString().split('T')[0] : null;
 
-      if (!last) {
+      if (!last || isNaN(last.getTime())) {
         newStreak = 1;
       } else if (today !== lastDay) {
-        const diffTime = now.getTime() - last.getTime();
-        const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+        const yesterday = new Date(now);
+        yesterday.setDate(yesterday.getDate() - 1);
+        const yesterdayDay = yesterday.toISOString().split('T')[0];
 
-        if (diffDays === 1) {
+        if (lastDay === yesterdayDay) {
           newStreak++;
-        } else if (diffDays > 1) {
+        } else {
           newStreak = 1;
         }
       }
