@@ -407,26 +407,33 @@ const DashboardView = ({ user, onStartQuiz, onLogout, history, onNavigate }: {
               <CheckSquare className="w-6 h-6 text-zinc-500" /> Today's Tasks
             </h2>
             <div className="space-y-4">
-              {tasks.map((task) => (
-                <button 
-                  key={task.id}
-                  onClick={() => toggleTask(task.id)}
-                  className="w-full flex items-center gap-4 p-4 rounded-2xl bg-black border border-zinc-800 hover:border-zinc-700 transition-all text-left group"
-                >
-                  <div className={cn(
-                    "w-6 h-6 rounded-lg border-2 flex items-center justify-center transition-all",
-                    task.completed ? "bg-white border-white" : "border-zinc-800 group-hover:border-zinc-600"
-                  )}>
-                    {task.completed && <Check className="w-4 h-4 text-black stroke-[4]" />}
-                  </div>
-                  <span className={cn(
-                    "text-sm font-bold transition-all",
-                    task.completed ? "text-zinc-600 line-through" : "text-zinc-200"
-                  )}>
-                    {task.text}
-                  </span>
-                </button>
-              ))}
+              {tasks.length > 0 ? (
+                tasks.map((task) => (
+                  <button 
+                    key={task.id}
+                    onClick={() => toggleTask(task.id)}
+                    className="w-full flex items-center gap-4 p-4 rounded-2xl bg-black border border-zinc-800 hover:border-zinc-700 transition-all text-left group"
+                  >
+                    <div className={cn(
+                      "w-6 h-6 rounded-lg border-2 flex items-center justify-center transition-all",
+                      task.completed ? "bg-white border-white" : "border-zinc-800 group-hover:border-zinc-600"
+                    )}>
+                      {task.completed && <Check className="w-4 h-4 text-black stroke-[4]" />}
+                    </div>
+                    <span className={cn(
+                      "text-sm font-bold transition-all",
+                      task.completed ? "text-zinc-600 line-through" : "text-zinc-200"
+                    )}>
+                      {task.text}
+                    </span>
+                  </button>
+                ))
+              ) : (
+                <div className="py-8 text-center border-2 border-dashed border-zinc-800 rounded-2xl">
+                  <p className="text-zinc-500 text-xs font-bold uppercase tracking-widest">No tasks for today.</p>
+                  <p className="text-zinc-700 text-[10px] mt-1">Add a goal below to start tracking.</p>
+                </div>
+              )}
             </div>
             <button 
               onClick={() => setIsAddingGoal(true)}
