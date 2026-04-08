@@ -6,6 +6,7 @@ export const MOCK_USER: User = {
   email: 'claudine.u@tvet.edu',
   role: 'Student',
   trade: 'Sciences',
+  streak: 1,
   competencies: [
     {
       trade: 'Sciences',
