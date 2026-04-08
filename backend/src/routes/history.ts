@@ -96,6 +96,14 @@ router.post('/', requireAuth, async (req: AuthRequest, res: Response) => {
 
     const updatedUser = await prisma.user.findUnique({ where: { id: userId } });
     const userData = (updatedUser || {}) as any;
+    
+    let competencies = [];
+    try {
+      competencies = userData.competencies ? JSON.parse(userData.competencies) : [];
+    } catch (e) {
+      console.error('Failed to parse competencies in history response:', e);
+      competencies = [];
+    }
 
     res.status(201).json({
       historyItem: {
@@ -108,7 +116,7 @@ router.post('/', requireAuth, async (req: AuthRequest, res: Response) => {
       },
       user: updatedUser ? {
         ...userData,
-        competencies: userData.competencies ? JSON.parse(userData.competencies) : []
+        competencies
       } : null
     });
   } catch (error) {

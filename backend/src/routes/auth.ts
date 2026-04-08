@@ -51,10 +51,18 @@ router.post('/signup', async (req: Request, res: Response) => {
     const token = jwt.sign({ id: user.id, role: user.role }, JWT_SECRET, { expiresIn: '7d' });
     
     const { password: _, ...userWithoutPassword } = user as any;
+    let competencies = [];
+    try {
+      competencies = userWithoutPassword.competencies ? JSON.parse(userWithoutPassword.competencies) : [];
+    } catch (e) {
+      console.error('Failed to parse competencies during signup:', e);
+      competencies = [];
+    }
+
     res.status(201).json({ 
       user: { 
         ...userWithoutPassword, 
-        competencies: userWithoutPassword.competencies ? JSON.parse(userWithoutPassword.competencies) : [],
+        competencies,
         streak: userWithoutPassword.streak || 0
       }, 
       token 
@@ -107,10 +115,10 @@ router.post('/login', async (req: Request, res: Response) => {
     const last = user.lastLogin ? new Date(user.lastLogin) : null;
     
     const today = now.toISOString().split('T')[0];
-    const lastDay = last ? last.toISOString().split('T')[0] : null;
+    const lastDay = (last && !isNaN(last.getTime())) ? last.toISOString().split('T')[0] : null;
 
-    if (!last) {
-      // First time ever logging in
+    if (!last || isNaN(last.getTime())) {
+      // First time ever logging in or invalid date
       newStreak = 1;
     } else if (today !== lastDay) {
       // It's a new day
@@ -133,10 +141,18 @@ router.post('/login', async (req: Request, res: Response) => {
     });
 
     const { password: _, ...userWithoutPassword } = updatedUser as any;
+    let competencies = [];
+    try {
+      competencies = userWithoutPassword.competencies ? JSON.parse(userWithoutPassword.competencies) : [];
+    } catch (e) {
+      console.error('Failed to parse competencies during login:', e);
+      competencies = [];
+    }
+
     res.status(200).json({ 
       user: { 
         ...userWithoutPassword, 
-        competencies: userWithoutPassword.competencies ? JSON.parse(userWithoutPassword.competencies) : [] 
+        competencies 
       }, 
       token 
     });
@@ -185,10 +201,18 @@ router.patch('/profile', requireAuth, async (req: AuthRequest, res: Response) =>
       data: { name, trade, educationLevel, combination, subjects, studyTime }
     });
     const { password: _, ...userWithoutPassword } = user as any;
+    let competencies = [];
+    try {
+      competencies = userWithoutPassword.competencies ? JSON.parse(userWithoutPassword.competencies) : [];
+    } catch (e) {
+      console.error('Failed to parse competencies during profile update:', e);
+      competencies = [];
+    }
+
     res.status(200).json({ 
       user: { 
         ...userWithoutPassword, 
-        competencies: userWithoutPassword.competencies ? JSON.parse(userWithoutPassword.competencies) : [] 
+        competencies
       } 
     });
   } catch (error) {
@@ -214,9 +238,9 @@ router.get('/profile', requireAuth, async (req: AuthRequest, res: Response) => {
     const last = user.lastLogin ? new Date(user.lastLogin) : null;
     
     const today = now.toISOString().split('T')[0];
-    const lastDay = last ? last.toISOString().split('T')[0] : null;
+    const lastDay = (last && !isNaN(last.getTime())) ? last.toISOString().split('T')[0] : null;
 
-    if (!last) {
+    if (!last || isNaN(last.getTime())) {
       newStreak = 1;
     } else if (today !== lastDay) {
       const diffTime = now.getTime() - last.getTime();
@@ -235,10 +259,18 @@ router.get('/profile', requireAuth, async (req: AuthRequest, res: Response) => {
     });
 
     const { password: _, ...userWithoutPassword } = updatedUser as any;
+    let competencies = [];
+    try {
+      competencies = userWithoutPassword.competencies ? JSON.parse(userWithoutPassword.competencies) : [];
+    } catch (e) {
+      console.error('Failed to parse competencies during profile fetch:', e);
+      competencies = [];
+    }
+
     res.status(200).json({ 
       user: { 
         ...userWithoutPassword, 
-        competencies: userWithoutPassword.competencies ? JSON.parse(userWithoutPassword.competencies) : [] 
+        competencies
       } 
     });
   } catch (error) {
