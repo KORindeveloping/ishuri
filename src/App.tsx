@@ -857,10 +857,6 @@ const FlashcardsView = () => {
     </div>
   );
 };
-      </div>
-    </div>
-  );
-};
 
 const PlannerView = ({ user }: { user: User }) => {
   const isNursery = user.educationLevel === 'Pre Primary';
