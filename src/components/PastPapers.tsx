@@ -77,26 +77,24 @@ export const PastPapers = ({ onStartQuiz }: { onStartQuiz?: (quiz: Assessment) =
     <div className="space-y-6">
       <header className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-white">Past Papers Library</h1>
+          <h1 className="text-2xl font-bold text-white uppercase tracking-tight">Past Papers Library</h1>
           <p className="text-zinc-400">Access and practice with thousands of TVET trade papers.</p>
         </div>
-        <div className="flex gap-2">
+        <div className="flex flex-wrap gap-2">
+          <a 
+            href="https://www.nesa.gov.rw/index.php?id=38" 
+            target="_blank" 
+            rel="noopener noreferrer"
+            className="flex items-center gap-2 px-4 py-2 bg-zinc-800 text-white rounded-xl text-sm font-bold hover:bg-zinc-700 transition-colors border border-zinc-700"
+          >
+            <ExternalLink className="w-4 h-4" /> NESA Online Portal
+          </a>
           <button
             onClick={() => setShowGenerator(true)}
             className="flex items-center gap-2 px-4 py-2 bg-white text-black rounded-xl text-sm font-bold hover:bg-zinc-200 transition-colors shadow-lg shadow-white/10"
           >
             <Zap className="w-4 h-4" /> Generate Custom Quiz
           </button>
-          <div className="flex gap-2">
-            {/* Filter for Trade would go here */}
-            <select className="bg-zinc-900 border border-zinc-800 rounded-xl px-4 py-2 text-sm font-medium focus:ring-2 focus:ring-white/20 outline-none text-white">
-              <option>All Trades</option>
-              <option>Automotive</option>
-              <option>Plumbing</option>
-              <option>IT</option>
-              <option>Electrical</option>
-            </select>
-          </div>
         </div>
       </header>
 

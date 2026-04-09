@@ -113,6 +113,9 @@ router.post('/', requireAuth, async (req: AuthRequest, res: Response) => {
     res.status(201).json({
       historyItem: {
         ...historyItem,
+        title: (historyItem as any).quiz?.title || 'Unknown Quiz',
+        trade: (historyItem as any).quiz?.trade || 'General',
+        dateCompleted: historyItem.completedAt.toISOString().split('T')[0],
         userAnswers: historyItem.userAnswers ? JSON.parse(historyItem.userAnswers) : {},
         quiz: (historyItem as any).quiz ? {
           ...(historyItem as any).quiz,
@@ -147,6 +150,9 @@ router.get('/', requireAuth, async (req: AuthRequest, res: Response) => {
 
     res.status(200).json(history.map(item => ({
       ...item,
+      title: item.quiz?.title || 'Unknown Quiz',
+      trade: item.quiz?.trade || 'General',
+      dateCompleted: item.completedAt.toISOString().split('T')[0],
       userAnswers: JSON.parse(item.userAnswers),
       quiz: item.quiz ? {
         ...item.quiz,

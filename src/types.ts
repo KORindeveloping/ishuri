@@ -45,6 +45,7 @@ export interface User {
   id: string;
   name: string;
   email: string;
+  avatarUrl?: string; // Added field
   role: 'Student' | 'Instructor' | 'Verifier';
   trade?: Trade;
   educationLevel?: string;
@@ -52,6 +53,7 @@ export interface User {
   subjects?: string;
   duration?: string;
   studyTime?: string;
+  restDay?: string; // Added field
   competencies: TradeCompetency[];
   goals?: SkillGoal[];
   streak?: number;

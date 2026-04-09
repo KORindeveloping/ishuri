@@ -9,13 +9,14 @@ const geminiKey = process.env.GEMINI_API_KEY || '';
 const anthropic = new Anthropic({ apiKey: anthropicKey });
 const genAI = new GoogleGenerativeAI(geminiKey);
 
-export async function generateQuiz(subject: string, trade: string, level?: string, combination?: string) {
+export async function generateQuiz(subject: string, trade: string, level?: string, combination?: string, teachings?: string) {
   // Enhanced "Robust" TVET Prompt with Age/Level Personalization
   const systemPrompt = `You are an expert ${level || 'TVET'} Curriculum Developer. 
   Your goal is to generate high-quality, competency-based assessment questions for the ${trade} trade${combination ? ` with a focus on ${combination}` : ''}.
   
   CRITICAL - Level Appropriateness:
   - The student is at the "${level || 'General'}" education level.
+  ${teachings ? `- The student has been taught the following: ${teachings}. Use this context to focus questions on what they have learned.` : ''}
   - If the level is "Pre-Primary" or "Primary", use very simple language, focus on basic concepts, and ensure questions are extremely easy for children.
   - If the level is "TVET" or "Upper Secondary", focus on technical accuracy and industry standards.
   
@@ -128,4 +129,25 @@ export async function generateQuiz(subject: string, trade: string, level?: strin
       }
     ]
   };
+}
+
+export async function detectStudyLevel(fileBuffer: Buffer, mimeType: string): Promise<string> {
+  if (!geminiKey) return "Level detection unavailable (no AI key)";
+
+  try {
+    const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
+    const result = await model.generateContent([
+      "Analyze this certificate or educational document and identify the specific level of study (e.g., Primary, Senior 1-3, TVET Level 3-5, University, etc.). Return ONLY the level name.",
+      {
+        inlineData: {
+          data: fileBuffer.toString('base64'),
+          mimeType
+        }
+      }
+    ]);
+    return result.response.text().trim() || "Unknown Level";
+  } catch (e: any) {
+    console.error(`[AI] Level detection failed: ${e.message}`);
+    return "Detection Failed";
+  }
 }

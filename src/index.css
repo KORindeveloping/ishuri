@@ -1,29 +1,45 @@
 @import "tailwindcss";
 
 @theme {
-  --color-background: #000000;
-  --color-foreground: #ffffff;
-  --color-card: #09090b;
-  --color-card-foreground: #ffffff;
-  --color-popover: #09090b;
-  --color-popover-foreground: #ffffff;
-  --color-primary: #ffffff;
-  --color-primary-foreground: #09090b;
-  --color-secondary: #27272a;
-  --color-secondary-foreground: #ffffff;
-  --color-muted: #27272a;
+  --color-background: var(--bg-color, #000000);
+  --color-foreground: var(--text-color, #ffffff);
+  --color-card: var(--card-bg, #09090b);
+  --color-card-foreground: var(--text-color, #ffffff);
+  --color-popover: var(--card-bg, #09090b);
+  --color-popover-foreground: var(--text-color, #ffffff);
+  --color-primary: var(--text-color, #ffffff);
+  --color-primary-foreground: var(--bg-color, #000000);
+  --color-secondary: var(--secondary-bg, #27272a);
+  --color-secondary-foreground: var(--text-color, #ffffff);
+  --color-muted: var(--secondary-bg, #27272a);
   --color-muted-foreground: #a1a1aa;
-  --color-accent: #27272a;
-  --color-accent-foreground: #ffffff;
+  --color-accent: var(--secondary-bg, #27272a);
+  --color-accent-foreground: var(--text-color, #ffffff);
   --color-destructive: #7f1d1d;
   --color-destructive-foreground: #ffffff;
-  --color-border: #27272a;
-  --color-input: #27272a;
+  --color-border: var(--border-color, #27272a);
+  --color-input: var(--border-color, #27272a);
   --color-ring: #d4d4d8;
+}
+
+:root {
+  --bg-color: #ffffff;
+  --text-color: #000000;
+  --card-bg: #f4f4f5;
+  --secondary-bg: #e4e4e7;
+  --border-color: #e4e4e7;
+}
+
+.dark {
+  --bg-color: #000000;
+  --text-color: #ffffff;
+  --card-bg: #09090b;
+  --secondary-bg: #27272a;
+  --border-color: #27272a;
 }
 
 @layer base {
   body {
-    @apply bg-black text-white antialiased;
+    @apply bg-[var(--bg-color)] text-[var(--text-color)] antialiased transition-colors duration-300;
   }
 }

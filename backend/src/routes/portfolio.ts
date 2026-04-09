@@ -2,6 +2,8 @@ import { Router, Request, Response } from 'express';
 import { PrismaClient } from '@prisma/client';
 import { requireAuth, AuthRequest } from '../middleware/auth';
 import multer from 'multer';
+import fs from 'fs';
+import { detectStudyLevel } from '../services/ai.service';
 
 // Dummy Cloudinary simulation for MVC
 const upload = multer({ dest: 'uploads/' });
@@ -24,11 +26,17 @@ router.post('/', requireAuth, upload.single('media'), async (req: AuthRequest, r
       ? `${req.protocol}://${req.get('host')}/uploads/${file.filename}`
       : 'https://images.unsplash.com/photo-1503376780353-7e6692767b70?auto=format&fit=crop&q=80&w=800'; // Default placeholder image
 
+    let aiDetectedLevel = null;
+    if (type === 'certificate' && file && file.mimetype.startsWith('image/')) {
+      const buffer = fs.readFileSync(file.path);
+      aiDetectedLevel = await detectStudyLevel(buffer, file.mimetype);
+    }
+
     const portfolioItem = await prisma.portfolioItem.create({
       data: {
         userId,
-        title,
-        description: description || '',
+        title: aiDetectedLevel ? `${title} (Detected: ${aiDetectedLevel})` : title,
+        description: aiDetectedLevel ? `AI Detected Level: ${aiDetectedLevel}. ${description || ''}` : (description || ''),
         mediaUrl,
         mediaType: mediaType || 'image', // Default to image if not specified
         status: 'Pending', // Default status

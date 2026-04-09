@@ -12,11 +12,13 @@ model User {
   name        String
   email       String   @unique
   password    String
+  avatarUrl   String?  // Added field for avatar
   trade       String
   educationLevel String?  // e.g. "Upper Secondary", "TVET"
   combination    String?  // e.g. "PCM", "SOD"
   subjects    String?  // Concatenated subjects they need to learn
   studyTime   String?  // e.g. "Afternoon", "Night"
+  restDay     String?  @default("Sunday") // Added field
   role        String   @default("Student")
   streak      Int      @default(0)
   lastLogin   DateTime?
@@ -49,7 +51,7 @@ model QuizHistory {
   userAnswers String
   completedAt DateTime @default(now())
 
-  user        User     @relation(fields: [userId], references: [id])
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   quiz        Quiz     @relation(fields: [quizId], references: [id])
 }
 
@@ -64,7 +66,7 @@ model PortfolioItem {
   status      String    @default("Pending")
   createdAt   DateTime  @default(now())
 
-  user        User      @relation(fields: [userId], references: [id])
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 model Goal {
@@ -76,5 +78,5 @@ model Goal {
   dueDate     String?  // e.g. "2026-04-15"
   createdAt   DateTime @default(now())
 
-  user        User     @relation(fields: [userId], references: [id])
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 }

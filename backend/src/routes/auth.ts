@@ -3,11 +3,41 @@ import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import { PrismaClient } from '@prisma/client';
 import { requireAuth, AuthRequest } from '../middleware/auth';
+import multer from 'multer';
+import path from 'path';
+import fs from 'fs';
 
 const router = Router();
 const prisma = new PrismaClient();
 
 const JWT_SECRET = process.env.JWT_SECRET || 'tvet_secret_key_2026';
+
+// Multer storage setup for avatars
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    const uploadDir = 'uploads/avatars';
+    if (!fs.existsSync(uploadDir)) {
+      fs.mkdirSync(uploadDir, { recursive: true });
+    }
+    cb(null, uploadDir);
+  },
+  filename: (req, file, cb) => {
+    const userId = (req as any).user?.id || 'unknown';
+    cb(null, `avatar-${userId}-${Date.now()}${path.extname(file.originalname)}`);
+  }
+});
+
+const upload = multer({ 
+  storage,
+  limits: { fileSize: 5 * 1024 * 1024 }, // 5MB limit
+  fileFilter: (req, file, cb) => {
+    if (file.mimetype.startsWith('image/')) {
+      cb(null, true);
+    } else {
+      cb(new Error('Only images are allowed'));
+    }
+  }
+});
 
 // Student Signup
 router.post('/signup', async (req: Request, res: Response) => {
@@ -204,13 +234,13 @@ router.patch('/onboarding', async (req: Request, res: Response) => {
 
 // Update generic profile
 router.patch('/profile', requireAuth, async (req: AuthRequest, res: Response) => {
-  const { name, trade, educationLevel, combination, subjects, studyTime } = req.body;
+  const { name, trade, educationLevel, combination, subjects, studyTime, avatarUrl, restDay } = req.body;
   const userId = req.user?.id;
 
   try {
     const user = await prisma.user.update({
       where: { id: userId },
-      data: { name, trade, educationLevel, combination, subjects, studyTime }
+      data: { name, trade, educationLevel, combination, subjects, studyTime, avatarUrl, restDay }
     });
     const { password: _, ...userWithoutPassword } = user as any;
     let competencies = [];
@@ -289,6 +319,62 @@ router.get('/profile', requireAuth, async (req: AuthRequest, res: Response) => {
   } catch (error) {
     console.error('Profile fetch error:', error);
     res.status(500).json({ error: 'Fetch failed' });
+  }
+});
+
+// Change Password
+router.patch('/change-password', requireAuth, async (req: AuthRequest, res: Response) => {
+  const { currentPassword, newPassword } = req.body;
+  const userId = req.user?.id;
+
+  try {
+    const user = await prisma.user.findUnique({ where: { id: userId } });
+    if (!user) return res.status(404).json({ error: 'User not found' });
+
+    const isMatch = await bcrypt.compare(currentPassword, user.password);
+    if (!isMatch) return res.status(401).json({ error: 'Current password incorrect' });
+
+    const hashedNewPassword = await bcrypt.hash(newPassword, 12);
+    await prisma.user.update({
+      where: { id: userId },
+      data: { password: hashedNewPassword }
+    });
+
+    res.status(200).json({ message: 'Password updated successfully' });
+  } catch (error) {
+    console.error('Password change error:', error);
+    res.status(500).json({ error: 'Failed to change password' });
+  }
+});
+
+// Delete Account
+router.delete('/', requireAuth, async (req: AuthRequest, res: Response) => {
+  const userId = req.user?.id;
+
+  try {
+    await prisma.user.delete({ where: { id: userId } });
+    res.status(200).json({ message: 'Account deleted successfully' });
+  } catch (error) {
+    console.error('Account deletion error:', error);
+    res.status(500).json({ error: 'Failed to delete account' });
+  }
+});
+
+// Avatar Upload
+router.post('/avatar', requireAuth, upload.single('avatar'), async (req: AuthRequest, res: Response) => {
+  const userId = req.user?.id;
+  if (!req.file) return res.status(400).json({ error: 'No file uploaded' });
+
+  try {
+    const avatarUrl = `/uploads/avatars/${req.file.filename}`;
+    await prisma.user.update({
+      where: { id: userId },
+      data: { avatarUrl }
+    });
+    res.status(200).json({ avatarUrl });
+  } catch (error) {
+    console.error('Avatar upload error:', error);
+    res.status(500).json({ error: 'Failed to upload avatar' });
   }
 });
 

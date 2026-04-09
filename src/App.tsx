@@ -69,6 +69,9 @@ import { User, Trade, Skill, CompetencyStatus, Assessment, PortfolioItem, QuizHi
 import { VerificationChecklist } from './components/VerificationChecklist';
 import { PastPapers } from './components/PastPapers';
 import { api } from './lib/api';
+import { jsPDF } from 'jspdf';
+import 'jspdf-autotable';
+
 
 // --- Components ---
 
@@ -707,87 +710,249 @@ const AnalyticsView = ({ history, user, onStartQuiz }: {
 };
 
 const FlashcardsView = () => {
-  const cards = [
-    { q: "What is the stoichiometric ratio for gasoline?", a: "14.7:1" },
-    { q: "What does ABS stand for?", a: "Anti-lock Braking System" },
-    { q: "What is the unit of electrical resistance?", a: "Ohm (Ω)" },
-    { q: "What is the primary function of a thermostat?", a: "Regulate engine temperature" },
-  ];
+  const [cards, setCards] = useState(() => {
+    const saved = localStorage.getItem('tvet_flashcards');
+    return saved ? JSON.parse(saved) : [
+      { q: "What is the stoichiometric ratio for gasoline?", a: "14.7:1" },
+      { q: "What does ABS stand for?", a: "Anti-lock Braking System" },
+      { q: "What is the unit of electrical resistance?", a: "Ohm (Ω)" },
+      { q: "What is the primary function of a thermostat?", a: "Regulate engine temperature" },
+    ];
+  });
+  
   const [index, setIndex] = useState(0);
   const [flipped, setFlipped] = useState(false);
+  const [showAddModal, setShowAddModal] = useState(false);
+  const [newCard, setNewCard] = useState({ q: '', a: '' });
+
+  useEffect(() => {
+    localStorage.setItem('tvet_flashcards', JSON.stringify(cards));
+  }, [cards]);
+
+  const addCard = () => {
+    if (!newCard.q || !newCard.a) return;
+    setCards([...cards, newCard]);
+    setNewCard({ q: '', a: '' });
+    setShowAddModal(false);
+  };
+
+  const deleteCard = (e: React.MouseEvent, idx: number) => {
+    e.stopPropagation();
+    if (cards.length <= 1) return;
+    const newCards = cards.filter((_: any, i: number) => i !== idx);
+    setCards(newCards);
+    if (index >= newCards.length) setIndex(0);
+    setFlipped(false);
+  };
 
   return (
-    <div className="space-y-8 flex flex-col items-center p-4">
-      <header className="w-full text-left">
-        <h1 className="text-3xl font-black text-white tracking-tight">Active Recall Flashcards</h1>
-        <p className="text-zinc-500 font-medium">Master key concepts through spaced repetition.</p>
+    <div className="space-y-8 flex flex-col items-center p-4 min-h-[600px]">
+      <header className="w-full flex flex-col sm:flex-row sm:items-center justify-between gap-6">
+        <div>
+          <h1 className="text-3xl font-black text-white tracking-tight uppercase">Active Recall Flashcards</h1>
+          <p className="text-zinc-500 font-medium">Master key concepts through spaced repetition.</p>
+        </div>
+        <button 
+          onClick={() => setShowAddModal(true)}
+          className="px-6 py-3 bg-white text-black font-black uppercase tracking-widest text-xs rounded-2xl flex items-center gap-2 hover:bg-zinc-200 transition-all shadow-xl shadow-white/10"
+        >
+          <Plus className="w-4 h-4" /> Add New Card
+        </button>
       </header>
 
-      <div 
-        onClick={() => setFlipped(!flipped)}
-        className="w-full max-w-lg aspect-[4/3] relative cursor-pointer perspective-1000 group mt-12"
-      >
-        <motion.div 
-          animate={{ rotateY: flipped ? 180 : 0 }}
-          transition={{ duration: 0.6, type: 'spring', stiffness: 260, damping: 20 }}
-          className="w-full h-full relative preserve-3d"
+      <div className="relative w-full max-w-lg mt-12">
+        <div 
+          onClick={() => setFlipped(!flipped)}
+          className="w-full aspect-[4/3] relative cursor-pointer perspective-1000 group"
         >
-          <div className="absolute inset-0 bg-zinc-900 border-2 border-zinc-800 rounded-[3rem] p-12 flex flex-col items-center justify-center text-center backface-hidden">
-            <p className="text-[10px] font-black text-zinc-500 uppercase tracking-widest mb-8">Question</p>
-            <h2 className="text-2xl font-black text-white leading-tight">{cards[index].q}</h2>
-            <p className="text-xs text-zinc-600 mt-12 font-bold uppercase tracking-widest">Tap to reveal answer</p>
-          </div>
-          <div className="absolute inset-0 bg-white border-2 border-white rounded-[3rem] p-12 flex flex-col items-center justify-center text-center backface-hidden rotate-y-180">
-            <p className="text-[10px] font-black text-zinc-400 uppercase tracking-widest mb-8">Answer</p>
-            <h2 className="text-2xl font-black text-black leading-tight">{cards[index].a}</h2>
-            <p className="text-xs text-zinc-300 mt-12 font-bold uppercase tracking-widest">Tap to flip back</p>
-          </div>
-        </motion.div>
+          <motion.div 
+            animate={{ rotateY: flipped ? 180 : 0 }}
+            transition={{ duration: 0.6, type: 'spring', stiffness: 260, damping: 20 }}
+            className="w-full h-full relative preserve-3d"
+          >
+            <div className="absolute inset-0 bg-zinc-900 border-2 border-zinc-800 rounded-[3rem] p-12 flex flex-col items-center justify-center text-center backface-hidden shadow-2xl">
+              <p className="text-[10px] font-black text-zinc-500 uppercase tracking-widest mb-8">Question {index + 1}/{cards.length}</p>
+              <h2 className="text-2xl font-black text-white leading-tight">{cards[index].q}</h2>
+              <p className="text-xs text-zinc-600 mt-12 font-bold uppercase tracking-widest">Tap to reveal answer</p>
+              <button 
+                onClick={(e) => deleteCard(e, index)}
+                className="absolute top-8 right-8 p-2 bg-zinc-800 text-zinc-600 hover:text-red-500 rounded-xl transition-colors"
+              >
+                <Trash2 className="w-4 h-4" />
+              </button>
+            </div>
+            <div className="absolute inset-0 bg-white border-2 border-white rounded-[3rem] p-12 flex flex-col items-center justify-center text-center backface-hidden rotate-y-180 shadow-2xl">
+              <p className="text-[10px] font-black text-zinc-400 uppercase tracking-widest mb-8">Answer</p>
+              <h2 className="text-2xl font-black text-black leading-tight">{cards[index].a}</h2>
+              <p className="text-xs text-zinc-300 mt-12 font-bold uppercase tracking-widest">Tap to flip back</p>
+            </div>
+          </motion.div>
+        </div>
       </div>
 
       <div className="flex gap-6 mt-8">
         <button 
           onClick={(e) => { e.stopPropagation(); setIndex((index - 1 + cards.length) % cards.length); setFlipped(false); }}
-          className="w-16 h-16 rounded-full bg-zinc-900 border border-zinc-800 flex items-center justify-center hover:bg-white hover:text-black transition-all"
+          className="w-16 h-16 rounded-[2rem] bg-zinc-900 border border-zinc-800 flex items-center justify-center hover:bg-white hover:text-black transition-all shadow-xl group"
         >
-          <ChevronRight className="w-6 h-6 rotate-180" />
+          <ChevronRight className="w-6 h-6 rotate-180 text-zinc-500 group-hover:text-black" />
         </button>
         <button 
           onClick={(e) => { e.stopPropagation(); setIndex((index + 1) % cards.length); setFlipped(false); }}
-          className="w-16 h-16 rounded-full bg-zinc-900 border border-zinc-800 flex items-center justify-center hover:bg-white hover:text-black transition-all"
+          className="w-16 h-16 rounded-[2rem] bg-zinc-900 border border-zinc-800 flex items-center justify-center hover:bg-white hover:text-black transition-all shadow-xl group"
         >
-          <ChevronRight className="w-6 h-6" />
+          <ChevronRight className="w-6 h-6 text-zinc-500 group-hover:text-black" />
         </button>
+      </div>
+
+      <AnimatePresence>
+        {showAddModal && (
+          <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+            <motion.div 
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.9 }}
+              className="bg-zinc-900 p-8 rounded-[2.5rem] border border-zinc-800 w-full max-w-md shadow-2xl"
+            >
+              <h3 className="text-xl font-black text-white mb-6 uppercase tracking-tight">New Flashcard</h3>
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-[10px] font-black text-zinc-500 uppercase tracking-widest mb-2 ml-1">Question</label>
+                  <textarea 
+                    value={newCard.q}
+                    onChange={(e) => setNewCard({...newCard, q: e.target.value})}
+                    className="w-full bg-black border border-zinc-800 rounded-2xl py-4 px-6 text-white outline-none focus:ring-2 focus:ring-white/10 min-h-[100px]"
+                    placeholder="e.g. What is the capital of Rwanda?"
+                  />
+                </div>
+                <div>
+                  <label className="block text-[10px] font-black text-zinc-500 uppercase tracking-widest mb-2 ml-1">Answer</label>
+                  <input 
+                    type="text"
+                    value={newCard.a}
+                    onChange={(e) => setNewCard({...newCard, a: e.target.value})}
+                    className="w-full bg-black border border-zinc-800 rounded-2xl py-4 px-6 text-white outline-none focus:ring-2 focus:ring-white/10"
+                    placeholder="e.g. Kigali"
+                  />
+                </div>
+              </div>
+              <div className="flex gap-4 mt-8">
+                <button 
+                  onClick={() => setShowAddModal(false)}
+                  className="flex-1 py-4 bg-zinc-800 text-zinc-400 rounded-2xl font-bold hover:bg-zinc-700 transition-all"
+                >
+                  Cancel
+                </button>
+                <button 
+                  onClick={addCard}
+                  className="flex-1 py-4 bg-white text-black rounded-2xl font-black uppercase tracking-widest text-xs hover:bg-zinc-200 transition-all"
+                >
+                  Create Card
+                </button>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+    </div>
+  );
+};
       </div>
     </div>
   );
 };
 
-const PlannerView = () => {
-  const schedule = [
-    { day: "Monday", tasks: ["Engine Theory", "Wiring Diagrams"] },
-    { day: "Tuesday", tasks: ["Brake Systems Practice", "Safety Quiz"] },
-    { day: "Wednesday", tasks: ["Hydraulics Lab", "Technical Report"] },
-    { day: "Thursday", tasks: ["Final Review", "Past Papers"] },
-    { day: "Friday", tasks: ["Mock Exam", "Portfolio Cleanup"] },
-  ];
+const PlannerView = ({ user }: { user: User }) => {
+  const isNursery = user.educationLevel === 'Pre Primary';
+  const isPrimary = user.educationLevel?.includes('Primary');
+  
+  const defaultTasks: Record<string, string[]> = isNursery ? {
+    "Monday": ["Coloring Shapes", "Singing ABCs"],
+    "Tuesday": ["Counting Blocks", "Story Time"],
+    "Wednesday": ["Nature Walk", "Drawing"],
+    "Thursday": ["Rhyme Time", "Puzzle Solving"],
+    "Friday": ["Show & Tell", "Outdoor Play"],
+  } : isPrimary ? {
+    "Monday": ["Kinyarwanda Reading", "Math Basics"],
+    "Tuesday": ["English Grammar", "Science Intro"],
+    "Wednesday": ["Social Studies", "Creative Arts"],
+    "Thursday": ["Math Practice", "English Quiz"],
+    "Friday": ["Weekly Test", "Physical Ed"],
+  } : {
+    "Monday": ["Technical Theory", "Applied Maths"],
+    "Tuesday": ["Lab Practice", "Safety Protocols"],
+    "Wednesday": ["Trade Skills", "Technical Drawing"],
+    "Thursday": ["Advanced Modules", "Past Papers"],
+    "Friday": ["Mock Assessment", "Portfolio Update"],
+  };
+
+  const [schedule, setSchedule] = useState(() => {
+    const saved = localStorage.getItem(`tvet_planner_${user.id}`);
+    return saved ? JSON.parse(saved) : Object.entries(defaultTasks).map(([day, tasks]) => ({ day, tasks }));
+  });
+
+  useEffect(() => {
+    localStorage.setItem(`tvet_planner_${user.id}`, JSON.stringify(schedule));
+  }, [schedule, user.id]);
+
+  const addTask = (day: string) => {
+    const task = prompt(`Add task for ${day}:`);
+    if (!task) return;
+    setSchedule(schedule.map((s: any) => s.day === day ? { ...s, tasks: [...s.tasks, task] } : s));
+  };
+
+  const removeTask = (day: string, taskIdx: number) => {
+    setSchedule(schedule.map((s: any) => s.day === day ? { ...s, tasks: s.tasks.filter((_: any, i: number) => i !== taskIdx) } : s));
+  };
 
   return (
     <div className="space-y-8">
-      <header>
-        <h1 className="text-3xl font-black text-white tracking-tight">Study Schedule</h1>
-        <p className="text-zinc-500 font-medium">Your personalized roadmap to exam success.</p>
+      <header className="flex flex-col sm:flex-row sm:items-center justify-between gap-6">
+        <div>
+          <h1 className="text-3xl font-black text-white tracking-tight uppercase">Smart Study Planner</h1>
+          <p className="text-zinc-500 font-medium capitalize">Tailored for {user.educationLevel || 'General'} Student</p>
+        </div>
+        <button 
+          onClick={() => {
+            if (window.confirm('Reset to default schedule?')) {
+              setSchedule(Object.entries(defaultTasks).map(([day, tasks]) => ({ day, tasks })));
+            }
+          }}
+          className="px-4 py-2 bg-zinc-800 text-zinc-400 rounded-xl text-[10px] font-black uppercase tracking-widest hover:text-white transition-colors border border-zinc-700"
+        >
+          Reset Schedule
+        </button>
       </header>
-      <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
-        {schedule.map(s => (
-          <div key={s.day} className="bg-zinc-900/50 p-6 rounded-3xl border border-zinc-800">
-            <h3 className="font-black text-white uppercase tracking-widest text-[10px] mb-4">{s.day}</h3>
-            <div className="space-y-3">
-              {s.tasks.map(t => (
-                <div key={t} className="p-3 bg-black rounded-xl border border-zinc-800 text-[10px] font-bold text-zinc-400">
+
+      <div className="grid grid-cols-1 md:grid-cols-5 gap-6">
+        {schedule.map((s: any) => (
+          <div key={s.day} className="bg-zinc-900 p-6 rounded-[2.5rem] border border-zinc-800 flex flex-col min-h-[400px]">
+            <div className="flex items-center justify-between mb-6">
+              <h3 className="font-black text-white uppercase tracking-widest text-[10px]">{s.day}</h3>
+              <button 
+                onClick={() => addTask(s.day)}
+                className="w-6 h-6 rounded-lg bg-zinc-800 text-zinc-500 hover:bg-white hover:text-black transition-all flex items-center justify-center"
+              >
+                <Plus className="w-4 h-4" />
+              </button>
+            </div>
+            <div className="space-y-3 flex-1">
+              {s.tasks.map((t: string, i: number) => (
+                <div key={i} className="group p-4 bg-black rounded-2xl border border-zinc-800 text-[11px] font-bold text-zinc-300 relative">
                   {t}
+                  <button 
+                    onClick={() => removeTask(s.day, i)}
+                    className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 p-1 text-zinc-600 hover:text-red-500 transition-all"
+                  >
+                    <X className="w-3 h-3" />
+                  </button>
                 </div>
               ))}
+              {s.tasks.length === 0 && (
+                <div className="h-full flex flex-col items-center justify-center border-2 border-dashed border-zinc-800 rounded-2xl py-8 text-center">
+                  <p className="text-[10px] font-bold text-zinc-700 uppercase">Rest Day</p>
+                </div>
+              )}
             </div>
           </div>
         ))}
@@ -797,11 +962,87 @@ const PlannerView = () => {
 };
 
 const QuizHistoryView = ({ history, onReviewQuiz }: { history: QuizHistoryItem[], onReviewQuiz: (historyItem: QuizHistoryItem) => void }) => {
+  const [selectedItems, setSelectedItems] = useState<string[]>([]);
+
+  const toggleSelect = (id: string) => {
+    setSelectedItems(prev => 
+      prev.includes(id) ? prev.filter(i => i !== id) : [...prev, id]
+    );
+  };
+
+  const exportSelectedAsPDF = () => {
+    if (selectedItems.length === 0) {
+      alert('Please select at least one quiz to export');
+      return;
+    }
+
+    const itemsToExport = history.filter(h => selectedItems.includes(h.id));
+    const doc = new jsPDF();
+
+    doc.setFontSize(22);
+    doc.text('Quiz Performance Report', 14, 20);
+    doc.setFontSize(10);
+    doc.setTextColor(100);
+    doc.text(`Generated on ${new Date().toLocaleDateString()}`, 14, 28);
+
+    let yOffset = 40;
+
+    itemsToExport.forEach((item, index) => {
+      if (yOffset > 240) {
+        doc.addPage();
+        yOffset = 20;
+      }
+
+      doc.setFontSize(14);
+      doc.setTextColor(0);
+      doc.text(`${index + 1}. ${item.title}`, 14, yOffset);
+      
+      doc.setFontSize(10);
+      doc.setTextColor(50);
+      doc.text(`Date: ${item.dateCompleted} | Score: ${item.score}/${item.totalPoints} (${(item.score / item.totalPoints * 100).toFixed(1)}%)`, 14, yOffset + 7);
+      
+      const tableData = Object.entries(item.userAnswers).map(([qId, answer]) => {
+        const question = item.quiz?.questions.find(q => q.id === qId);
+        return [
+          question?.text || qId,
+          answer,
+          question?.correctAnswer || 'N/A',
+          answer === question?.correctAnswer ? '✓' : '✗'
+        ];
+      });
+
+      (doc as any).autoTable({
+        startY: yOffset + 12,
+        head: [['Question', 'Your Answer', 'Correct Answer', 'Result']],
+        body: tableData,
+        theme: 'grid',
+        styles: { fontSize: 8 },
+        headStyles: { fillStyle: [100, 100, 100] }
+      });
+
+      yOffset = (doc as any).lastAutoTable.finalY + 20;
+    });
+
+    doc.save('quiz-history-report.pdf');
+  };
+
   return (
     <div className="space-y-8 pb-12">
-      <header>
-        <h1 className="text-3xl font-black text-white tracking-tight">Quiz History</h1>
-        <p className="text-zinc-500 font-medium">Review your previous attempts and track improvement.</p>
+      <header className="flex flex-col sm:flex-row sm:items-center justify-between gap-6">
+        <div>
+          <h1 className="text-3xl font-black text-white tracking-tight uppercase">Quiz History</h1>
+          <p className="text-zinc-500 font-medium">Review your previous attempts and track improvement.</p>
+        </div>
+        {selectedItems.length > 0 && (
+          <motion.button 
+            initial={{ opacity: 0, x: 20 }}
+            animate={{ opacity: 1, x: 0 }}
+            onClick={exportSelectedAsPDF}
+            className="px-6 py-3 bg-white text-black font-black uppercase tracking-widest text-xs rounded-2xl flex items-center gap-2 hover:bg-zinc-200 transition-all shadow-xl shadow-white/10"
+          >
+            <Download className="w-4 h-4" /> Export Selected ({selectedItems.length})
+          </motion.button>
+        )}
       </header>
 
       {history.length === 0 ? (
@@ -811,50 +1052,73 @@ const QuizHistoryView = ({ history, onReviewQuiz }: { history: QuizHistoryItem[]
           <p className="text-zinc-600 text-xs mt-2">Finish a practice quiz to see it here.</p>
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {history.map((item) => (
             <motion.div 
               key={item.id}
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
-              className="p-6 bg-zinc-900 rounded-3xl border border-zinc-800 hover:border-zinc-700 transition-all group relative overflow-hidden"
+              onClick={() => toggleSelect(item.id)}
+              className={cn(
+                "p-8 rounded-[2rem] border transition-all group relative overflow-hidden cursor-pointer",
+                selectedItems.includes(item.id) 
+                  ? "bg-white text-black border-white shadow-2xl shadow-white/10" 
+                  : "bg-zinc-900 border-zinc-800 hover:border-zinc-700 text-white"
+              )}
             >
-               <div className="flex items-center justify-between mb-4">
-                 <div className="flex items-center gap-3">
-                   <div className="w-10 h-10 rounded-xl bg-zinc-800 flex items-center justify-center border border-zinc-700">
-                     <FileText className="w-5 h-5 text-zinc-400" />
+               {selectedItems.includes(item.id) && (
+                 <div className="absolute top-4 right-4 bg-black text-white p-1 rounded-lg">
+                   <Check className="w-4 h-4 stroke-[4]" />
+                 </div>
+               )}
+               
+               <div className="flex items-center justify-between mb-6">
+                 <div className="flex items-center gap-4">
+                   <div className={cn(
+                     "w-12 h-12 rounded-2xl flex items-center justify-center border transition-colors",
+                     selectedItems.includes(item.id) ? "bg-black/5 border-black/10" : "bg-zinc-800 border-zinc-700"
+                   )}>
+                     <FileText className={cn("w-6 h-6", selectedItems.includes(item.id) ? "text-black" : "text-zinc-500")} />
                    </div>
                    <div>
-                     <h3 className="font-bold text-white tracking-tight">{item.title}</h3>
-                     <p className="text-[10px] font-black text-zinc-500 uppercase tracking-widest">{item.dateCompleted}</p>
+                     <h3 className="font-black text-lg tracking-tight uppercase line-clamp-1">{item.title}</h3>
+                     <p className={cn("text-[10px] font-black uppercase tracking-widest", selectedItems.includes(item.id) ? "text-zinc-500" : "text-zinc-600")}>{item.dateCompleted}</p>
                    </div>
                  </div>
                  <div className="flex flex-col items-end">
                    <div className="flex items-baseline gap-1">
-                     <span className="text-2xl font-black text-white">{item.score}</span>
-                     <span className="text-xs text-zinc-500 font-bold">/{item.totalPoints}</span>
+                     <span className="text-3xl font-black">{item.score}</span>
+                     <span className={cn("text-xs font-bold", selectedItems.includes(item.id) ? "text-zinc-400" : "text-zinc-500")}>/{item.totalPoints}</span>
                    </div>
                    <div className={cn(
-                     "mt-1 px-2 py-0.5 rounded text-[8px] font-black uppercase tracking-widest",
-                     (item.score / item.totalPoints >= 0.7) ? "bg-green-500/10 text-green-500" : "bg-yellow-500/10 text-yellow-500"
+                     "mt-2 px-2.5 py-1 rounded-lg text-[9px] font-black uppercase tracking-[0.2em]",
+                     (item.score / item.totalPoints >= 0.7) 
+                        ? (selectedItems.includes(item.id) ? "bg-black text-white" : "bg-green-500/10 text-green-500")
+                        : (selectedItems.includes(item.id) ? "bg-black/20 text-black" : "bg-yellow-500/10 text-yellow-500")
                    )}>
                      {(item.score / item.totalPoints * 100).toFixed(0)}% Mastery
                    </div>
                  </div>
                </div>
 
-               <div className="flex items-center gap-2 mt-6">
+               <div className="flex items-center gap-3 mt-8">
                  <button 
-                  onClick={() => onReviewQuiz(item)}
-                  className="flex-1 py-3 bg-zinc-800 hover:bg-white hover:text-black rounded-xl text-[10px] font-black uppercase tracking-widest transition-all flex items-center justify-center gap-2"
+                  onClick={(e) => { e.stopPropagation(); onReviewQuiz(item); }}
+                  className={cn(
+                    "flex-1 py-4 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all flex items-center justify-center gap-2",
+                    selectedItems.includes(item.id) ? "bg-black text-white hover:bg-zinc-800" : "bg-zinc-800 hover:bg-white hover:text-black"
+                  )}
                  >
-                   <Search className="w-3 h-3" /> Review Answers
+                   <Search className="w-3.5 h-3.5" /> Review Answers
                  </button>
                  <button 
-                  onClick={() => (window as any).refreshQuiz(item.quiz)}
-                  className="px-4 py-3 bg-zinc-800 hover:bg-zinc-700 text-white rounded-xl transition-all"
+                  onClick={(e) => { e.stopPropagation(); (window as any).refreshQuiz(item.quiz); }}
+                  className={cn(
+                    "px-5 py-4 rounded-2xl transition-all",
+                    selectedItems.includes(item.id) ? "bg-black/10 text-black hover:bg-black/20" : "bg-zinc-800 hover:bg-zinc-700 text-white"
+                  )}
                  >
-                   <RotateCcw className="w-4 h-4" />
+                   <RotateCcw className="w-5 h-5" />
                  </button>
                </div>
             </motion.div>
@@ -979,35 +1243,80 @@ const AssessmentView = ({
     if (onComplete) onComplete(historyItem);
   };
 
+  const exportAssessmentAsPDF = (e: React.MouseEvent, exam: Assessment) => {
+    e.stopPropagation();
+    const doc = new jsPDF();
+    doc.setFontSize(22);
+    doc.text(exam.title, 14, 20);
+    doc.setFontSize(10);
+    doc.setTextColor(100);
+    doc.text(`Trade: ${exam.trade} | Time Limit: ${exam.timeLimit} mins | Questions: ${exam.questions.length}`, 14, 28);
+
+    let yOffset = 40;
+    exam.questions.forEach((q, i) => {
+      if (yOffset > 250) {
+        doc.addPage();
+        yOffset = 20;
+      }
+      doc.setFontSize(11);
+      doc.setTextColor(0);
+      const splitText = doc.splitTextToSize(`Q${i+1}: ${q.text}`, 180);
+      doc.text(splitText, 14, yOffset);
+      yOffset += (splitText.length * 6) + 4;
+
+      if (q.type === 'MCQ' && q.options) {
+        q.options.forEach((opt, idx) => {
+          if (yOffset > 270) { doc.addPage(); yOffset = 20; }
+          doc.text(`${String.fromCharCode(65 + idx)}) ${opt}`, 20, yOffset);
+          yOffset += 7;
+        });
+      } else {
+        doc.setDrawColor(200);
+        doc.line(20, yOffset, 190, yOffset);
+        yOffset += 15;
+      }
+      yOffset += 10;
+    });
+    doc.save(`${exam.title.replace(/\s+/g, '-')}.pdf`);
+  };
+
   if (!activeExam) {
     return (
       <div className="space-y-8 pb-12">
-        <header className="flex items-center justify-between">
+        <header className="flex flex-col sm:flex-row sm:items-center justify-between gap-6">
           <div>
-            <h1 className="text-3xl font-black text-white tracking-tight">Assessment Library</h1>
+            <h1 className="text-3xl font-black text-white tracking-tight uppercase">Assessment Library</h1>
             <p className="text-zinc-500 font-medium">Choose a practice exam or certification simulation.</p>
           </div>
-          <div className="flex items-center gap-3 bg-zinc-900 px-4 py-2 rounded-xl border border-zinc-800">
-            <Search className="w-4 h-4 text-zinc-500" />
-            <input type="text" placeholder="Search assessments..." className="bg-transparent border-none text-xs focus:ring-0 text-white w-48" />
+          <div className="flex items-center gap-3 bg-zinc-900 px-5 py-3 rounded-2xl border border-zinc-800 focus-within:border-zinc-600 transition-all">
+            <Search className="w-5 h-5 text-zinc-500" />
+            <input type="text" placeholder="Search assessments..." className="bg-transparent border-none text-sm focus:ring-0 text-white w-48 font-bold" />
           </div>
         </header>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {assessments.map((exam) => (
-            <motion.div 
+            <motion.div
               key={exam.id}
               whileHover={{ y: -5 }}
               className="bg-zinc-900 rounded-[2.5rem] border border-zinc-800 p-8 flex flex-col group hover:border-zinc-700 transition-all cursor-pointer overflow-hidden relative"
               onClick={() => setActiveExam(exam)}
             >
               <div className="absolute top-0 right-0 w-32 h-32 bg-white/5 blur-3xl -mr-16 -mt-16 rounded-full" />
-              <div className="flex items-center justify-between mb-6">
-                <div className="w-12 h-12 rounded-2xl bg-zinc-800 flex items-center justify-center border border-zinc-700 group-hover:bg-white group-hover:text-black transition-all">
-                  <BookOpen className="w-6 h-6" />
+              <div className="flex items-center justify-between mb-8">
+                <div className="w-14 h-14 rounded-[1.25rem] bg-zinc-800 flex items-center justify-center border border-zinc-700 group-hover:bg-white group-hover:text-black transition-all">
+                  <BookOpen className="w-7 h-7" />
                 </div>
-                <div className="px-3 py-1 rounded-full bg-black/40 text-[10px] font-black text-zinc-500 uppercase tracking-widest border border-zinc-800">
-                  {exam.timeLimit} Min
+                <div className="flex flex-col items-end gap-2">
+                  <div className="px-3 py-1 rounded-full bg-black/40 text-[9px] font-black text-zinc-500 uppercase tracking-widest border border-zinc-800">
+                    {exam.timeLimit} Min
+                  </div>
+                  <button 
+                    onClick={(e) => exportAssessmentAsPDF(e, exam)}
+                    className="p-2 bg-zinc-800 text-zinc-400 rounded-xl hover:bg-white hover:text-black transition-all"
+                  >
+                    <Download className="w-4 h-4" />
+                  </button>
                 </div>
               </div>
               <h3 className="text-xl font-black text-white mb-2 leading-tight">{exam.title}</h3>
@@ -1250,6 +1559,7 @@ const AssessmentView = ({
 const PortfolioView = ({ user }: { user: User }) => {
   const [items, setItems] = useState<PortfolioItem[]>([]);
   const [loading, setLoading] = useState(false);
+  const [uploadType, setUploadType] = useState<'evidence' | 'certificate'>('evidence');
 
   useEffect(() => {
     const fetchPortfolio = async () => {
@@ -1270,14 +1580,14 @@ const PortfolioView = ({ user }: { user: User }) => {
     setLoading(true);
     const formData = new FormData();
     formData.append('media', file);
-    formData.append('title', `Assessment Evidence: ${file.name}`);
-    formData.append('description', `Work evidence uploaded on ${new Date().toLocaleDateString()}`);
-    formData.append('type', 'evidence');
+    formData.append('title', uploadType === 'certificate' ? `Certificate: ${file.name}` : `Evidence: ${file.name}`);
+    formData.append('description', `${uploadType === 'certificate' ? 'Official document' : 'Work evidence'} uploaded on ${new Date().toLocaleDateString()}`);
+    formData.append('type', uploadType);
 
     try {
       const newItem = await api.uploadEvidence(formData);
       setItems(prev => [newItem, ...prev]);
-      alert('Portfolio item uploaded successfully!');
+      alert(`${uploadType === 'certificate' ? 'Certificate' : 'Evidence'} uploaded successfully!`);
     } catch (e) {
       console.error('Upload failed:', e);
       alert('Failed to upload portfolio item.');
@@ -1289,24 +1599,45 @@ const PortfolioView = ({ user }: { user: User }) => {
   const [selectedCertificate, setSelectedCertificate] = useState<boolean>(false);
 
   return (
-    <div className="space-y-8">
-      <header className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+    <div className="space-y-8 pb-12">
+      <header className="flex flex-col md:flex-row md:items-center justify-between gap-6">
         <div>
-          <h1 className="text-3xl font-black text-white tracking-tight">E-Portfolio</h1>
-          <p className="text-zinc-500 font-medium">Your verified evidence and academic credentials.</p>
+          <h1 className="text-3xl font-black text-white tracking-tight uppercase">E-Portfolio</h1>
+          <p className="text-zinc-500 font-medium">Manage your certifications and practical evidence.</p>
         </div>
-        <label className="px-6 py-2.5 bg-white text-black rounded-xl font-bold hover:bg-zinc-200 transition-colors flex items-center gap-2 shadow-lg shadow-white/10 cursor-pointer">
-          <Plus className="w-4 h-4" /> 
-          <span>{loading ? 'Uploading...' : 'Upload Evidence'}</span>
-          <input 
-            type="file" 
-            className="hidden" 
-            onChange={handleFileUpload}
-            disabled={loading}
-          />
-        </label>
+        <div className="flex items-center gap-3">
+          <div className="bg-zinc-900 p-1.5 rounded-2xl border border-zinc-800 flex">
+            <button 
+              onClick={() => setUploadType('evidence')}
+              className={cn("px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all", uploadType === 'evidence' ? "bg-white text-black shadow-lg shadow-white/10" : "text-zinc-500")}
+            >
+              Evidence
+            </button>
+            <button 
+              onClick={() => setUploadType('certificate')}
+              className={cn("px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all", uploadType === 'certificate' ? "bg-white text-black shadow-lg shadow-white/10" : "text-zinc-500")}
+            >
+              Certificate
+            </button>
+          </div>
+          <label className="px-6 py-3 bg-white text-black rounded-2xl text-xs font-black uppercase tracking-widest hover:bg-zinc-200 transition-all shadow-xl shadow-white/10 cursor-pointer flex items-center gap-2">
+            {loading ? <div className="w-4 h-4 border-2 border-black/20 border-t-black rounded-full animate-spin" /> : <Plus className="w-4 h-4" />}
+            {uploadType === 'certificate' ? 'Upload Certificate' : 'Upload Evidence'}
+            <input type="file" className="hidden" onChange={handleFileUpload} disabled={loading} />
+          </label>
+        </div>
       </header>
 
+      {uploadType === 'certificate' && (
+        <motion.div 
+          initial={{ opacity: 0, y: -10 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="bg-zinc-800/30 border border-zinc-700 p-4 rounded-2xl flex items-center gap-3"
+        >
+          <Zap className="w-5 h-5 text-white" />
+          <p className="text-xs text-zinc-300 font-bold">AI Level Detection Active: Certificates uploaded will be automatically analyzed for study level.</p>
+        </motion.div>
+      )}
       <div className="space-y-6">
         <div className="flex items-center justify-between">
           <h2 className="text-lg font-bold text-white flex items-center gap-2">
@@ -1568,7 +1899,78 @@ const CertificateView = ({ user }: { user: User }) => {
   );
 };
 
-const SettingsView = ({ user, setUser }: { user: User, setUser: (u: User) => void }) => {
+const SettingsView = ({ 
+  user, 
+  setUser, 
+  theme, 
+  setTheme, 
+  fontSize, 
+  setFontSize,
+  history,
+  onLogout 
+}: { 
+  user: User, 
+  setUser: (u: User) => void,
+  theme: 'light' | 'dark' | 'auto',
+  setTheme: (t: 'light' | 'dark' | 'auto') => void,
+  fontSize: number,
+  setFontSize: (s: number) => void,
+  history: QuizHistoryItem[],
+  onLogout: () => void
+}) => {
+  const [isChangingPassword, setIsChangingPassword] = useState(false);
+  const [passwords, setPasswords] = useState({ current: '', new: '', confirm: '' });
+  const [uploadingAvatar, setUploadingAvatar] = useState(false);
+
+  const avgScore = history.length > 0 
+    ? Math.round(history.reduce((acc, curr) => acc + curr.score, 0) / history.reduce((acc, curr) => acc + curr.totalPoints, 0) * 100) 
+    : 0;
+
+  const handleAvatarChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setUploadingAvatar(true);
+    try {
+      const { avatarUrl } = await api.uploadAvatar(file);
+      setUser({ ...user, avatarUrl });
+      alert('Avatar updated!');
+    } catch (e) {
+      alert('Failed to upload avatar');
+    } finally {
+      setUploadingAvatar(false);
+    }
+  };
+
+  const handlePasswordChange = async () => {
+    if (passwords.new !== passwords.confirm) {
+      alert('New passwords do not match');
+      return;
+    }
+    if (passwords.new.length < 6) {
+      alert('Password must be at least 6 characters');
+      return;
+    }
+    try {
+      await api.changePassword({ currentPassword: passwords.current, newPassword: passwords.new });
+      alert('Password updated!');
+      setIsChangingPassword(false);
+      setPasswords({ current: '', new: '', confirm: '' });
+    } catch (e: any) {
+      alert(e.message || 'Failed to change password');
+    }
+  };
+
+  const handleDeleteAccount = async () => {
+    if (window.confirm('Are you sure you want to delete your account? This action cannot be undone.')) {
+      try {
+        await api.deleteAccount();
+        onLogout();
+      } catch (e) {
+        alert('Failed to delete account');
+      }
+    }
+  };
+
   return (
     <div className="max-w-4xl mx-auto space-y-12 pb-20">
       <header>
@@ -1582,6 +1984,33 @@ const SettingsView = ({ user, setUser }: { user: User, setUser: (u: User) => voi
           <UserIcon className="w-4 h-4" /> Profile
         </div>
         <div className="bg-zinc-900 rounded-3xl border border-zinc-800 divide-y divide-zinc-800 overflow-hidden">
+          {/* Avatar Upload */}
+          <div className="p-8 flex items-center gap-8">
+            <div className="relative group">
+              <div className="w-24 h-24 rounded-[2rem] bg-zinc-800 overflow-hidden border-2 border-zinc-700 flex items-center justify-center">
+                {user.avatarUrl ? (
+                  <img src={user.avatarUrl.startsWith('http') ? user.avatarUrl : `http://localhost:5000${user.avatarUrl}`} alt="Avatar" className="w-full h-full object-cover" />
+                ) : (
+                  <UserIcon className="w-10 h-10 text-zinc-600" />
+                )}
+                {uploadingAvatar && (
+                  <div className="absolute inset-0 bg-black/60 flex items-center justify-center">
+                    <div className="w-6 h-6 border-2 border-white/20 border-t-white rounded-full animate-spin" />
+                  </div>
+                )}
+              </div>
+              <label className="absolute -bottom-2 -right-2 w-10 h-10 bg-white text-black rounded-2xl flex items-center justify-center cursor-pointer shadow-xl hover:scale-110 transition-transform">
+                <Camera className="w-5 h-5" />
+                <input type="file" accept="image/*" className="hidden" onChange={handleAvatarChange} disabled={uploadingAvatar} />
+              </label>
+            </div>
+            <div>
+              <p className="text-xs text-zinc-500 font-bold uppercase tracking-wider mb-2">Student Identity</p>
+              <h3 className="text-xl font-black text-white uppercase tracking-tight">{user.name}</h3>
+              <p className="text-zinc-600 text-xs font-bold">{user.email}</p>
+            </div>
+          </div>
+
           <div className="p-6 flex items-center justify-between">
             <div>
               <p className="text-xs text-zinc-500 font-bold uppercase tracking-wider mb-1">Student name</p>
@@ -1613,13 +2042,6 @@ const SettingsView = ({ user, setUser }: { user: User, setUser: (u: User) => voi
             </div>
             <button className="px-4 py-2 bg-zinc-800 hover:bg-zinc-700 text-white rounded-xl text-xs font-bold transition-colors">Change</button>
           </div>
-          <div className="p-6 flex items-center justify-between">
-            <div>
-              <p className="text-xs text-zinc-500 font-bold uppercase tracking-wider mb-1">Target grade</p>
-              <p className="text-white font-bold">A — Distinction</p>
-            </div>
-            <button className="px-4 py-2 bg-zinc-800 hover:bg-zinc-700 text-white rounded-xl text-xs font-bold transition-colors">Set</button>
-          </div>
         </div>
       </section>
 
@@ -1632,23 +2054,9 @@ const SettingsView = ({ user, setUser }: { user: User, setUser: (u: User) => voi
           <div className="p-6 flex items-center justify-between">
             <div>
               <p className="text-xs text-zinc-500 font-bold uppercase tracking-wider mb-1">My subjects</p>
-              <p className="text-white font-bold">{user.subjects || 'Maths, Biology, Chemistry, English, History'}</p>
+              <p className="text-white font-bold">{user.subjects || 'General TVET Topics'}</p>
             </div>
             <button className="px-4 py-2 bg-zinc-800 hover:bg-zinc-700 text-white rounded-xl text-xs font-bold transition-colors">Edit</button>
-          </div>
-          <div className="p-6 flex items-center justify-between">
-            <div>
-              <p className="text-xs text-zinc-500 font-bold uppercase tracking-wider mb-1">Exam dates</p>
-              <p className="text-white font-bold">5 exams scheduled</p>
-            </div>
-            <button className="px-4 py-2 bg-zinc-800 hover:bg-zinc-700 text-white rounded-xl text-xs font-bold transition-colors">Manage</button>
-          </div>
-          <div className="p-6 flex items-center justify-between">
-            <div>
-              <p className="text-xs text-zinc-500 font-bold uppercase tracking-wider mb-1">Syllabus topics</p>
-              <p className="text-white font-bold">Track covered vs. remaining topics</p>
-            </div>
-            <button className="px-4 py-2 bg-zinc-800 hover:bg-zinc-700 text-white rounded-xl text-xs font-bold transition-colors">View</button>
           </div>
         </div>
       </section>
@@ -1672,91 +2080,26 @@ const SettingsView = ({ user, setUser }: { user: User, setUser: (u: User) => voi
           </div>
           <div className="p-6 flex items-center justify-between">
             <div>
-              <p className="text-xs text-zinc-500 font-bold uppercase tracking-wider mb-1">Smart scheduling</p>
-              <p className="text-white font-bold">Auto-prioritise weak subjects before exams</p>
-            </div>
-            <div className="flex items-center gap-2">
-              <div className="w-10 h-5 bg-white rounded-full relative">
-                <div className="absolute right-0.5 top-0.5 w-4 h-4 bg-black rounded-full" />
-              </div>
-            </div>
-          </div>
-          <div className="p-6 flex items-center justify-between">
-            <div>
               <p className="text-xs text-zinc-500 font-bold uppercase tracking-wider mb-1">Rest day</p>
-              <p className="text-white font-bold">Sunday — no tasks assigned</p>
+              <p className="text-white font-bold">{user.restDay || 'Sunday'} — no tasks assigned</p>
             </div>
-            <button className="px-4 py-2 bg-zinc-800 hover:bg-zinc-700 text-white rounded-xl text-xs font-bold transition-colors">Change</button>
-          </div>
-        </div>
-      </section>
-
-      {/* Quizzes & practice Section */}
-      <section className="space-y-6">
-        <div className="flex items-center gap-2 text-zinc-400 font-bold uppercase tracking-widest text-xs">
-          <ListChecks className="w-4 h-4" /> Quizzes & practice
-        </div>
-        <div className="bg-zinc-900 rounded-3xl border border-zinc-800 divide-y divide-zinc-800 overflow-hidden">
-          <div className="p-6 flex items-center justify-between">
-            <div>
-              <p className="text-xs text-zinc-500 font-bold uppercase tracking-wider mb-1">Quiz difficulty</p>
-              <p className="text-white font-bold">Adaptive — adjusts to performance</p>
-            </div>
-            <button className="px-4 py-2 bg-zinc-800 hover:bg-zinc-700 text-white rounded-xl text-xs font-bold transition-colors">Set</button>
-          </div>
-          <div className="p-6 flex items-center justify-between">
-            <div>
-              <p className="text-xs text-zinc-500 font-bold uppercase tracking-wider mb-1">Questions per quiz</p>
-              <p className="text-white font-bold">10 questions</p>
-              <div className="flex gap-2 mt-2">
-                {['5', '10', '20'].map(n => (
-                  <button key={n} className={cn("px-3 py-1 rounded-lg text-[10px] font-bold", n === '10' ? "bg-white text-black" : "bg-zinc-800 text-zinc-500")}>{n}</button>
-                ))}
-              </div>
-            </div>
-          </div>
-          <div className="p-6 flex items-center justify-between">
-            <div>
-              <p className="text-xs text-zinc-500 font-bold uppercase tracking-wider mb-1">Show answers after quiz</p>
-              <p className="text-white font-bold">Review explanations for wrong answers</p>
-            </div>
-            <div className="flex items-center gap-2">
-              <div className="w-10 h-5 bg-white rounded-full relative">
-                <div className="absolute right-0.5 top-0.5 w-4 h-4 bg-black rounded-full" />
-              </div>
-            </div>
-          </div>
-          <div className="p-6 flex items-center justify-between">
-            <div>
-              <p className="text-xs text-zinc-500 font-bold uppercase tracking-wider mb-1">Quiz timer</p>
-              <p className="text-white font-bold">Timed mode — simulate exam conditions</p>
-            </div>
-            <div className="flex items-center gap-2">
-              <div className="w-10 h-5 bg-zinc-800 rounded-full relative">
-                <div className="absolute left-0.5 top-0.5 w-4 h-4 bg-zinc-600 rounded-full" />
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Notifications Section */}
-      <section className="space-y-6">
-        <div className="flex items-center gap-2 text-zinc-400 font-bold uppercase tracking-widest text-xs">
-          <Bell className="w-4 h-4" /> Notifications
-        </div>
-        <div className="bg-zinc-900 rounded-3xl border border-zinc-800 divide-y divide-zinc-800 overflow-hidden">
-          <div className="p-6">
-            <p className="text-xs text-zinc-500 font-bold uppercase tracking-wider mb-1">Exam countdown alerts</p>
-            <p className="text-white font-bold">7 days, 3 days, 1 day before</p>
-          </div>
-          <div className="p-6">
-            <p className="text-xs text-zinc-500 font-bold uppercase tracking-wider mb-1">Streak reminders</p>
-            <p className="text-white font-bold">Alert if streak is at risk by 8 PM</p>
-          </div>
-          <div className="p-6">
-            <p className="text-xs text-zinc-500 font-bold uppercase tracking-wider mb-1">Weekly progress report</p>
-            <p className="text-white font-bold">Sent every Sunday morning</p>
+            <button 
+              onClick={async () => {
+                const day = prompt('Choose your rest day (e.g., Saturday, Sunday):', user.restDay || 'Sunday');
+                if (day) {
+                  try {
+                    const res = await api.updateProfile({ restDay: day });
+                    setUser(res.user);
+                    alert(`Rest day changed to ${day}`);
+                  } catch (e) {
+                    alert('Failed to update rest day');
+                  }
+                }
+              }}
+              className="px-4 py-2 bg-zinc-800 hover:bg-zinc-700 text-white rounded-xl text-xs font-bold transition-colors"
+            >
+              Change
+            </button>
           </div>
         </div>
       </section>
@@ -1769,17 +2112,17 @@ const SettingsView = ({ user, setUser }: { user: User, setUser: (u: User) => voi
         <div className="bg-zinc-900 rounded-3xl border border-zinc-800 divide-y divide-zinc-800 overflow-hidden">
           <div className="p-6 flex items-center justify-between">
             <div>
-              <p className="text-xs text-zinc-500 font-bold uppercase tracking-wider mb-1">Theme</p>
-              <p className="text-white font-bold">System default</p>
-              <div className="flex gap-2 mt-2">
-                {['Light', 'Dark', 'Auto'].map(t => (
+              <p className="text-xs text-zinc-500 font-bold uppercase tracking-wider mb-1">Theme (Adaptable)</p>
+              <p className="text-white font-bold capitalize">{theme}</p>
+              <div className="flex gap-2 mt-3">
+                {(['light', 'dark', 'auto'] as const).map(t => (
                   <button 
                     key={t} 
-                    onClick={() => {
-                      if (t === 'Dark') document.documentElement.classList.add('dark');
-                      else document.documentElement.classList.remove('dark');
-                    }}
-                    className={cn("px-3 py-1 rounded-lg text-[10px] font-bold", t === 'Dark' ? "bg-white text-black" : "bg-zinc-800 text-zinc-500")}
+                    onClick={() => setTheme(t)}
+                    className={cn(
+                      "px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all", 
+                      theme === t ? "bg-white text-black shadow-lg shadow-white/10" : "bg-zinc-800 text-zinc-500 hover:text-white"
+                    )}
                   >
                     {t}
                   </button>
@@ -1789,12 +2132,18 @@ const SettingsView = ({ user, setUser }: { user: User, setUser: (u: User) => voi
           </div>
           <div className="p-6 flex items-center justify-between">
             <div>
-              <p className="text-xs text-zinc-500 font-bold uppercase tracking-wider mb-1">Font size</p>
-              <p className="text-white font-bold">Medium</p>
-              <div className="flex gap-2 mt-2">
-                {['S', 'M', 'L'].map(s => (
-                  <button key={s} className={cn("px-3 py-1 rounded-lg text-[10px] font-bold", s === 'M' ? "bg-white text-black" : "bg-zinc-800 text-zinc-500")}>{s}</button>
-                ))}
+              <p className="text-xs text-zinc-500 font-bold uppercase tracking-wider mb-1">Font size (Real-time)</p>
+              <p className="text-white font-bold">{fontSize}px</p>
+              <div className="flex items-center gap-4 mt-3">
+                <button onClick={() => setFontSize(Math.max(12, fontSize - 1))} className="p-2 bg-zinc-800 rounded-lg hover:bg-zinc-700 text-white"><RotateCcw className="w-4 h-4 rotate-180" /></button>
+                <input 
+                  type="range" 
+                  min="12" max="24" 
+                  value={fontSize} 
+                  onChange={(e) => setFontSize(Number(e.target.value))}
+                  className="w-32 accent-white"
+                />
+                <button onClick={() => setFontSize(Math.min(24, fontSize + 1))} className="p-2 bg-zinc-800 rounded-lg hover:bg-zinc-700 text-white"><RotateCcw className="w-4 h-4" /></button>
               </div>
             </div>
           </div>
@@ -1807,13 +2156,59 @@ const SettingsView = ({ user, setUser }: { user: User, setUser: (u: User) => voi
           <Lock className="w-4 h-4" /> Privacy & data
         </div>
         <div className="bg-zinc-900 rounded-3xl border border-zinc-800 divide-y divide-zinc-800 overflow-hidden">
-          <div className="p-6 flex items-center justify-between">
-            <div>
-              <p className="text-xs text-zinc-500 font-bold uppercase tracking-wider mb-1">Change password</p>
-              <p className="text-white font-bold">Last changed 30 days ago</p>
+          <div className="p-6">
+            <div className="flex items-center justify-between mb-4">
+              <div>
+                <p className="text-xs text-zinc-500 font-bold uppercase tracking-wider mb-1">Security</p>
+                <p className="text-white font-bold">Change account password</p>
+              </div>
+              <button 
+                onClick={() => setIsChangingPassword(!isChangingPassword)}
+                className="px-4 py-2 bg-zinc-800 hover:bg-zinc-700 text-white rounded-xl text-xs font-bold transition-colors"
+              >
+                {isChangingPassword ? 'Cancel' : 'Update Password'}
+              </button>
             </div>
-            <button className="px-4 py-2 bg-zinc-800 hover:bg-zinc-700 text-white rounded-xl text-xs font-bold transition-colors">Update</button>
+            
+            {isChangingPassword && (
+              <motion.div 
+                initial={{ opacity: 0, height: 0 }}
+                animate={{ opacity: 1, height: 'auto' }}
+                className="space-y-4 pt-4 border-t border-zinc-800"
+              >
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                  <input 
+                    type="password" 
+                    placeholder="Current Password"
+                    value={passwords.current}
+                    onChange={(e) => setPasswords({...passwords, current: e.target.value})}
+                    className="bg-black border border-zinc-800 rounded-xl p-3 text-xs text-white focus:ring-1 focus:ring-white/20 outline-none"
+                  />
+                  <input 
+                    type="password" 
+                    placeholder="New Password"
+                    value={passwords.new}
+                    onChange={(e) => setPasswords({...passwords, new: e.target.value})}
+                    className="bg-black border border-zinc-800 rounded-xl p-3 text-xs text-white focus:ring-1 focus:ring-white/20 outline-none"
+                  />
+                  <input 
+                    type="password" 
+                    placeholder="Confirm New"
+                    value={passwords.confirm}
+                    onChange={(e) => setPasswords({...passwords, confirm: e.target.value})}
+                    className="bg-black border border-zinc-800 rounded-xl p-3 text-xs text-white focus:ring-1 focus:ring-white/20 outline-none"
+                  />
+                </div>
+                <button 
+                  onClick={handlePasswordChange}
+                  className="w-full py-3 bg-white text-black font-black uppercase tracking-widest text-[10px] rounded-xl hover:bg-zinc-200 transition-all"
+                >
+                  Save New Password
+                </button>
+              </motion.div>
+            )}
           </div>
+          
           <div className="p-6 flex items-center justify-between">
             <div>
               <p className="text-xs text-zinc-500 font-bold uppercase tracking-wider mb-1">Export my data</p>
@@ -1825,36 +2220,39 @@ const SettingsView = ({ user, setUser }: { user: User, setUser: (u: User) => voi
           </div>
           <div className="p-6 flex items-center justify-between">
             <div>
-              <p className="text-xs text-red-500 font-bold uppercase tracking-wider mb-1">Delete account</p>
+              <p className="text-xs text-red-500 font-bold uppercase tracking-wider mb-1">Danger Zone</p>
               <p className="text-zinc-400 text-sm">Permanently remove all data</p>
             </div>
-            <button className="px-4 py-2 bg-red-500/10 hover:bg-red-500/20 text-red-500 rounded-xl text-xs font-bold transition-colors flex items-center gap-2">
-              <Trash2 className="w-3 h-3" /> Delete
+            <button 
+              onClick={handleDeleteAccount}
+              className="px-4 py-2 bg-red-500/10 hover:bg-red-500/20 text-red-500 rounded-xl text-xs font-bold transition-colors flex items-center gap-2"
+            >
+              <Trash2 className="w-3 h-3" /> Delete Account
             </button>
           </div>
         </div>
       </section>
 
-      {/* Progress Snapshot Card */}
-      <div className="bg-white rounded-[2.5rem] p-8 text-black relative overflow-hidden">
-        <div className="absolute top-0 right-0 w-32 h-32 bg-black/5 blur-3xl rounded-full -mr-16 -mt-16" />
-        <h2 className="text-2xl font-black tracking-tight mb-8">My progress snapshot</h2>
+      {/* Progress Snapshot Card (Real-time) */}
+      <div className="bg-white rounded-[2.5rem] p-8 text-black relative overflow-hidden shadow-2xl shadow-white/5">
+        <div className="absolute top-0 right-0 w-32 h-32 bg-zinc-100 blur-3xl rounded-full -mr-16 -mt-16" />
+        <h2 className="text-2xl font-black tracking-tight mb-8 uppercase">Real-time progress snapshot</h2>
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-8">
           <div>
-            <p className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest mb-1">Quizzes taken</p>
-            <p className="text-3xl font-black">47</p>
+            <p className="text-[10px] font-black text-zinc-400 uppercase tracking-widest mb-1">Quizzes taken</p>
+            <p className="text-4xl font-black">{history.length}</p>
           </div>
           <div>
-            <p className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest mb-1">Avg score</p>
-            <p className="text-3xl font-black">74%</p>
+            <p className="text-[10px] font-black text-zinc-400 uppercase tracking-widest mb-1">Avg score</p>
+            <p className="text-4xl font-black">{avgScore}%</p>
           </div>
           <div>
-            <p className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest mb-1">Current streak</p>
-            <p className="text-3xl font-black">12 <span className="text-sm">days</span></p>
+            <p className="text-[10px] font-black text-zinc-400 uppercase tracking-widest mb-1">Current streak</p>
+            <p className="text-4xl font-black">{user.streak || 0} <span className="text-xs font-bold text-zinc-500">days</span></p>
           </div>
           <div>
-            <p className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest mb-1">Certificates</p>
-            <p className="text-3xl font-black">3 <span className="text-sm">earned</span></p>
+            <p className="text-[10px] font-black text-zinc-400 uppercase tracking-widest mb-1">Certificates</p>
+            <p className="text-4xl font-black">{history.filter(h => h.score >= 80).length} <span className="text-xs font-bold text-zinc-500">earned</span></p>
           </div>
         </div>
       </div>
@@ -2323,11 +2721,60 @@ export default function App() {
   const [showNotifications, setShowNotifications] = useState(false);
   const [showOnboarding, setShowOnboarding] = useState(false);
 
-  const notifications = [
-    { id: 1, title: 'Exam Reminder', text: 'Final Theory Exam in 3 days!', type: 'critical' },
-    { id: 2, title: 'Achievement', text: 'You reached a 12-day study streak!', type: 'success' },
-    { id: 3, title: 'New Content', text: 'New past papers uploaded for Automotive.', type: 'info' },
-  ];
+  // --- Theme & Font Size State ---
+  const [theme, setTheme] = useState<'light' | 'dark' | 'auto'>(() => (localStorage.getItem('tvet_theme') as any) || 'auto');
+  const [fontSize, setFontSize] = useState<number>(() => Number(localStorage.getItem('tvet_fontSize')) || 16);
+
+  useEffect(() => {
+    localStorage.setItem('tvet_theme', theme);
+    const root = window.document.documentElement;
+    const isDark = theme === 'dark' || (theme === 'auto' && window.matchMedia('(prefers-color-scheme: dark)').matches);
+    if (isDark) {
+      root.classList.add('dark');
+    } else {
+      root.classList.remove('dark');
+    }
+  }, [theme]);
+
+  useEffect(() => {
+    localStorage.setItem('tvet_fontSize', fontSize.toString());
+    document.documentElement.style.fontSize = `${fontSize}px`;
+  }, [fontSize]);
+
+  const [notifications, setNotifications] = useState(() => {
+    const saved = localStorage.getItem('tvet_notifications');
+    return saved ? JSON.parse(saved) : [
+      { id: 1, title: 'Exam Reminder', text: 'Final Theory Exam in 3 days!', type: 'critical', timestamp: new Date().toISOString() },
+      { id: 2, title: 'Achievement', text: 'You reached a 12-day study streak!', type: 'success', timestamp: new Date().toISOString() },
+      { id: 3, title: 'New Content', text: 'New past papers uploaded for Automotive.', type: 'info', timestamp: new Date().toISOString() },
+    ];
+  });
+
+  useEffect(() => {
+    localStorage.setItem('tvet_notifications', JSON.stringify(notifications));
+  }, [notifications]);
+
+  // Real-time notification simulation
+  useEffect(() => {
+    const interval = setInterval(() => {
+      const news = [
+        { title: 'New Past Paper', text: 'March 2026 Plumbing papers are now available.', type: 'info' },
+        { title: 'Study Tip', text: 'Active recall is 3x more effective than re-reading.', type: 'success' },
+        { title: 'System Update', text: 'New AI features added to Assessment Library.', type: 'critical' },
+      ];
+      const random = news[Math.floor(Math.random() * news.length)];
+      
+      // 10% chance every 30 seconds to get a new notification
+      if (Math.random() > 0.9) {
+        setNotifications(prev => [{
+          id: Date.now(),
+          ...random,
+          timestamp: new Date().toISOString()
+        }, ...prev].slice(0, 10)); // Keep last 10
+      }
+    }, 30000);
+    return () => clearInterval(interval);
+  }, []);
 
   useEffect(() => {
     if (isAuthenticated) {
@@ -2472,11 +2919,20 @@ export default function App() {
         case 'history': return <QuizHistoryView history={history} onReviewQuiz={handleReviewHistoryQuiz} />;
         case 'analytics': return <AnalyticsView history={history} user={user} onStartQuiz={handleStartCustomQuiz} />;
         case 'flashcards': return <FlashcardsView />;
-        case 'planner': return <PlannerView />;
-        case 'portfolio': return <PortfolioView user={user} />;
+        case 'planner': return <PlannerView user={user} />;        case 'portfolio': return <PortfolioView user={user} />;
         case 'papers': return <PastPapers onStartQuiz={handleStartCustomQuiz} />;
-        case 'settings': return <SettingsView user={user} setUser={setUser} />;
-        default: return <DashboardView user={user} onStartQuiz={handleStartCustomQuiz} onLogout={handleLogout} history={history} onNavigate={handleTabChange} />;
+        case 'settings': return (
+          <SettingsView 
+            user={user} 
+            setUser={setUser} 
+            theme={theme} 
+            setTheme={setTheme} 
+            fontSize={fontSize} 
+            setFontSize={setFontSize} 
+            history={history}
+            onLogout={handleLogout}
+          />
+        );        default: return <DashboardView user={user} onStartQuiz={handleStartCustomQuiz} onLogout={handleLogout} history={history} onNavigate={handleTabChange} />;
       }
     })();
 

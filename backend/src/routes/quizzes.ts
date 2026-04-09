@@ -23,7 +23,8 @@ router.post('/generate', requireAuth, async (req: AuthRequest, res: Response) =>
       subject, 
       trade, 
       user?.educationLevel || undefined, 
-      user?.combination || undefined
+      user?.combination || undefined,
+      user?.subjects || undefined
     );
     
     // Save generated quiz to DB

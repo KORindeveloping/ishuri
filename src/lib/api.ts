@@ -73,6 +73,48 @@ export const api = {
     return res.json();
   },
 
+  deleteAccount: async () => {
+    const res = await fetch(`${API_URL}/auth`, {
+      method: 'DELETE',
+      headers: getHeaders()
+    });
+    if (!res.ok) {
+      const errorData = await res.json().catch(() => ({}));
+      throw new Error(errorData.error || 'Failed to delete account');
+    }
+    return res.json();
+  },
+
+  changePassword: async (passwords: any) => {
+    const res = await fetch(`${API_URL}/auth/change-password`, {
+      method: 'PATCH',
+      headers: getHeaders(),
+      body: JSON.stringify(passwords)
+    });
+    if (!res.ok) {
+      const errorData = await res.json().catch(() => ({}));
+      throw new Error(errorData.error || 'Failed to change password');
+    }
+    return res.json();
+  },
+
+  uploadAvatar: async (file: File) => {
+    const token = localStorage.getItem('tvet_token');
+    const formData = new FormData();
+    formData.append('avatar', file);
+
+    const res = await fetch(`${API_URL}/auth/avatar`, {
+      method: 'POST',
+      headers: token ? { 'Authorization': `Bearer ${token}` } : {},
+      body: formData
+    });
+    if (!res.ok) {
+      const errorData = await res.json().catch(() => ({}));
+      throw new Error(errorData.error || 'Avatar upload failed');
+    }
+    return res.json();
+  },
+
   // --- Quizzes ---
   generateQuiz: async (subject: string, trade: string) => {
     try {
