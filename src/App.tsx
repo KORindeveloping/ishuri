@@ -15,6 +15,7 @@ import {
   Camera, 
   Video, 
   ShieldCheck, 
+  Loader2,
   User as UserIcon,
   Menu,
   X,
