@@ -18,7 +18,9 @@ export const api = {
     });
     if (!res.ok) {
       const errorData = await res.json().catch(() => ({}));
-      throw new Error(errorData.error || 'Login failed');
+      // Show details if available, otherwise show the main error or fallback
+      const errorMsg = errorData.details || errorData.error || 'Login failed';
+      throw new Error(errorMsg);
     }
     return res.json();
   },
