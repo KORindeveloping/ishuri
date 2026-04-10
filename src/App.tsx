@@ -3202,7 +3202,7 @@ export default function App() {
   }
 
   return (
-    <div className="min-h-screen bg-black font-sans text-white flex">
+    <div className="min-h-screen bg-white dark:bg-[#050505] font-sans text-zinc-900 dark:text-white flex transition-colors duration-500">
       {showOnboarding && (
         <OnboardingPrompt 
           user={user} 
@@ -3228,17 +3228,17 @@ export default function App() {
 
       {/* Sidebar */}
       <aside className={cn(
-        "fixed inset-y-0 left-0 z-40 w-64 bg-zinc-950 border-r border-zinc-900 transition-transform duration-300 lg:static lg:translate-x-0 overflow-y-auto",
+        "fixed inset-y-0 left-0 z-40 w-64 bg-zinc-50 dark:bg-zinc-950 border-r border-zinc-200 dark:border-zinc-900 transition-transform duration-300 lg:static lg:translate-x-0 overflow-y-auto",
         !isSidebarOpen && "-translate-x-full"
       )}>
         <div className="h-full flex flex-col p-6">
           <div className="flex items-center gap-3 mb-10 px-2">
-            <div className="w-10 h-10 bg-white rounded-xl flex items-center justify-center shadow-lg shadow-white/10">
-              <ShieldCheck className="w-6 h-6 text-black" />
+            <div className="w-10 h-10 bg-black dark:bg-white rounded-xl flex items-center justify-center shadow-lg shadow-black/10 dark:shadow-white/10">
+              <ShieldCheck className="w-6 h-6 text-white dark:text-black" />
             </div>
             <div>
-              <h2 className="font-black text-xl tracking-tight text-white">TVET<span className="text-zinc-500">PRO</span></h2>
-              <p className="text-[10px] font-bold text-zinc-600 uppercase tracking-widest">Mastery Platform</p>
+              <h2 className="font-black text-xl tracking-tight text-zinc-900 dark:text-white">TVET<span className="text-zinc-400 dark:text-zinc-500">PRO</span></h2>
+              <p className="text-[10px] font-bold text-zinc-400 dark:text-zinc-600 uppercase tracking-widest">Mastery Platform</p>
             </div>
           </div>
 
@@ -3298,41 +3298,32 @@ export default function App() {
       </aside>
 
       {/* Main Content */}
-      <main className="flex-1 flex flex-col min-w-0 overflow-hidden">
+      <main className="flex-1 flex flex-col min-w-0 overflow-hidden bg-white dark:bg-black transition-colors duration-500">
         {/* Header */}
-        <header className="h-16 bg-zinc-950 border-b border-zinc-900 flex items-center justify-between px-6 sticky top-0 z-30">
+        <header className="h-20 bg-white/80 dark:bg-zinc-950/80 backdrop-blur-md border-b border-zinc-200 dark:border-zinc-900 flex items-center justify-between px-8 sticky top-0 z-30 transition-colors duration-500">
           <button 
             onClick={() => setIsSidebarOpen(!isSidebarOpen)}
-            className="lg:hidden p-2 text-zinc-400 hover:bg-zinc-900 rounded-xl"
+            className="lg:hidden p-2 text-zinc-500 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-900 rounded-xl"
           >
             {isSidebarOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
           </button>
 
-          <div className="hidden md:flex items-center bg-zinc-900 rounded-xl px-4 py-2 w-96 border border-zinc-800 focus-within:ring-2 focus-within:ring-white/20 transition-all">
-            <Search className="w-4 h-4 text-zinc-500 mr-2" />
+          <div className="hidden md:flex items-center bg-zinc-100 dark:bg-zinc-900 rounded-2xl px-5 py-2.5 w-96 border border-zinc-200 dark:border-zinc-800 focus-within:ring-2 focus-within:ring-black/5 dark:focus-within:ring-white/10 transition-all">
+            <Search className="w-4 h-4 text-zinc-400 dark:text-zinc-500 mr-3" />
             <input 
               type="text" 
-              placeholder="Search subjects or tasks..." 
-              onChange={(e) => {
-                // This is a simple bridge to get search into the dashboard view
-                const dashboardSearchInput = document.getElementById('dashboard-search-proxy');
-                if (dashboardSearchInput && activeTab === 'dashboard') {
-                  // In a real app we'd use a shared context or global state, 
-                  // but for this MVP we'll lift the state properly if needed.
-                  // For now, let's just make it work.
-                }
-              }}
-              className="bg-transparent border-none text-sm focus:ring-0 w-full placeholder:text-zinc-600 text-white"
+              placeholder="Search intelligence database..." 
+              className="bg-transparent border-none text-sm focus:ring-0 w-full placeholder:text-zinc-400 dark:placeholder:text-zinc-600 text-zinc-900 dark:text-white"
             />
           </div>
 
           <div className="flex items-center gap-4 relative">
             <button 
               onClick={() => setShowNotifications(!showNotifications)}
-              className="p-2 text-zinc-400 hover:bg-zinc-900 rounded-xl relative"
+              className="p-2.5 text-zinc-400 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-900 rounded-2xl relative transition-colors"
             >
               <Bell className="w-5 h-5" />
-              <span className="absolute top-2 right-2 w-2 h-2 bg-white rounded-full border-2 border-black" />
+              <span className="absolute top-2.5 right-2.5 w-2 h-2 bg-black dark:bg-white rounded-full border-2 border-white dark:border-black" />
             </button>
 
             <AnimatePresence>
@@ -3341,37 +3332,37 @@ export default function App() {
                   initial={{ opacity: 0, y: 10, scale: 0.95 }}
                   animate={{ opacity: 1, y: 0, scale: 1 }}
                   exit={{ opacity: 0, y: 10, scale: 0.95 }}
-                  className="absolute right-0 top-full mt-2 w-80 bg-zinc-900 rounded-[2rem] border border-zinc-800 shadow-2xl p-6 z-50 overflow-hidden"
+                  className="absolute right-0 top-full mt-4 w-80 bg-white dark:bg-zinc-900 rounded-[2.5rem] border border-zinc-200 dark:border-zinc-800 shadow-2xl p-6 z-50 overflow-hidden"
                 >
-                  <h3 className="text-sm font-black text-white uppercase tracking-widest mb-6">Recent Alerts</h3>
+                  <h3 className="text-sm font-black text-zinc-900 dark:text-white uppercase tracking-widest mb-6 px-2">Recent Alerts</h3>
                   <div className="space-y-4">
                     {notifications.map(n => (
-                      <div key={n.id} className="flex gap-4 p-3 bg-black/40 rounded-2xl border border-zinc-800">
+                      <div key={n.id} className="flex gap-4 p-4 bg-zinc-50 dark:bg-black/40 rounded-2xl border border-zinc-200 dark:border-zinc-800">
                         <div className={cn(
                           "w-1.5 h-full rounded-full shrink-0",
                           n.type === 'critical' ? "bg-red-500" : n.type === 'success' ? "bg-green-500" : "bg-blue-500"
                         )} />
                         <div>
-                          <p className="text-xs font-bold text-white">{n.title}</p>
-                          <p className="text-[10px] text-zinc-500 mt-0.5">{n.text}</p>
+                          <p className="text-xs font-bold text-zinc-900 dark:text-white">{n.title}</p>
+                          <p className="text-[10px] text-zinc-400 dark:text-zinc-500 mt-0.5">{n.text}</p>
                         </div>
                       </div>
                     ))}
                   </div>
-                  <button className="w-full mt-6 py-3 text-[10px] font-black text-zinc-500 uppercase tracking-widest hover:text-white transition-colors border-t border-zinc-800 pt-4">Clear All</button>
+                  <button className="w-full mt-6 py-4 text-[10px] font-black text-zinc-400 dark:text-zinc-500 uppercase tracking-widest hover:text-zinc-900 dark:hover:text-white transition-colors border-t border-zinc-100 dark:border-zinc-800 pt-5">Mark All Read</button>
                 </motion.div>
               )}
             </AnimatePresence>
-            <div className="w-px h-6 bg-zinc-800 mx-1 hidden sm:block" />
-            <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 bg-zinc-900 text-zinc-300 rounded-lg border border-zinc-800">
+            <div className="w-px h-6 bg-zinc-200 dark:bg-zinc-800 mx-1 hidden sm:block" />
+            <div className="hidden sm:flex items-center gap-2.5 px-4 py-2 bg-zinc-100 dark:bg-zinc-900 text-zinc-500 dark:text-zinc-300 rounded-xl border border-zinc-200 dark:border-zinc-800">
               <ShieldCheck className="w-4 h-4" />
-              <span className="text-xs font-bold uppercase tracking-wider">Secure Mode</span>
+              <span className="text-[10px] font-black uppercase tracking-wider">Secure Protocol</span>
             </div>
           </div>
         </header>
 
         {/* View Container */}
-        <div className="flex-1 overflow-y-auto p-6 md:p-8 bg-black">
+        <div className="flex-1 overflow-y-auto p-6 md:p-10 bg-zinc-50 dark:bg-[#050505] transition-colors duration-500">
           <div className="max-w-7xl mx-auto">
             <AnimatePresence mode="wait">
               <motion.div
