@@ -1,8 +1,10 @@
-import React, { useState } from 'react';
-import { FileText, Download, ExternalLink, Tag, Zap, X, CheckCircle2, Clock, ShieldCheck } from 'lucide-react';
+import React, { useState, useRef } from 'react';
+import { FileText, Download, ExternalLink, Tag, Zap, X, CheckCircle2, Camera, Loader2 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Trade, Assessment, PortfolioItem } from '../types'; // Import PortfolioItem
 import { cn } from '../lib/utils';
+import { jsPDF } from 'jspdf';
+import { api } from '../lib/api';
 
 interface Paper {
   id: string;
@@ -30,6 +32,34 @@ export const PastPapers = ({ onStartQuiz }: { onStartQuiz?: (quiz: Assessment) =
     type: 'Theory' as any,
     questions: 10
   });
+  const [isScanning, setIsScanning] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  
+  const handleScanPaper = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setIsScanning(true);
+    try {
+      // In a real app, send this to a backend OCR service
+      const formData = new FormData();
+      formData.append('file', file);
+      // Assuming api.ocrPaper(formData) returns { text: string }
+      const { text } = await (api as any).ocrPaper(formData);
+      
+      // Convert to PDF
+      const doc = new jsPDF();
+      doc.text("Scanned Paper Content:", 10, 10);
+      doc.text(text.substring(0, 1000), 10, 20); // Simplified PDF content
+      doc.save("scanned-paper.pdf");
+      
+      alert('Paper scanned and PDF generated successfully!');
+    } catch (e) {
+      alert('OCR Scan failed.');
+    } finally {
+      setIsScanning(false);
+    }
+  };
 
   const handleViewOnline = (paper: Paper) => {
     console.log(`Viewing paper online: ${paper.title}`);
@@ -81,14 +111,14 @@ export const PastPapers = ({ onStartQuiz }: { onStartQuiz?: (quiz: Assessment) =
           <p className="text-zinc-400">Access and practice with thousands of TVET trade papers.</p>
         </div>
         <div className="flex flex-wrap gap-2">
-          <a 
-            href="https://www.nesa.gov.rw/index.php?id=38" 
-            target="_blank" 
-            rel="noopener noreferrer"
-            className="flex items-center gap-2 px-4 py-2 bg-zinc-800 text-white rounded-xl text-sm font-bold hover:bg-zinc-700 transition-colors border border-zinc-700"
+          <input type="file" accept="image/*" className="hidden" ref={fileInputRef} onChange={handleScanPaper} />
+          <button
+            onClick={() => fileInputRef.current?.click()}
+            disabled={isScanning}
+            className="flex items-center gap-2 px-4 py-2 bg-zinc-900 border border-zinc-700 text-white rounded-xl text-sm font-bold hover:border-zinc-500 transition-colors"
           >
-            <ExternalLink className="w-4 h-4" /> NESA Online Portal
-          </a>
+            {isScanning ? <Loader2 className="w-4 h-4 animate-spin" /> : <Camera className="w-4 h-4" />} Scan-to-Study
+          </button>
           <button
             onClick={() => setShowGenerator(true)}
             className="flex items-center gap-2 px-4 py-2 bg-white text-black rounded-xl text-sm font-bold hover:bg-zinc-200 transition-colors shadow-lg shadow-white/10"

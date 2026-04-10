@@ -124,6 +124,7 @@ router.post('/login', async (req: Request, res: Response) => {
   const normalizedEmail = email.trim().toLowerCase();
 
   try {
+    console.log('[Login] Finding user in database...');
     const user = await prisma.user.findUnique({
       where: { email: normalizedEmail }
     });
@@ -133,6 +134,7 @@ router.post('/login', async (req: Request, res: Response) => {
       return res.status(401).json({ error: 'Invalid email or password' });
     }
 
+    console.log('[Login] User found, comparing passwords...');
     const isMatch = await bcrypt.compare(password, user.password);
     console.log('[Login] Password match result:', isMatch);
 
@@ -140,9 +142,17 @@ router.post('/login', async (req: Request, res: Response) => {
       return res.status(401).json({ error: 'Invalid email or password' });
     }
 
-    const token = jwt.sign({ id: user.id, role: user.role }, JWT_SECRET, { expiresIn: '7d' });
+    console.log('[Login] Signing JWT token...');
+    let token;
+    try {
+      token = jwt.sign({ id: user.id, role: user.role }, JWT_SECRET, { expiresIn: '7d' });
+    } catch (jwtError) {
+      console.error('[Login] JWT signing failed:', jwtError);
+      throw new Error('Internal authentication error (JWT)');
+    }
     
     // --- Robust Streak Logic ---
+    console.log('[Login] Calculating streak...');
     let newStreak = user.streak || 1;
     const now = new Date();
     const last = user.lastLogin ? new Date(user.lastLogin) : null;
@@ -168,20 +178,31 @@ router.post('/login', async (req: Request, res: Response) => {
       }
     }
 
-    const updatedUser = await prisma.user.update({
-      where: { id: user.id },
-      data: { streak: newStreak, lastLogin: now }
-    });
+    console.log('[Login] Updating user streak and lastLogin...');
+    let updatedUser;
+    try {
+      updatedUser = await prisma.user.update({
+        where: { id: user.id },
+        data: { streak: newStreak, lastLogin: now }
+      });
+    } catch (dbError) {
+      console.error('[Login] Database update failed:', dbError);
+      // We can still proceed if streak update fails, but we should log it
+      updatedUser = user; 
+    }
 
-    const { password: _, ...userWithoutPassword } = updatedUser as any;
+    const { password: _, ...userWithoutPassword } = (updatedUser || user) as any;
     let competencies = [];
     try {
-      competencies = userWithoutPassword.competencies ? JSON.parse(userWithoutPassword.competencies) : [];
+      if (userWithoutPassword.competencies) {
+        competencies = JSON.parse(userWithoutPassword.competencies);
+      }
     } catch (e) {
-      console.error('Failed to parse competencies during login:', e);
+      console.error('[Login] Failed to parse competencies:', e);
       competencies = [];
     }
 
+    console.log('[Login] Login successful for:', normalizedEmail);
     res.status(200).json({ 
       user: { 
         ...userWithoutPassword, 
@@ -189,9 +210,13 @@ router.post('/login', async (req: Request, res: Response) => {
       }, 
       token 
     });
-  } catch (error) {
-    console.error('Login error:', error);
-    res.status(500).json({ error: 'Login failed', details: error instanceof Error ? error.message : String(error) });
+  } catch (error: any) {
+    console.error('[Login] Fatal error:', error);
+    res.status(500).json({ 
+      error: 'Login failed', 
+      details: error instanceof Error ? error.message : String(error),
+      stack: process.env.NODE_ENV === 'development' ? error.stack : undefined
+    });
   }
 });
 

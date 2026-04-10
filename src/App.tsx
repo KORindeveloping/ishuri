@@ -46,7 +46,8 @@ import {
   Trash2,
   Mail,
   History as HistoryIcon,
-  RotateCcw
+  RotateCcw,
+  Info
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
@@ -75,7 +76,82 @@ import 'jspdf-autotable';
 
 // --- Components ---
 
-const SidebarItem = ({ icon: Icon, label, active, onClick }: { icon: any, label: string, active?: boolean, onClick: () => void }) => (
+const Toast = ({ message, type, onClose }: { message: string, type: 'success' | 'error' | 'info', onClose: () => void }) => {
+  useEffect(() => {
+    const timer = setTimeout(onClose, 3000);
+    return () => clearTimeout(timer);
+  }, [onClose]);
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 50, scale: 0.9 }}
+      animate={{ opacity: 1, y: 0, scale: 1 }}
+      exit={{ opacity: 0, scale: 0.9 }}
+      className={cn(
+        "fixed bottom-8 left-1/2 -translate-x-1/2 z-[200] px-6 py-4 rounded-2xl shadow-2xl flex items-center gap-3 border backdrop-blur-md",
+        type === 'success' ? "bg-green-500/10 border-green-500/20 text-green-500" :
+        type === 'error' ? "bg-red-500/10 border-red-500/20 text-red-500" :
+        "bg-white/10 border-white/20 text-white"
+      )}
+    >
+      {type === 'success' && <CheckCircle2 className="w-5 h-5" />}
+      {type === 'error' && <AlertCircle className="w-5 h-5" />}
+      {type === 'info' && <Info className="w-5 h-5" />}
+      <span className="text-sm font-black uppercase tracking-widest">{message}</span>
+    </motion.div>
+  );
+};
+
+const Modal = ({ title, children, onClose, onConfirm, confirmText = "Confirm", confirmVariant = "primary" }: { 
+  title: string, 
+  children: React.ReactNode, 
+  onClose: () => void, 
+  onConfirm?: () => void,
+  confirmText?: string,
+  confirmVariant?: 'primary' | 'danger'
+}) => (
+  <div className="fixed inset-0 z-[150] flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
+    <motion.div
+      initial={{ opacity: 0, scale: 0.9, y: 20 }}
+      animate={{ opacity: 1, scale: 1, y: 0 }}
+      exit={{ opacity: 0, scale: 0.9 }}
+      className="w-full max-w-md bg-zinc-900 rounded-[2.5rem] border border-zinc-800 p-8 shadow-2xl relative overflow-hidden"
+    >
+      <div className="absolute top-0 right-0 w-32 h-32 bg-white/5 blur-3xl rounded-full -mr-16 -mt-16" />
+      <header className="flex items-center justify-between mb-6 relative z-10">
+        <h3 className="text-xl font-black text-white uppercase tracking-tight">{title}</h3>
+        <button onClick={onClose} className="p-2 hover:bg-zinc-800 rounded-xl text-zinc-500 hover:text-white transition-colors">
+          <X className="w-5 h-5" />
+        </button>
+      </header>
+      <div className="relative z-10 mb-8 text-zinc-400 font-medium leading-relaxed">
+        {children}
+      </div>
+      <footer className="flex gap-4 relative z-10">
+        <button 
+          onClick={onClose}
+          className="flex-1 py-4 bg-zinc-800 text-zinc-400 rounded-2xl font-bold hover:bg-zinc-700 transition-all"
+        >
+          Cancel
+        </button>
+        {onConfirm && (
+          <button 
+            onClick={onConfirm}
+            className={cn(
+              "flex-1 py-4 rounded-2xl font-black uppercase tracking-widest text-[10px] transition-all shadow-lg shadow-white/5",
+              confirmVariant === 'danger' ? "bg-red-500 text-white hover:bg-red-600" : "bg-white text-black hover:bg-zinc-200"
+            )}
+          >
+            {confirmText}
+          </button>
+        )}
+      </footer>
+    </motion.div>
+  </div>
+);
+
+const SidebarItem =
+ ({ icon: Icon, label, active, onClick }: { icon: any, label: string, active?: boolean, onClick: () => void }) => (
   <button
     onClick={onClick}
     className={cn(
@@ -105,12 +181,13 @@ const RAGBadge = ({ status, progress }: { status: CompetencyStatus, progress: nu
 
 // --- Views ---
 
-const DashboardView = ({ user, onStartQuiz, onLogout, history, onNavigate }: { 
+const DashboardView = ({ user, onStartQuiz, onLogout, history, onNavigate, showToast }: { 
   user: User, 
   onStartQuiz: (quiz: Assessment) => void, 
   onLogout: () => void,
   history: QuizHistoryItem[],
-  onNavigate: (tab: string) => void
+  onNavigate: (tab: string) => void,
+  showToast: (m: string, t?: 'success' | 'error' | 'info') => void
 }) => {
   const [tasks, setTasks] = useState<{ id: any, text: string, completed: boolean }[]>([]);
 
@@ -135,8 +212,9 @@ const DashboardView = ({ user, onStartQuiz, onLogout, history, onNavigate }: {
     try {
       const updated = await api.updateGoal(id, !task.completed);
       setTasks(tasks.map(t => t.id === id ? updated : t));
+      showToast(updated.completed ? 'Task completed!' : 'Task reopened', 'info');
     } catch (e) {
-      alert('Failed to update task.');
+      showToast('Failed to update task.', 'error');
     }
   };
 
@@ -149,7 +227,7 @@ const DashboardView = ({ user, onStartQuiz, onLogout, history, onNavigate }: {
       onStartQuiz(quiz);
     } catch (error: any) {
       console.error('Quiz generation failed:', error);
-      alert(`Failed to generate AI quiz: ${error.message || 'Check backend connection'}`);
+      showToast(`Failed to generate AI quiz: ${error.message || 'Check backend connection'}`, 'error');
     } finally {
       setGeneratingQuiz(null);
     }
@@ -352,6 +430,35 @@ const DashboardView = ({ user, onStartQuiz, onLogout, history, onNavigate }: {
                   )}>
                     {exam.urgency === 'critical' ? 'Very Soon' : exam.urgency === 'soon' ? 'Coming Up' : 'Still Time'}
                   </div>
+                </div>
+              ))}
+            </div>
+          </section>
+
+          {/* Course Lessons */}
+          <section className="bg-zinc-900 p-8 rounded-[2rem] border border-zinc-800">
+            <div className="flex items-center justify-between mb-8">
+              <h2 className="text-xl font-black text-white flex items-center gap-3 uppercase tracking-tight">
+                <BookOpen className="w-6 h-6 text-zinc-500" /> Course Lessons
+              </h2>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {subjects.slice(0, 4).map((subject, idx) => (
+                <div key={idx} className="p-6 bg-black rounded-3xl border border-zinc-800 hover:border-white transition-all group">
+                  <div className="flex items-center justify-between mb-4">
+                    <div className="w-10 h-10 rounded-xl bg-zinc-900 flex items-center justify-center border border-zinc-800 group-hover:bg-white group-hover:text-black transition-colors">
+                      <GraduationCap className="w-5 h-5" />
+                    </div>
+                    <span className="text-[10px] font-black text-zinc-600 uppercase tracking-widest">Module {idx + 1}</span>
+                  </div>
+                  <h3 className="font-black text-white text-lg tracking-tight mb-2 line-clamp-1">{subject.name}</h3>
+                  <p className="text-xs text-zinc-500 mb-6">Learn the core concepts of {subject.name.split(' ')[0]} and prepare for your competency test.</p>
+                  <button 
+                    onClick={() => startPracticeQuiz(subject.name)}
+                    className="w-full py-3 bg-zinc-900 text-white rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-white hover:text-black transition-all"
+                  >
+                    Start Lesson Quiz
+                  </button>
                 </div>
               ))}
             </div>
@@ -575,7 +682,14 @@ const DashboardView = ({ user, onStartQuiz, onLogout, history, onNavigate }: {
                   <Target className="w-4 h-4" />
                   <p className="text-[10px] font-black uppercase tracking-widest">Recommended Focus</p>
                 </div>
-                <p className="text-sm font-black leading-tight">Mastering {user.subjects?.split(',')[1] || 'Practical Fundamentals'}</p>
+                {subjects.length > 0 ? (
+                  <>
+                    <p className="text-sm font-black leading-tight">Mastering {subjects.sort((a,b) => a.progress - b.progress)[0].name}</p>
+                    <p className="text-[10px] font-bold text-zinc-500 mt-1">Based on your {subjects.sort((a,b) => a.progress - b.progress)[0].progress}% mastery, this needs immediate attention.</p>
+                  </>
+                ) : (
+                  <p className="text-sm font-black leading-tight">Complete more quizzes for AI recommendations</p>
+                )}
               </div>
             </div>
           </section>
@@ -584,10 +698,11 @@ const DashboardView = ({ user, onStartQuiz, onLogout, history, onNavigate }: {
     </div>
   );
 };
-const AnalyticsView = ({ history, user, onStartQuiz }: { 
+const AnalyticsView = ({ history, user, onStartQuiz, showToast }: { 
   history: QuizHistoryItem[], 
   user: User,
-  onStartQuiz: (quiz: Assessment) => void
+  onStartQuiz: (quiz: Assessment) => void,
+  showToast: (m: string, t?: 'success' | 'error' | 'info') => void
 }) => {
   const [generatingQuiz, setGeneratingQuiz] = useState<string | null>(null);
 
@@ -598,7 +713,7 @@ const AnalyticsView = ({ history, user, onStartQuiz }: {
       onStartQuiz(quiz);
     } catch (error: any) {
       console.error('Quiz generation failed:', error);
-      alert(`Failed to generate AI quiz: ${error.message || 'Check backend connection'}`);
+      showToast(`Failed to generate AI quiz: ${error.message || 'Check backend connection'}`, 'error');
     } finally {
       setGeneratingQuiz(null);
     }
@@ -713,10 +828,10 @@ const FlashcardsView = () => {
   const [cards, setCards] = useState(() => {
     const saved = localStorage.getItem('tvet_flashcards');
     return saved ? JSON.parse(saved) : [
-      { q: "What is the stoichiometric ratio for gasoline?", a: "14.7:1" },
-      { q: "What does ABS stand for?", a: "Anti-lock Braking System" },
-      { q: "What is the unit of electrical resistance?", a: "Ohm (Ω)" },
-      { q: "What is the primary function of a thermostat?", a: "Regulate engine temperature" },
+      { q: "What is the stoichiometric ratio for gasoline?", a: "14.7:1", interval: 1, nextReview: new Date().toISOString() },
+      { q: "What does ABS stand for?", a: "Anti-lock Braking System", interval: 1, nextReview: new Date().toISOString() },
+      { q: "What is the unit of electrical resistance?", a: "Ohm (Ω)", interval: 1, nextReview: new Date().toISOString() },
+      { q: "What is the primary function of a thermostat?", a: "Regulate engine temperature", interval: 1, nextReview: new Date().toISOString() },
     ];
   });
   
@@ -729,9 +844,33 @@ const FlashcardsView = () => {
     localStorage.setItem('tvet_flashcards', JSON.stringify(cards));
   }, [cards]);
 
+  const dueCards = cards.filter((c: any) => new Date(c.nextReview) <= new Date());
+
+  const handlePerformance = (quality: 'easy' | 'hard') => {
+    const currentCard = dueCards[index];
+    const originalIndex = cards.findIndex((c: any) => c.q === currentCard.q);
+    
+    const newInterval = quality === 'easy' ? (currentCard.interval || 1) * 2 : 1;
+    const nextReview = new Date();
+    nextReview.setDate(nextReview.getDate() + newInterval);
+
+    const updatedCards = [...cards];
+    updatedCards[originalIndex] = {
+      ...currentCard,
+      interval: newInterval,
+      nextReview: nextReview.toISOString()
+    };
+
+    setCards(updatedCards);
+    setFlipped(false);
+    if (index >= dueCards.length - 1) {
+      setIndex(0);
+    }
+  };
+
   const addCard = () => {
     if (!newCard.q || !newCard.a) return;
-    setCards([...cards, newCard]);
+    setCards([...cards, { ...newCard, interval: 1, nextReview: new Date().toISOString() }]);
     setNewCard({ q: '', a: '' });
     setShowAddModal(false);
   };
@@ -739,9 +878,11 @@ const FlashcardsView = () => {
   const deleteCard = (e: React.MouseEvent, idx: number) => {
     e.stopPropagation();
     if (cards.length <= 1) return;
-    const newCards = cards.filter((_: any, i: number) => i !== idx);
+    const currentCard = dueCards[idx];
+    const originalIndex = cards.findIndex((c: any) => c.q === currentCard.q);
+    const newCards = cards.filter((_: any, i: number) => i !== originalIndex);
     setCards(newCards);
-    if (index >= newCards.length) setIndex(0);
+    if (index >= dueCards.length - 1) setIndex(0);
     setFlipped(false);
   };
 
@@ -752,27 +893,42 @@ const FlashcardsView = () => {
           <h1 className="text-3xl font-black text-white tracking-tight uppercase">Active Recall Flashcards</h1>
           <p className="text-zinc-500 font-medium">Master key concepts through spaced repetition.</p>
         </div>
-        <button 
-          onClick={() => setShowAddModal(true)}
-          className="px-6 py-3 bg-white text-black font-black uppercase tracking-widest text-xs rounded-2xl flex items-center gap-2 hover:bg-zinc-200 transition-all shadow-xl shadow-white/10"
-        >
-          <Plus className="w-4 h-4" /> Add New Card
-        </button>
+        <div className="flex gap-4">
+          <div className="px-4 py-2 bg-zinc-900 rounded-xl border border-zinc-800 text-[10px] font-black uppercase text-zinc-500 flex items-center gap-2">
+            <Clock className="w-3 h-3" /> Due Today: {dueCards.length}
+          </div>
+          <button 
+            onClick={() => setShowAddModal(true)}
+            className="px-6 py-3 bg-white text-black font-black uppercase tracking-widest text-xs rounded-2xl flex items-center gap-2 hover:bg-zinc-200 transition-all shadow-xl shadow-white/10"
+          >
+            <Plus className="w-4 h-4" /> Add New Card
+          </button>
+        </div>
       </header>
 
-      <div className="relative w-full max-w-lg mt-12">
-        <div 
-          onClick={() => setFlipped(!flipped)}
-          className="w-full aspect-[4/3] relative cursor-pointer perspective-1000 group"
-        >
+      {dueCards.length === 0 ? (
+        <div className="text-center py-24 border-2 border-dashed border-zinc-800 rounded-3xl w-full max-w-lg mt-12">
+          <div className="w-16 h-16 bg-zinc-900 rounded-2xl flex items-center justify-center mx-auto mb-6">
+            <CheckCircle2 className="w-8 h-8 text-white" />
+          </div>
+          <p className="text-zinc-500 font-bold mb-2">All caught up!</p>
+          <p className="text-zinc-700 text-xs font-medium mb-8">No cards due for review right now.</p>
+          <button onClick={() => setShowAddModal(true)} className="text-white font-black hover:underline uppercase tracking-widest text-[10px]">Create more cards</button>
+        </div>
+      ) : (
+        <div className="relative w-full max-w-lg mt-12">
+          <div 
+            onClick={() => setFlipped(!flipped)}
+            className="w-full aspect-[4/3] relative cursor-pointer perspective-1000 group"
+          >
           <motion.div 
             animate={{ rotateY: flipped ? 180 : 0 }}
             transition={{ duration: 0.6, type: 'spring', stiffness: 260, damping: 20 }}
             className="w-full h-full relative preserve-3d"
           >
             <div className="absolute inset-0 bg-zinc-900 border-2 border-zinc-800 rounded-[3rem] p-12 flex flex-col items-center justify-center text-center backface-hidden shadow-2xl">
-              <p className="text-[10px] font-black text-zinc-500 uppercase tracking-widest mb-8">Question {index + 1}/{cards.length}</p>
-              <h2 className="text-2xl font-black text-white leading-tight">{cards[index].q}</h2>
+              <p className="text-[10px] font-black text-zinc-500 uppercase tracking-widest mb-8">Question {index + 1}/{dueCards.length}</p>
+              <h2 className="text-2xl font-black text-white leading-tight">{dueCards[index].q}</h2>
               <p className="text-xs text-zinc-600 mt-12 font-bold uppercase tracking-widest">Tap to reveal answer</p>
               <button 
                 onClick={(e) => deleteCard(e, index)}
@@ -783,28 +939,41 @@ const FlashcardsView = () => {
             </div>
             <div className="absolute inset-0 bg-white border-2 border-white rounded-[3rem] p-12 flex flex-col items-center justify-center text-center backface-hidden rotate-y-180 shadow-2xl">
               <p className="text-[10px] font-black text-zinc-400 uppercase tracking-widest mb-8">Answer</p>
-              <h2 className="text-2xl font-black text-black leading-tight">{cards[index].a}</h2>
-              <p className="text-xs text-zinc-300 mt-12 font-bold uppercase tracking-widest">Tap to flip back</p>
+              <h2 className="text-2xl font-black text-black leading-tight">{dueCards[index].a}</h2>
+              <div className="mt-12 flex gap-4 w-full">
+                <button 
+                  onClick={(e) => { e.stopPropagation(); handlePerformance('hard'); }}
+                  className="flex-1 py-4 bg-zinc-100 text-black rounded-2xl font-black uppercase tracking-widest text-[10px] hover:bg-zinc-200 transition-all border border-black/10"
+                >
+                  Hard (1d)
+                </button>
+                <button 
+                  onClick={(e) => { e.stopPropagation(); handlePerformance('easy'); }}
+                  className="flex-1 py-4 bg-black text-white rounded-2xl font-black uppercase tracking-widest text-[10px] hover:bg-zinc-800 transition-all shadow-lg"
+                >
+                  Easy ({dueCards[index].interval * 2}d)
+                </button>
+              </div>
             </div>
           </motion.div>
         </div>
+        
+        <div className="flex justify-center gap-6 mt-12">
+          <button 
+            onClick={(e) => { e.stopPropagation(); setIndex((index - 1 + dueCards.length) % dueCards.length); setFlipped(false); }}
+            className="w-14 h-14 rounded-2xl bg-zinc-900 border border-zinc-800 flex items-center justify-center hover:bg-white hover:text-black transition-all shadow-xl group"
+          >
+            <ChevronRight className="w-5 h-5 rotate-180 text-zinc-500 group-hover:text-black" />
+          </button>
+          <button 
+            onClick={(e) => { e.stopPropagation(); setIndex((index + 1) % dueCards.length); setFlipped(false); }}
+            className="w-14 h-14 rounded-2xl bg-zinc-900 border border-zinc-800 flex items-center justify-center hover:bg-white hover:text-black transition-all shadow-xl group"
+          >
+            <ChevronRight className="w-5 h-5 text-zinc-500 group-hover:text-black" />
+          </button>
+        </div>
       </div>
-
-      <div className="flex gap-6 mt-8">
-        <button 
-          onClick={(e) => { e.stopPropagation(); setIndex((index - 1 + cards.length) % cards.length); setFlipped(false); }}
-          className="w-16 h-16 rounded-[2rem] bg-zinc-900 border border-zinc-800 flex items-center justify-center hover:bg-white hover:text-black transition-all shadow-xl group"
-        >
-          <ChevronRight className="w-6 h-6 rotate-180 text-zinc-500 group-hover:text-black" />
-        </button>
-        <button 
-          onClick={(e) => { e.stopPropagation(); setIndex((index + 1) % cards.length); setFlipped(false); }}
-          className="w-16 h-16 rounded-[2rem] bg-zinc-900 border border-zinc-800 flex items-center justify-center hover:bg-white hover:text-black transition-all shadow-xl group"
-        >
-          <ChevronRight className="w-6 h-6 text-zinc-500 group-hover:text-black" />
-        </button>
-      </div>
-
+      )}
       <AnimatePresence>
         {showAddModal && (
           <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
@@ -862,6 +1031,12 @@ const PlannerView = ({ user }: { user: User }) => {
   const isNursery = user.educationLevel === 'Pre Primary';
   const isPrimary = user.educationLevel?.includes('Primary');
   
+  const getIcon = (task: string) => {
+    if (isNursery) return <BookOpen className="w-4 h-4 text-pink-500" />;
+    if (isPrimary) return <Target className="w-4 h-4 text-blue-500" />;
+    return <Zap className="w-4 h-4 text-yellow-500" />;
+  };
+
   const defaultTasks: Record<string, string[]> = isNursery ? {
     "Monday": ["Coloring Shapes", "Singing ABCs"],
     "Tuesday": ["Counting Blocks", "Story Time"],
@@ -934,7 +1109,8 @@ const PlannerView = ({ user }: { user: User }) => {
             </div>
             <div className="space-y-3 flex-1">
               {s.tasks.map((t: string, i: number) => (
-                <div key={i} className="group p-4 bg-black rounded-2xl border border-zinc-800 text-[11px] font-bold text-zinc-300 relative">
+                <div key={i} className="group p-4 bg-black rounded-2xl border border-zinc-800 text-[11px] font-bold text-zinc-300 relative flex items-center gap-3">
+                  {getIcon(t)}
                   {t}
                   <button 
                     onClick={() => removeTask(s.day, i)}
@@ -957,7 +1133,11 @@ const PlannerView = ({ user }: { user: User }) => {
   );
 };
 
-const QuizHistoryView = ({ history, onReviewQuiz }: { history: QuizHistoryItem[], onReviewQuiz: (historyItem: QuizHistoryItem) => void }) => {
+const QuizHistoryView = ({ history, onReviewQuiz, showToast }: { 
+  history: QuizHistoryItem[], 
+  onReviewQuiz: (historyItem: QuizHistoryItem) => void,
+  showToast: (m: string, t?: 'success' | 'error' | 'info') => void
+}) => {
   const [selectedItems, setSelectedItems] = useState<string[]>([]);
 
   const toggleSelect = (id: string) => {
@@ -968,7 +1148,7 @@ const QuizHistoryView = ({ history, onReviewQuiz }: { history: QuizHistoryItem[]
 
   const exportSelectedAsPDF = () => {
     if (selectedItems.length === 0) {
-      alert('Please select at least one quiz to export');
+      showToast('Please select at least one quiz to export', 'info');
       return;
     }
 
@@ -1552,7 +1732,10 @@ const AssessmentView = ({
     );
 };
 
-const PortfolioView = ({ user }: { user: User }) => {
+const PortfolioView = ({ user, showToast }: { 
+  user: User,
+  showToast: (m: string, t?: 'success' | 'error' | 'info') => void
+}) => {
   const [items, setItems] = useState<PortfolioItem[]>([]);
   const [loading, setLoading] = useState(false);
   const [uploadType, setUploadType] = useState<'evidence' | 'certificate'>('evidence');
@@ -1583,10 +1766,10 @@ const PortfolioView = ({ user }: { user: User }) => {
     try {
       const newItem = await api.uploadEvidence(formData);
       setItems(prev => [newItem, ...prev]);
-      alert(`${uploadType === 'certificate' ? 'Certificate' : 'Evidence'} uploaded successfully!`);
+      showToast(`${uploadType === 'certificate' ? 'Certificate' : 'Evidence'} uploaded successfully!`);
     } catch (e) {
       console.error('Upload failed:', e);
-      alert('Failed to upload portfolio item.');
+      showToast('Failed to upload portfolio item.', 'error');
     } finally {
       setLoading(false);
     }
@@ -1628,10 +1811,30 @@ const PortfolioView = ({ user }: { user: User }) => {
         <motion.div 
           initial={{ opacity: 0, y: -10 }}
           animate={{ opacity: 1, y: 0 }}
-          className="bg-zinc-800/30 border border-zinc-700 p-4 rounded-2xl flex items-center gap-3"
+          className="bg-zinc-800/30 border border-zinc-700 p-6 rounded-[2.5rem] space-y-4"
         >
-          <Zap className="w-5 h-5 text-white" />
-          <p className="text-xs text-zinc-300 font-bold">AI Level Detection Active: Certificates uploaded will be automatically analyzed for study level.</p>
+          <div className="flex items-center gap-3">
+            <Zap className="w-5 h-5 text-white" />
+            <h2 className="text-lg font-black text-white uppercase tracking-tight">AI Learning Level Profile</h2>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="p-4 bg-black/40 rounded-2xl border border-zinc-800">
+              <p className="text-[10px] font-black text-zinc-500 uppercase tracking-widest mb-1">Detected Education Level</p>
+              <p className="text-xl font-black text-white">{user.educationLevel || 'Analyzing...'}</p>
+            </div>
+            <div className="p-4 bg-black/40 rounded-2xl border border-zinc-800">
+              <p className="text-[10px] font-black text-zinc-500 uppercase tracking-widest mb-1">Trade Specialization</p>
+              <p className="text-xl font-black text-white">{user.trade || 'General'}</p>
+            </div>
+            <div className="p-4 bg-black/40 rounded-2xl border border-zinc-800">
+              <p className="text-[10px] font-black text-zinc-500 uppercase tracking-widest mb-1">Verification Status</p>
+              <div className="flex items-center gap-2">
+                <div className="w-2 h-2 rounded-full bg-green-500" />
+                <p className="text-xl font-black text-white">AI Verified</p>
+              </div>
+            </div>
+          </div>
+          <p className="text-xs text-zinc-500 font-medium">AI Level Detection Active: Certificates uploaded are automatically analyzed to keep your learning profile up to date.</p>
         </motion.div>
       )}
       <div className="space-y-6">
@@ -1922,16 +2125,20 @@ const SettingsView = ({
     ? Math.round(history.reduce((acc, curr) => acc + curr.score, 0) / history.reduce((acc, curr) => acc + curr.totalPoints, 0) * 100) 
     : 0;
 
-  const handleAvatarChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
+  const handleAvatarChange = async (file: File | string) => {
     setUploadingAvatar(true);
     try {
-      const { avatarUrl } = await api.uploadAvatar(file);
+      let avatarUrl = '';
+      if (typeof file === 'string') {
+        avatarUrl = file;
+      } else {
+        const res = await api.uploadAvatar(file);
+        avatarUrl = res.avatarUrl;
+      }
       setUser({ ...user, avatarUrl });
       alert('Avatar updated!');
     } catch (e) {
-      alert('Failed to upload avatar');
+      alert('Failed to update avatar');
     } finally {
       setUploadingAvatar(false);
     }
@@ -1981,29 +2188,43 @@ const SettingsView = ({
         </div>
         <div className="bg-zinc-900 rounded-3xl border border-zinc-800 divide-y divide-zinc-800 overflow-hidden">
           {/* Avatar Upload */}
-          <div className="p-8 flex items-center gap-8">
-            <div className="relative group">
-              <div className="w-24 h-24 rounded-[2rem] bg-zinc-800 overflow-hidden border-2 border-zinc-700 flex items-center justify-center">
-                {user.avatarUrl ? (
-                  <img src={user.avatarUrl.startsWith('http') ? user.avatarUrl : `http://localhost:5000${user.avatarUrl}`} alt="Avatar" className="w-full h-full object-cover" />
-                ) : (
-                  <UserIcon className="w-10 h-10 text-zinc-600" />
-                )}
-                {uploadingAvatar && (
-                  <div className="absolute inset-0 bg-black/60 flex items-center justify-center">
-                    <div className="w-6 h-6 border-2 border-white/20 border-t-white rounded-full animate-spin" />
-                  </div>
-                )}
+          <div className="p-8 flex flex-col gap-6">
+            <div className="flex items-center gap-8">
+              <div className="relative">
+                <div className="w-24 h-24 rounded-[2rem] bg-zinc-800 overflow-hidden border-2 border-zinc-700 flex items-center justify-center">
+                  {user.avatarUrl ? (
+                    <img src={user.avatarUrl.startsWith('http') ? user.avatarUrl : `http://localhost:5000${user.avatarUrl}`} alt="Avatar" className="w-full h-full object-cover" />
+                  ) : (
+                    <UserIcon className="w-10 h-10 text-zinc-600" />
+                  )}
+                  {uploadingAvatar && (
+                    <div className="absolute inset-0 bg-black/60 flex items-center justify-center">
+                      <div className="w-6 h-6 border-2 border-white/20 border-t-white rounded-full animate-spin" />
+                    </div>
+                  )}
+                </div>
               </div>
-              <label className="absolute -bottom-2 -right-2 w-10 h-10 bg-white text-black rounded-2xl flex items-center justify-center cursor-pointer shadow-xl hover:scale-110 transition-transform">
-                <Camera className="w-5 h-5" />
-                <input type="file" accept="image/*" className="hidden" onChange={handleAvatarChange} disabled={uploadingAvatar} />
-              </label>
+              <div>
+                <p className="text-xs text-zinc-500 font-bold uppercase tracking-wider mb-2">Student Identity</p>
+                <h3 className="text-xl font-black text-white uppercase tracking-tight">{user.name}</h3>
+                <p className="text-zinc-600 text-xs font-bold">{user.email}</p>
+                <label className="mt-4 block w-max px-4 py-2 bg-white text-black rounded-xl font-black uppercase tracking-widest text-[10px] cursor-pointer hover:bg-zinc-200 transition-colors">
+                  Upload Custom
+                  <input type="file" accept="image/*" className="hidden" onChange={(e) => e.target.files?.[0] && handleAvatarChange(e.target.files[0])} disabled={uploadingAvatar} />
+                </label>
+              </div>
             </div>
-            <div>
-              <p className="text-xs text-zinc-500 font-bold uppercase tracking-wider mb-2">Student Identity</p>
-              <h3 className="text-xl font-black text-white uppercase tracking-tight">{user.name}</h3>
-              <p className="text-zinc-600 text-xs font-bold">{user.email}</p>
+            
+            {/* Presets */}
+            <div className="space-y-3">
+              <p className="text-[10px] font-black text-zinc-500 uppercase tracking-widest">Select Preset</p>
+              <div className="flex gap-3">
+                {['/avatars/1.svg', '/avatars/2.svg', '/avatars/3.svg'].map((src) => (
+                  <button key={src} onClick={() => handleAvatarChange(src)} className="w-14 h-14 rounded-2xl border-2 border-zinc-700 overflow-hidden hover:border-white transition-colors">
+                    <img src={src} className="w-full h-full" alt="Preset" />
+                  </button>
+                ))}
+              </div>
             </div>
           </div>
 
@@ -2126,24 +2347,22 @@ const SettingsView = ({
               </div>
             </div>
           </div>
-          <div className="p-6 flex items-center justify-between">
-            <div>
-              <p className="text-xs text-zinc-500 font-bold uppercase tracking-wider mb-1">Font size (Real-time)</p>
-              <p className="text-white font-bold">{fontSize}px</p>
-              <div className="flex items-center gap-4 mt-3">
-                <button onClick={() => setFontSize(Math.max(12, fontSize - 1))} className="p-2 bg-zinc-800 rounded-lg hover:bg-zinc-700 text-white"><RotateCcw className="w-4 h-4 rotate-180" /></button>
-                <input 
-                  type="range" 
-                  min="12" max="24" 
-                  value={fontSize} 
-                  onChange={(e) => setFontSize(Number(e.target.value))}
-                  className="w-32 accent-white"
-                />
-                <button onClick={() => setFontSize(Math.min(24, fontSize + 1))} className="p-2 bg-zinc-800 rounded-lg hover:bg-zinc-700 text-white"><RotateCcw className="w-4 h-4" /></button>
-              </div>
+          <div className="p-6">
+            <p className="text-xs text-zinc-500 font-bold uppercase tracking-wider mb-4">Font Scaling</p>
+            <input 
+              type="range" min="12" max="24"
+              value={fontSize}
+              onChange={(e) => setFontSize(Number(e.target.value))}
+              className="w-full h-2 bg-zinc-800 rounded-lg appearance-none cursor-pointer accent-white"
+            />
+            <div className="flex justify-between mt-2 text-[10px] text-zinc-500 font-bold">
+              <span>Standard (12px)</span>
+              <span className="text-white">{fontSize}px</span>
+              <span>Large (24px)</span>
             </div>
           </div>
         </div>
+      </section>
       </section>
 
       {/* Privacy & data Section */}
@@ -2717,19 +2936,47 @@ export default function App() {
   const [showNotifications, setShowNotifications] = useState(false);
   const [showOnboarding, setShowOnboarding] = useState(false);
 
+  // --- UI System State ---
+  const [toast, setToast] = useState<{ message: string, type: 'success' | 'error' | 'info' } | null>(null);
+  const [modal, setModal] = useState<{ 
+    title: string, 
+    content: React.ReactNode, 
+    onConfirm?: () => void, 
+    confirmText?: string,
+    confirmVariant?: 'primary' | 'danger'
+  } | null>(null);
+
+  const showToast = (message: string, type: 'success' | 'error' | 'info' = 'success') => setToast({ message, type });
+
   // --- Theme & Font Size State ---
   const [theme, setTheme] = useState<'light' | 'dark' | 'auto'>(() => (localStorage.getItem('tvet_theme') as any) || 'auto');
   const [fontSize, setFontSize] = useState<number>(() => Number(localStorage.getItem('tvet_fontSize')) || 16);
 
   useEffect(() => {
+    const handleSystemThemeChange = (e: MediaQueryListEvent) => {
+      if (theme === 'auto') {
+        const root = window.document.documentElement;
+        if (e.matches) {
+          root.classList.add('dark');
+        } else {
+          root.classList.remove('dark');
+        }
+      }
+    };
+
+    const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
+    mediaQuery.addEventListener('change', handleSystemThemeChange);
+
     localStorage.setItem('tvet_theme', theme);
     const root = window.document.documentElement;
-    const isDark = theme === 'dark' || (theme === 'auto' && window.matchMedia('(prefers-color-scheme: dark)').matches);
+    const isDark = theme === 'dark' || (theme === 'auto' && mediaQuery.matches);
     if (isDark) {
       root.classList.add('dark');
     } else {
       root.classList.remove('dark');
     }
+
+    return () => mediaQuery.removeEventListener('change', handleSystemThemeChange);
   }, [theme]);
 
   useEffect(() => {

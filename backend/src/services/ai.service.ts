@@ -10,44 +10,49 @@ const anthropic = new Anthropic({ apiKey: anthropicKey });
 const genAI = new GoogleGenerativeAI(geminiKey);
 
 export async function generateQuiz(subject: string, trade: string, level?: string, combination?: string, teachings?: string) {
-  // Enhanced "Robust" TVET Prompt with Age/Level Personalization
-  const systemPrompt = `You are an expert ${level || 'TVET'} Curriculum Developer. 
+  // Enhanced "Robust" TVET Prompt with Bloom's Taxonomy and Trade-Specific Terminology
+  const systemPrompt = `You are an expert ${level || 'TVET'} Curriculum Developer and Subject Matter Expert in ${trade}. 
   Your goal is to generate high-quality, competency-based assessment questions for the ${trade} trade${combination ? ` with a focus on ${combination}` : ''}.
+  
+  CRITICAL - Educational Standards:
+  - Use professional terminology specific to ${trade} (e.g., if Masonry, use terms like "pointing," "course," "mortar mix"; if Coding, use "refactoring," "concurrency," "asynchrony").
+  - Ensure questions cover three levels of Bloom’s Taxonomy: Knowledge (recall), Application (using info in new situations), and Synthesis (drawing connections/creating).
+  - Include exactly one 'Scenario-Based' question in the set (e.g., "A client reports X problem, what is the first step?").
   
   CRITICAL - Level Appropriateness:
   - The student is at the "${level || 'General'}" education level.
   ${teachings ? `- The student has been taught the following: ${teachings}. Use this context to focus questions on what they have learned.` : ''}
-  - If the level is "Pre-Primary" or "Primary", use very simple language, focus on basic concepts, and ensure questions are extremely easy for children.
-  - If the level is "TVET" or "Upper Secondary", focus on technical accuracy and industry standards.
+  - If the level is "Pre-Primary" or "Primary", use simple language, focus on basic concepts, but still maintain technical relevance to the trade introductory concepts if applicable.
   
   Focus on:
   - Technical accuracy for ${subject}.
-  - Practical, scenario-based problem solving (e.g., "A customer reports X...", "A circuit shows Y voltage...").
-  - Safety protocols and industry standards (ISO/ANSI/etc).
-  - High-level 'distractor' options for MCQ (avoid obviously wrong answers).
+  - Practical, industry-standard safety protocols.
+  - High-quality distractors for MCQ.
   
   Return ONLY a valid JSON object. No markdown, no preamble.`;
 
-  const userPrompt = `Generate a comprehensive 10-question practice quiz for a student at the "${level || 'General'}" level studying ${subject} in ${trade}.
+  const userPrompt = `Generate a quiz based on the following TVET course module: ${subject}. 
+  The student is studying ${trade} at the "${level || 'General'}" level.
   
   Requirements:
-  1. Include 6 Multiple Choice (MCQ) and 4 Short Answer questions.
-  2. For MCQ: provide 4 highly plausible options.
-  3. For Short Answer: provide a concise but technically accurate correctAnswer.
-  4. assign points: 10 for MCQ, 20 for Short Answer.
-  
-  ${(level?.toLowerCase().includes('primary')) ? 'NOTE: Keep vocabulary simple and focus on basic identification/understanding as the student is young.' : ''}
+  1. Generate 10 questions total.
+  2. Mix of Multiple Choice (MCQ) and Short Answer questions.
+  3. Ensure Bloom's Taxonomy coverage (Knowledge, Application, Synthesis).
+  4. Include ONE 'Scenario-Based' question.
+  5. Use professional ${trade} terminology.
   
   JSON Structure:
   {
-    "title": "${subject} Assessment",
+    "title": "${subject} Mastery Assessment",
     "questions": [
       {
         "id": "uuid-string",
         "type": "MCQ" | "ShortAnswer",
-        "text": "Question here",
+        "taxonomyLevel": "Knowledge" | "Application" | "Synthesis",
+        "isScenarioBased": boolean,
+        "text": "Question text using professional ${trade} terms",
         "options": ["Option A", "Option B", "Option C", "Option D"], // Only for MCQ
-        "correctAnswer": "Answer string",
+        "correctAnswer": "Detailed answer",
         "points": number
       }
     ]

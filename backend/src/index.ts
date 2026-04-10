@@ -35,6 +35,16 @@ app.use('/api/history', historyRoutes);
 app.use('/api/portfolio', portfolioRoutes);
 app.use('/api/goals', goalsRoutes);
 
+// Global Error Handler
+app.use((err: any, req: express.Request, res: express.Response, next: express.NextFunction) => {
+  console.error('[Global Error Handler]:', err);
+  res.status(500).json({
+    error: 'Internal Server Error',
+    details: err instanceof Error ? err.message : String(err),
+    stack: process.env.NODE_ENV === 'development' ? err.stack : undefined
+  });
+});
+
 // Socket.IO for live feedback simulation
 io.on('connection', (socket) => {
   console.log('User connected:', socket.id);
