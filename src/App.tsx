@@ -290,56 +290,63 @@ const DashboardView = ({ user, onStartQuiz, onLogout, history, onNavigate, showT
   const [newGoalDate, setNewGoalDate] = useState('');
 
   return (
-    <div className="space-y-8 pb-12">
-      {/* Top Bar */}
-      <header className="flex flex-col md:flex-row md:items-center justify-between gap-6 bg-zinc-900 p-8 rounded-[2rem] border border-zinc-800 shadow-2xl relative overflow-hidden dashboard-header">
-        <div className="absolute top-0 right-0 w-64 h-64 bg-white/5 blur-[100px] -mr-32 -mt-32 rounded-full" />
+    <div className="space-y-12 pb-24 font-sans">
+      <header className="relative overflow-hidden bg-[#0a0a0a] rounded-[3.5rem] p-12 md:p-16 border border-white/[0.05] shadow-2xl flex flex-col md:flex-row md:items-end justify-between gap-10">
+        <div className="absolute top-0 right-0 w-1/2 h-full bg-gradient-to-l from-white/[0.02] to-transparent pointer-events-none" />
         <div className="relative z-10">
-          <div className="flex items-center gap-3 mb-2">
-            <h1 className="text-3xl font-black text-white tracking-tight">{user.name}</h1>
-            <div className="flex items-center gap-1.5 px-2.5 py-1 bg-white text-black text-[10px] font-black uppercase tracking-widest rounded-full">
-              <Zap className="w-3 h-3 fill-current" /> Exam Prep Mode
+          <div className="flex items-center gap-4 mb-8">
+            <div className="px-3.5 py-1.5 bg-white text-black text-[9px] font-black uppercase tracking-[0.3em] rounded-full shadow-[0_5px_15px_rgba(255,255,255,0.1)]">Active Session</div>
+            <div className="flex items-center gap-1.5 px-2.5 py-1.5 bg-zinc-900/50 backdrop-blur-md text-zinc-400 text-[10px] font-black uppercase tracking-widest rounded-full border border-white/[0.05]">
+              <Zap className="w-3.5 h-3.5 fill-current text-white" /> Exam Prep Mode
             </div>
           </div>
-          <p className="text-zinc-500 text-sm font-bold uppercase tracking-widest">{new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' })}</p>
+          <h1 className="text-5xl md:text-7xl font-black text-white tracking-tighter mb-4 leading-[0.9]">
+            Welcome back,<br />
+            <span className="text-zinc-700">{user.name.split(' ')[0]}.</span>
+          </h1>
+          <p className="text-zinc-500 text-sm font-bold uppercase tracking-[0.2em]">{new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}</p>
         </div>
         
-        <div className="flex items-center gap-8 relative z-10">
+        <div className="flex items-center gap-10 relative z-10">
           <div className="text-right">
-            <p className="text-[10px] font-black text-zinc-500 uppercase tracking-widest mb-1">Countdown to Finals</p>
-            <div className="flex items-baseline gap-1 justify-end">
-              <span className="text-4xl font-black text-white tabular-nums">14</span>
-              <span className="text-sm font-bold text-zinc-500 uppercase">Days</span>
+            <p className="text-[10px] font-black text-zinc-600 uppercase tracking-[0.4em] mb-2">Finals Countdown</p>
+            <div className="flex items-baseline gap-2 justify-end">
+              <span className="text-6xl font-black text-white tracking-tighter tabular-nums">14</span>
+              <span className="text-xs font-black text-zinc-500 uppercase tracking-widest">Days</span>
             </div>
           </div>
-          <div className="w-14 h-14 rounded-2xl bg-white flex items-center justify-center shadow-xl shadow-white/10">
-            <Calendar className="w-7 h-7 text-black" />
-          </div>
+          <motion.div 
+            whileHover={{ scale: 1.05, rotate: 5 }}
+            className="w-20 h-20 rounded-[2.5rem] bg-white flex items-center justify-center shadow-[0_20px_50px_rgba(255,255,255,0.15)]"
+          >
+            <Calendar className="w-10 h-10 text-black" />
+          </motion.div>
         </div>
       </header>
 
       {/* Stats Row */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-6">
         {stats.map((stat, i) => (
           <motion.div 
-            initial={{ opacity: 0, y: 20 }}
+            initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: i * 0.1 }}
+            transition={{ delay: i * 0.1, duration: 0.6, ease: "circOut" }}
+            whileHover={{ y: -8, scale: 1.02 }}
             key={stat.label} 
             className={cn(
-              "p-6 bg-zinc-900 rounded-3xl border border-zinc-800 hover:border-zinc-700 transition-all group relative overflow-hidden",
+              "p-8 bg-zinc-900/40 backdrop-blur-3xl rounded-[3rem] border border-white/[0.03] hover:border-white/[0.1] transition-all group relative overflow-hidden",
               `dashboard-card-${i}`
             )}
           >
-            <div className="absolute bottom-0 right-0 w-16 h-16 bg-white/5 blur-2xl rounded-full -mb-8 -mr-8" />
-            <div className="flex items-center justify-between mb-4">
-              <div className="w-10 h-10 rounded-xl bg-zinc-800 flex items-center justify-center border border-zinc-700 group-hover:bg-white group-hover:text-black transition-all">
-                <stat.icon className="w-5 h-5" />
+            <div className="absolute bottom-0 right-0 w-24 h-24 bg-white/5 blur-3xl rounded-full -mb-12 -mr-12" />
+            <div className="flex items-center justify-between mb-8">
+              <div className="w-12 h-12 rounded-2xl bg-black flex items-center justify-center border border-white/[0.05] group-hover:bg-white transition-all duration-500">
+                <stat.icon className="w-6 h-6 text-zinc-500 group-hover:text-black transition-colors" />
               </div>
-              <TrendingUp className="w-4 h-4 text-zinc-700" />
+              <TrendingUp className="w-5 h-5 text-zinc-800 group-hover:text-white transition-colors" />
             </div>
-            <p className="text-[10px] font-black text-zinc-500 uppercase tracking-widest">{stat.label}</p>
-            <p className="text-3xl font-black text-white mt-1">{stat.value}</p>
+            <p className="text-[10px] font-black text-zinc-600 uppercase tracking-[0.3em] mb-1">{stat.label}</p>
+            <p className="text-4xl font-black text-white tracking-tighter">{stat.value}</p>
           </motion.div>
         ))}
       </div>
@@ -2738,52 +2745,54 @@ const AuthView = ({ onLogin }: { onLogin: (userData: any, token?: string, isSign
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-    // Simulate API call
     try {
-      setLoading(true);
       const res = isLogin 
         ? await api.login({ email, password })
         : await api.signup({ name, email, password, trade });
       
       onLogin(res.user, res.token, !isLogin);
     } catch (error: any) {
-      const message = error.message || (isLogin ? 'Login failed. Check your data.' : 'Signup failed. Email might exist.');
-      alert(message);
+      alert(error.message);
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen bg-black flex items-center justify-center p-6 relative overflow-hidden">
-      {/* Background Elements */}
+    <div className="min-h-screen bg-[#050505] flex items-center justify-center p-6 relative overflow-hidden font-sans">
+      {/* Dynamic Background Elements */}
       <div className="absolute top-0 left-0 w-full h-full overflow-hidden pointer-events-none">
-        <div className="absolute -top-24 -left-24 w-96 h-96 bg-white/5 blur-[120px] rounded-full" />
-        <div className="absolute -bottom-24 -right-24 w-96 h-96 bg-white/5 blur-[120px] rounded-full" />
+        <div className="absolute -top-48 -left-48 w-[600px] h-[600px] bg-white/[0.03] blur-[150px] rounded-full animate-pulse" />
+        <div className="absolute -bottom-48 -right-48 w-[600px] h-[600px] bg-white/[0.02] blur-[150px] rounded-full" />
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full h-full bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')] opacity-[0.03] pointer-events-none" />
       </div>
 
       <motion.div 
-        initial={{ opacity: 0, y: 20 }}
+        initial={{ opacity: 0, y: 30 }}
         animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.8, ease: "circOut" }}
         className="w-full max-w-md relative z-10"
       >
-        <div className="flex items-center gap-3 mb-12 justify-center">
-          <div className="w-12 h-12 bg-white rounded-2xl flex items-center justify-center shadow-2xl shadow-white/20">
-            <ShieldCheck className="w-8 h-8 text-black" />
-          </div>
+        <div className="flex flex-col items-center gap-4 mb-10 text-center">
+          <motion.div 
+            whileHover={{ scale: 1.05, rotate: 5 }}
+            className="w-16 h-16 bg-white rounded-[2rem] flex items-center justify-center shadow-[0_0_50px_rgba(255,255,255,0.15)]"
+          >
+            <ShieldCheck className="w-10 h-10 text-black" />
+          </motion.div>
           <div>
-            <h2 className="font-black text-3xl tracking-tighter text-white">TVET<span className="text-zinc-500">PRO</span></h2>
-            <p className="text-[10px] font-bold text-zinc-600 uppercase tracking-[0.3em]">Mastery Platform</p>
+            <h2 className="font-black text-4xl tracking-tighter text-white">TVET<span className="text-zinc-600">PRO</span></h2>
+            <p className="text-[10px] font-black text-zinc-500 uppercase tracking-[0.5em] mt-1">Advanced Mastery Systems</p>
           </div>
         </div>
 
-        <div className="bg-zinc-900/50 backdrop-blur-xl p-8 rounded-[2.5rem] border border-zinc-800 shadow-2xl">
-          <div className="flex gap-4 mb-8 p-1 bg-black/50 rounded-2xl border border-zinc-800">
+        <div className="bg-zinc-900/40 backdrop-blur-3xl p-10 rounded-[3rem] border border-white/[0.08] shadow-[0_30px_100px_rgba(0,0,0,0.5)]">
+          <div className="flex gap-2 mb-10 p-1.5 bg-black/60 rounded-[1.5rem] border border-white/[0.05]">
             <button 
               onClick={() => setIsLogin(true)}
               className={cn(
-                "flex-1 py-3 rounded-xl text-sm font-black uppercase tracking-widest transition-all",
-                isLogin ? "bg-white text-black shadow-lg" : "text-zinc-500 hover:text-white"
+                "flex-1 py-3.5 rounded-xl text-xs font-black uppercase tracking-[0.15em] transition-all duration-500",
+                isLogin ? "bg-white text-black shadow-[0_10px_20px_rgba(255,255,255,0.1)]" : "text-zinc-500 hover:text-white"
               )}
             >
               Login
@@ -2791,53 +2800,53 @@ const AuthView = ({ onLogin }: { onLogin: (userData: any, token?: string, isSign
             <button 
               onClick={() => setIsLogin(false)}
               className={cn(
-                "flex-1 py-3 rounded-xl text-sm font-black uppercase tracking-widest transition-all",
-                !isLogin ? "bg-white text-black shadow-lg" : "text-zinc-500 hover:text-white"
+                "flex-1 py-3.5 rounded-xl text-xs font-black uppercase tracking-[0.15em] transition-all duration-500",
+                !isLogin ? "bg-white text-black shadow-[0_10px_20px_rgba(255,255,255,0.1)]" : "text-zinc-500 hover:text-white"
               )}
             >
-              Sign Up
+              Join Now
             </button>
           </div>
 
-          <form onSubmit={handleSubmit} className="space-y-5">
+          <form onSubmit={handleSubmit} className="space-y-6">
             <AnimatePresence mode="wait">
               {!isLogin && (
                 <motion.div
                   initial={{ opacity: 0, height: 0 }}
                   animate={{ opacity: 1, height: 'auto' }}
                   exit={{ opacity: 0, height: 0 }}
-                  className="space-y-5"
+                  className="space-y-6"
                 >
                   <div className="space-y-2">
-                    <label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest ml-1">Full Name</label>
+                    <label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest ml-2">Full Legal Name</label>
                     <div className="relative group">
-                      <UserIcon className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-zinc-600 group-focus-within:text-white transition-colors" />
+                      <UserIcon className="absolute left-5 top-1/2 -translate-y-1/2 w-5 h-5 text-zinc-600 group-focus-within:text-white transition-colors" />
                       <input 
                         type="text" 
                         required
                         value={name}
                         onChange={(e) => setName(e.target.value)}
-                        placeholder="Claudine Uwimana"
-                        className="w-full bg-black/50 border-zinc-800 rounded-2xl py-4 pl-12 pr-4 text-white placeholder:text-zinc-700 focus:ring-2 focus:ring-white/20 focus:border-white/20 transition-all outline-none"
+                        placeholder="e.g., Claudine Uwimana"
+                        className="w-full bg-black/40 border-white/[0.05] rounded-[1.25rem] py-4.5 pl-14 pr-5 text-white placeholder:text-zinc-700 focus:ring-2 focus:ring-white/10 focus:border-white/20 transition-all outline-none text-sm font-medium"
                       />
                     </div>
                   </div>
 
                   <div className="space-y-2">
-                    <label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest ml-1">Trade / Class</label>
+                    <label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest ml-2">Trade Specialization</label>
                     <div className="relative group">
-                      <GraduationCap className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-zinc-600 group-focus-within:text-white transition-colors" />
+                      <GraduationCap className="absolute left-5 top-1/2 -translate-y-1/2 w-5 h-5 text-zinc-600 group-focus-within:text-white transition-colors" />
                       <select 
                         value={trade}
                         onChange={(e) => setTrade(e.target.value as Trade)}
-                        className="w-full bg-black/50 border-zinc-800 rounded-2xl py-4 pl-12 pr-4 text-white focus:ring-2 focus:ring-white/20 focus:border-white/20 transition-all outline-none appearance-none"
+                        className="w-full bg-black/40 border-white/[0.05] rounded-[1.25rem] py-4.5 pl-14 pr-5 text-white focus:ring-2 focus:ring-white/10 focus:border-white/20 transition-all outline-none appearance-none text-sm font-medium cursor-pointer"
                       >
-                        <option value="Sciences">Sciences</option>
-                        <option value="Automotive">Automotive</option>
-                        <option value="IT">IT</option>
-                        <option value="Electrical">Electrical</option>
-                        <option value="Plumbing">Plumbing</option>
-                        <option value="Welding">Welding</option>
+                        <option value="Sciences">Applied Sciences</option>
+                        <option value="Automotive">Automotive Engineering</option>
+                        <option value="IT">Information Technology</option>
+                        <option value="Electrical">Electrical Technology</option>
+                        <option value="Plumbing">Plumbing & Hydraulics</option>
+                        <option value="Welding">Advanced Welding</option>
                       </select>
                     </div>
                   </div>
@@ -2846,72 +2855,74 @@ const AuthView = ({ onLogin }: { onLogin: (userData: any, token?: string, isSign
             </AnimatePresence>
 
             <div className="space-y-2">
-              <label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest ml-1">Email Address</label>
+              <label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest ml-2">Email Address</label>
               <div className="relative group">
-                <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-zinc-600 group-focus-within:text-white transition-colors" />
+                <Mail className="absolute left-5 top-1/2 -translate-y-1/2 w-5 h-5 text-zinc-600 group-focus-within:text-white transition-colors" />
                 <input 
                   type="email" 
                   required
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  placeholder="student@tvet.edu"
-                  className="w-full bg-black/50 border-zinc-800 rounded-2xl py-4 pl-12 pr-4 text-white placeholder:text-zinc-700 focus:ring-2 focus:ring-white/20 focus:border-white/20 transition-all outline-none"
+                  placeholder="student@tvet.edu.rw"
+                  className="w-full bg-black/40 border-white/[0.05] rounded-[1.25rem] py-4.5 pl-14 pr-5 text-white placeholder:text-zinc-700 focus:ring-2 focus:ring-white/10 focus:border-white/20 transition-all outline-none text-sm font-medium"
                 />
               </div>
             </div>
 
             <div className="space-y-2">
-              <label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest ml-1">Password</label>
+              <label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest ml-2">Secure Password</label>
               <div className="relative group">
-                <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-zinc-600 group-focus-within:text-white transition-colors" />
+                <Lock className="absolute left-5 top-1/2 -translate-y-1/2 w-5 h-5 text-zinc-600 group-focus-within:text-white transition-colors" />
                 <input 
                   type="password" 
                   required
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="••••••••"
-                  className="w-full bg-black/50 border-zinc-800 rounded-2xl py-4 pl-12 pr-4 text-white placeholder:text-zinc-700 focus:ring-2 focus:ring-white/20 focus:border-white/20 transition-all outline-none"
+                  className="w-full bg-black/40 border-white/[0.05] rounded-[1.25rem] py-4.5 pl-14 pr-5 text-white placeholder:text-zinc-700 focus:ring-2 focus:ring-white/10 focus:border-white/20 transition-all outline-none text-sm font-medium"
                 />
               </div>
             </div>
 
             {isLogin && (
-              <div className="flex justify-end">
-                <button type="button" className="text-[10px] font-black text-zinc-500 uppercase tracking-widest hover:text-white transition-colors">Forgot Password?</button>
+              <div className="flex justify-end px-2">
+                <button type="button" className="text-[10px] font-black text-zinc-600 uppercase tracking-widest hover:text-white transition-colors">Recover Account</button>
               </div>
             )}
 
-            <button 
+            <motion.button 
               type="submit" 
               disabled={loading}
-              className="w-full bg-white text-black font-black uppercase tracking-[0.2em] py-5 rounded-2xl hover:bg-zinc-200 transition-all shadow-xl shadow-white/10 flex items-center justify-center gap-2 disabled:opacity-50"
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+              className="w-full bg-white text-black font-black uppercase tracking-[0.25em] text-[11px] py-5 rounded-[1.5rem] hover:bg-zinc-100 transition-all shadow-[0_20px_40px_rgba(255,255,255,0.1)] flex items-center justify-center gap-3 disabled:opacity-50"
             >
               {loading ? (
-                <div className="w-5 h-5 border-2 border-black/20 border-t-black rounded-full animate-spin" />
+                <Loader2 className="w-5 h-5 animate-spin" />
               ) : (
                 <>
-                  {isLogin ? 'Sign In' : 'Create Account'}
+                  {isLogin ? 'Initialize Session' : 'Create Identity'}
                   <ChevronRight className="w-5 h-5" />
                 </>
               )}
-            </button>
+            </motion.button>
           </form>
 
-          <div className="mt-8 text-center">
-            <p className="text-xs text-zinc-600 font-medium">
-              {isLogin ? "Don't have an account?" : "Already have an account?"}
+          <div className="mt-10 text-center">
+            <p className="text-[11px] text-zinc-600 font-bold uppercase tracking-wider">
+              {isLogin ? "New to the platform?" : "Already verified?"}
               <button 
                 onClick={() => setIsLogin(!isLogin)}
-                className="ml-2 text-white font-bold hover:underline underline-offset-4"
+                className="ml-2 text-white font-black hover:underline underline-offset-8"
               >
-                {isLogin ? 'Sign Up Now' : 'Login Instead'}
+                {isLogin ? 'Join TVETPRO' : 'Sign In'}
               </button>
             </p>
           </div>
         </div>
 
         <div className="mt-12 text-center">
-          <p className="text-[10px] font-bold text-zinc-700 uppercase tracking-[0.4em]">© 2026 TVETPRO Systems</p>
+          <p className="text-[9px] font-black text-zinc-700 uppercase tracking-[0.6em] opacity-50">Industrial Grade Education System</p>
         </div>
       </motion.div>
     </div>
@@ -3246,8 +3257,27 @@ export default function App() {
             <SidebarItem icon={Settings} label="Settings" active={activeTab === 'settings'} onClick={() => handleTabChange('settings')} />
           </nav>
 
-          <div className="mt-auto pt-6 border-t border-zinc-900">
-            <div className="flex items-center gap-3 px-2 mb-6">
+          <div className="mt-auto pt-8 border-t border-white/[0.05]">
+            <div className="bg-black/40 rounded-3xl p-5 border border-white/[0.05] mb-6">
+              <div className="flex items-center justify-between mb-4">
+                <p className="text-[9px] font-black text-zinc-600 uppercase tracking-widest">System Engine</p>
+                <div className="flex items-center gap-1.5">
+                  <div className="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse" />
+                  <span className="text-[9px] font-black text-green-500 uppercase">Online</span>
+                </div>
+              </div>
+              <div className="space-y-3">
+                <div className="flex justify-between items-end">
+                  <p className="text-[10px] font-bold text-zinc-500">AI Latency</p>
+                  <p className="text-[10px] font-black text-white">24ms</p>
+                </div>
+                <div className="h-1 w-full bg-zinc-900 rounded-full overflow-hidden">
+                  <div className="h-full bg-white w-3/4" />
+                </div>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-4 px-3 mb-8">
               <div className="w-10 h-10 rounded-full bg-zinc-900 overflow-hidden border border-zinc-800">
                 <img src="https://i.pravatar.cc/100?img=12" alt="profile" referrerPolicy="no-referrer" />
               </div>
