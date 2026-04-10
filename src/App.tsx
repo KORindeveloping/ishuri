@@ -2183,221 +2183,247 @@ const SettingsView = ({
   };
 
   return (
-    <div className="max-w-4xl mx-auto space-y-12 pb-20">
-      <header>
-        <h1 className="text-4xl font-black text-white tracking-tight mb-2">Settings</h1>
-        <p className="text-zinc-500 font-medium">Exam prep app — student preferences</p>
+    <div className="max-w-4xl mx-auto space-y-12 pb-32 font-sans">
+      <header className="relative overflow-hidden bg-zinc-950 rounded-[3rem] p-12 border border-white/[0.05] shadow-2xl">
+        <div className="absolute top-0 right-0 w-1/2 h-full bg-gradient-to-l from-white/[0.02] to-transparent pointer-events-none" />
+        <div className="relative z-10">
+          <h1 className="text-5xl font-black text-white tracking-tighter mb-2">SYSTEM<span className="text-zinc-700">SETTINGS</span></h1>
+          <p className="text-zinc-500 font-bold uppercase tracking-[0.3em] text-[10px]">Intelligence Dashboard & Preference Control</p>
+        </div>
       </header>
 
       {/* Profile Section */}
       <section className="space-y-6">
-        <div className="flex items-center gap-2 text-zinc-400 font-bold uppercase tracking-widest text-xs">
-          <UserIcon className="w-4 h-4" /> Profile
+        <div className="flex items-center gap-3 text-zinc-500 font-black uppercase tracking-[0.2em] text-[10px] px-2">
+          <UserIcon className="w-4 h-4" /> Identity Core
         </div>
-        <div className="bg-zinc-900 rounded-3xl border border-zinc-800 divide-y divide-zinc-800 overflow-hidden">
+        <div className="bg-zinc-900/40 backdrop-blur-3xl rounded-[2.5rem] border border-white/[0.05] divide-y divide-white/[0.05] overflow-hidden shadow-2xl">
           {/* Avatar Upload */}
-          <div className="p-8 flex flex-col gap-6">
-            <div className="flex items-center gap-8">
-              <div className="relative">
-                <div className="w-24 h-24 rounded-[2rem] bg-zinc-800 overflow-hidden border-2 border-zinc-700 flex items-center justify-center">
-                  {user.avatarUrl ? (
-                    <img src={user.avatarUrl.startsWith('http') ? user.avatarUrl : `http://localhost:5000${user.avatarUrl}`} alt="Avatar" className="w-full h-full object-cover" />
-                  ) : (
-                    <UserIcon className="w-10 h-10 text-zinc-600" />
-                  )}
-                  {uploadingAvatar && (
-                    <div className="absolute inset-0 bg-black/60 flex items-center justify-center">
-                      <div className="w-6 h-6 border-2 border-white/20 border-t-white rounded-full animate-spin" />
-                    </div>
-                  )}
-                </div>
+          <div className="p-10 flex flex-col md:flex-row md:items-center gap-10">
+            <div className="relative group">
+              <div className="w-32 h-32 rounded-[2.5rem] bg-black overflow-hidden border-2 border-white/[0.05] flex items-center justify-center group-hover:border-white/20 transition-all">
+                {user.avatarUrl ? (
+                  <img src={user.avatarUrl.startsWith('http') ? user.avatarUrl : `http://localhost:5000${user.avatarUrl}`} alt="Avatar" className="w-full h-full object-cover" />
+                ) : (
+                  <img src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${user.name}`} alt="Avatar" className="w-full h-full object-cover" />
+                )}
+                {uploadingAvatar && (
+                  <div className="absolute inset-0 bg-black/60 flex items-center justify-center">
+                    <Loader2 className="w-8 h-8 text-white animate-spin" />
+                  </div>
+                )}
               </div>
-              <div>
-                <p className="text-xs text-zinc-500 font-bold uppercase tracking-wider mb-2">Student Identity</p>
-                <h3 className="text-xl font-black text-white uppercase tracking-tight">{user.name}</h3>
-                <p className="text-zinc-600 text-xs font-bold">{user.email}</p>
-                <label className="mt-4 block w-max px-4 py-2 bg-white text-black rounded-xl font-black uppercase tracking-widest text-[10px] cursor-pointer hover:bg-zinc-200 transition-colors">
-                  Upload Custom
-                  <input type="file" accept="image/*" className="hidden" onChange={(e) => e.target.files?.[0] && handleAvatarChange(e.target.files[0])} disabled={uploadingAvatar} />
-                </label>
-              </div>
+              <label className="absolute -bottom-2 -right-2 w-10 h-10 bg-white rounded-2xl flex items-center justify-center cursor-pointer shadow-xl hover:scale-110 transition-transform">
+                <Camera className="w-5 h-5 text-black" />
+                <input type="file" accept="image/*" className="hidden" onChange={(e) => e.target.files?.[0] && handleAvatarChange(e.target.files[0])} disabled={uploadingAvatar} />
+              </label>
             </div>
             
-            {/* Presets */}
-            <div className="space-y-3">
-              <p className="text-[10px] font-black text-zinc-500 uppercase tracking-widest">Select Preset</p>
-              <div className="flex gap-3">
-                {['/avatars/1.svg', '/avatars/2.svg', '/avatars/3.svg'].map((src) => (
-                  <button key={src} onClick={() => handleAvatarChange(src)} className="w-14 h-14 rounded-2xl border-2 border-zinc-700 overflow-hidden hover:border-white transition-colors">
-                    <img src={src} className="w-full h-full" alt="Preset" />
-                  </button>
-                ))}
+            <div className="flex-1 space-y-6">
+              <div>
+                <p className="text-[9px] font-black text-zinc-600 uppercase tracking-widest mb-2">Student Verification</p>
+                <h3 className="text-3xl font-black text-white uppercase tracking-tight">{user.name}</h3>
+                <p className="text-zinc-500 text-xs font-bold font-mono mt-1 opacity-50">{user.email}</p>
+              </div>
+              
+              <div className="space-y-3">
+                <p className="text-[9px] font-black text-zinc-600 uppercase tracking-widest">Neural ID Presets</p>
+                <div className="flex gap-3">
+                  {[1, 2, 3, 4, 5].map((i) => {
+                    const url = `https://api.dicebear.com/7.x/avataaars/svg?seed=${user.name + i}`;
+                    return (
+                      <button key={i} onClick={() => handleAvatarChange(url)} className="w-12 h-12 rounded-xl border border-white/[0.05] overflow-hidden hover:border-white transition-all hover:scale-105 active:scale-95">
+                        <img src={url} className="w-full h-full" alt="Preset" />
+                      </button>
+                    );
+                  })}
+                </div>
               </div>
             </div>
           </div>
 
-          <div className="p-6 flex items-center justify-between">
+          <div className="p-8 flex items-center justify-between group hover:bg-white/[0.02] transition-colors">
             <div>
-              <p className="text-xs text-zinc-500 font-bold uppercase tracking-wider mb-1">Student name</p>
+              <p className="text-[9px] font-black text-zinc-600 uppercase tracking-widest mb-1">Display Name</p>
               <input 
                 type="text"
                 value={user.name}
                 onChange={(e) => setUser({...user, name: e.target.value})}
-                className="bg-transparent text-white font-bold border-none p-0 focus:ring-0 w-full"
+                className="bg-transparent text-white font-black text-xl border-none p-0 focus:ring-0 w-full"
               />
             </div>
             <button 
               onClick={async () => {
                 try {
                   await api.updateProfile({ name: user.name });
-                  alert('Profile updated!');
+                  alert('Profile synchronization complete.');
                 } catch (e) {
-                  alert('Failed to update profile');
+                  alert('Sync failed.');
                 }
               }}
-              className="px-4 py-2 bg-zinc-800 hover:bg-zinc-700 text-white rounded-xl text-xs font-bold transition-colors"
+              className="px-6 py-3 bg-zinc-950 text-white rounded-[1.25rem] text-[10px] font-black uppercase tracking-widest hover:bg-white hover:text-black transition-all border border-white/[0.05]"
             >
-              Save Name
-            </button>
-          </div>
-          <div className="p-6 flex items-center justify-between">
-            <div>
-              <p className="text-xs text-zinc-500 font-bold uppercase tracking-wider mb-1">Class / year level</p>
-              <p className="text-white font-bold">{user.educationLevel} {user.combination ? `(${user.combination})` : ''}</p>
-            </div>
-            <button className="px-4 py-2 bg-zinc-800 hover:bg-zinc-700 text-white rounded-xl text-xs font-bold transition-colors">Change</button>
-          </div>
-        </div>
-      </section>
-
-      {/* Subjects & exams Section */}
-      <section className="space-y-6">
-        <div className="flex items-center gap-2 text-zinc-400 font-bold uppercase tracking-widest text-xs">
-          <GraduationCap className="w-4 h-4" /> Subjects & exams
-        </div>
-        <div className="bg-zinc-900 rounded-3xl border border-zinc-800 divide-y divide-zinc-800 overflow-hidden">
-          <div className="p-6 flex items-center justify-between">
-            <div>
-              <p className="text-xs text-zinc-500 font-bold uppercase tracking-wider mb-1">My subjects</p>
-              <p className="text-white font-bold">{user.subjects || 'General TVET Topics'}</p>
-            </div>
-            <button className="px-4 py-2 bg-zinc-800 hover:bg-zinc-700 text-white rounded-xl text-xs font-bold transition-colors">Edit</button>
-          </div>
-        </div>
-      </section>
-
-      {/* Study schedule Section */}
-      <section className="space-y-6">
-        <div className="flex items-center gap-2 text-zinc-400 font-bold uppercase tracking-widest text-xs">
-          <Calendar className="w-4 h-4" /> Study schedule
-        </div>
-        <div className="bg-zinc-900 rounded-3xl border border-zinc-800 divide-y divide-zinc-800 overflow-hidden">
-          <div className="p-6 flex items-center justify-between">
-            <div>
-              <p className="text-xs text-zinc-500 font-bold uppercase tracking-wider mb-1">Study reminders</p>
-              <p className="text-white font-bold">{user.studyTime ? `Study in the ${user.studyTime}` : 'Daily at 7:00 AM & 5:00 PM'}</p>
-            </div>
-            <div className="flex items-center gap-2">
-              <div className="w-10 h-5 bg-white rounded-full relative">
-                <div className="absolute right-0.5 top-0.5 w-4 h-4 bg-black rounded-full" />
-              </div>
-            </div>
-          </div>
-          <div className="p-6 flex items-center justify-between">
-            <div>
-              <p className="text-xs text-zinc-500 font-bold uppercase tracking-wider mb-1">Rest day</p>
-              <p className="text-white font-bold">{user.restDay || 'Sunday'} — no tasks assigned</p>
-            </div>
-            <button 
-              onClick={async () => {
-                const day = prompt('Choose your rest day (e.g., Saturday, Sunday):', user.restDay || 'Sunday');
-                if (day) {
-                  try {
-                    const res = await api.updateProfile({ restDay: day });
-                    setUser(res.user);
-                    alert(`Rest day changed to ${day}`);
-                  } catch (e) {
-                    alert('Failed to update rest day');
-                  }
-                }
-              }}
-              className="px-4 py-2 bg-zinc-800 hover:bg-zinc-700 text-white rounded-xl text-xs font-bold transition-colors"
-            >
-              Change
+              Update ID
             </button>
           </div>
         </div>
       </section>
 
-      {/* Appearance Section */}
+      {/* Appearance System */}
       <section className="space-y-6">
-        <div className="flex items-center gap-2 text-zinc-400 font-bold uppercase tracking-widest text-xs">
-          <Sun className="w-4 h-4" /> Appearance
+        <div className="flex items-center gap-3 text-zinc-500 font-black uppercase tracking-[0.2em] text-[10px] px-2">
+          <Sun className="w-4 h-4" /> Visual Environment
         </div>
-        <div className="bg-zinc-900 rounded-3xl border border-zinc-800 divide-y divide-zinc-800 overflow-hidden">
-          <div className="p-6 flex items-center justify-between">
+        <div className="bg-zinc-900/40 backdrop-blur-3xl rounded-[2.5rem] border border-white/[0.05] divide-y divide-white/[0.05] overflow-hidden shadow-2xl">
+          <div className="p-10 flex flex-col md:flex-row md:items-center justify-between gap-8">
             <div>
-              <p className="text-xs text-zinc-500 font-bold uppercase tracking-wider mb-1">Theme (Adaptable)</p>
-              <p className="text-white font-bold capitalize">{theme}</p>
-              <div className="flex gap-2 mt-3">
-                {(['light', 'dark', 'auto'] as const).map(t => (
-                  <button 
-                    key={t} 
-                    onClick={() => setTheme(t)}
-                    className={cn(
-                      "px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all", 
-                      theme === t ? "bg-white text-black shadow-lg shadow-white/10" : "bg-zinc-800 text-zinc-500 hover:text-white"
-                    )}
-                  >
-                    {t}
-                  </button>
-                ))}
-              </div>
+              <p className="text-[9px] font-black text-zinc-600 uppercase tracking-widest mb-2">Interface Theme</p>
+              <p className="text-white font-black text-2xl uppercase tracking-tight">{theme}</p>
+            </div>
+            <div className="flex gap-2 p-1.5 bg-black/60 rounded-[1.5rem] border border-white/[0.05]">
+              {(['light', 'dark', 'auto'] as const).map(t => (
+                <button 
+                  key={t} 
+                  onClick={() => setTheme(t)}
+                  className={cn(
+                    "px-6 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all", 
+                    theme === t ? "bg-white text-black shadow-xl" : "text-zinc-500 hover:text-white"
+                  )}
+                >
+                  {t}
+                </button>
+              ))}
             </div>
           </div>
-          <div className="p-6">
-            <p className="text-xs text-zinc-500 font-bold uppercase tracking-wider mb-4">Font Scaling</p>
-            <input 
-              type="range" min="12" max="24"
-              value={fontSize}
-              onChange={(e) => setFontSize(Number(e.target.value))}
-              className="w-full h-2 bg-zinc-800 rounded-lg appearance-none cursor-pointer accent-white"
-            />
-            <div className="flex justify-between mt-2 text-[10px] text-zinc-500 font-bold">
-              <span>Standard (12px)</span>
-              <span className="text-white">{fontSize}px</span>
-              <span>Large (24px)</span>
+          <div className="p-10">
+            <div className="flex items-center justify-between mb-6">
+              <p className="text-[9px] font-black text-zinc-600 uppercase tracking-widest">Neural Font Scaling</p>
+              <span className="text-xl font-black text-white font-mono">{fontSize}px</span>
+            </div>
+            <div className="relative flex items-center">
+              <input 
+                type="range" min="12" max="24"
+                value={fontSize}
+                onChange={(e) => setFontSize(Number(e.target.value))}
+                className="w-full h-1.5 bg-black rounded-full appearance-none cursor-pointer accent-white"
+              />
+            </div>
+            <div className="flex justify-between mt-4 text-[9px] text-zinc-600 font-black uppercase tracking-widest">
+              <span>Standard (12)</span>
+              <span>Industrial (24)</span>
             </div>
           </div>
         </div>
       </section>
 
-      {/* Privacy & data Section */}
+      {/* Security & Data Core */}
       <section className="space-y-6">
-        <div className="flex items-center gap-2 text-zinc-400 font-bold uppercase tracking-widest text-xs">
-          <Lock className="w-4 h-4" /> Privacy & data
+        <div className="flex items-center gap-3 text-zinc-500 font-black uppercase tracking-[0.2em] text-[10px] px-2">
+          <Lock className="w-4 h-4" /> Encryption & Privacy
         </div>
-        <div className="bg-zinc-900 rounded-3xl border border-zinc-800 divide-y divide-zinc-800 overflow-hidden">
-          <div className="p-6">
-            <div className="flex items-center justify-between mb-4">
+        <div className="bg-zinc-900/40 backdrop-blur-3xl rounded-[2.5rem] border border-white/[0.05] divide-y divide-white/[0.05] overflow-hidden shadow-2xl">
+          <div className="p-10">
+            <div className="flex items-center justify-between mb-8">
               <div>
-                <p className="text-xs text-zinc-500 font-bold uppercase tracking-wider mb-1">Security</p>
-                <p className="text-white font-bold">Change account password</p>
+                <p className="text-[9px] font-black text-zinc-600 uppercase tracking-widest mb-1">Access Protocol</p>
+                <p className="text-white font-black text-xl">Rotate Security Credentials</p>
               </div>
               <button 
                 onClick={() => setIsChangingPassword(!isChangingPassword)}
-                className="px-4 py-2 bg-zinc-800 hover:bg-zinc-700 text-white rounded-xl text-xs font-bold transition-colors"
+                className="px-6 py-3 bg-zinc-950 text-white rounded-[1.25rem] text-[10px] font-black uppercase tracking-widest hover:bg-white hover:text-black transition-all border border-white/[0.05]"
               >
-                {isChangingPassword ? 'Cancel' : 'Update Password'}
+                {isChangingPassword ? 'Abort' : 'Initialize Rotation'}
               </button>
             </div>
             
             {isChangingPassword && (
               <motion.div 
-                initial={{ opacity: 0, height: 0 }}
-                animate={{ opacity: 1, height: 'auto' }}
-                className="space-y-4 pt-4 border-t border-zinc-800"
+                initial={{ opacity: 0, y: -10 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="space-y-6 pt-10 border-t border-white/[0.05]"
               >
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                  <input 
+                    type="password" 
+                    placeholder="Current Cipher"
+                    value={passwords.current}
+                    onChange={(e) => setPasswords({...passwords, current: e.target.value})}
+                    className="bg-black border border-white/[0.05] rounded-2xl p-5 text-sm text-white focus:ring-2 focus:ring-white/10 outline-none"
+                  />
+                  <input 
+                    type="password" 
+                    placeholder="New Cipher"
+                    value={passwords.new}
+                    onChange={(e) => setPasswords({...passwords, new: e.target.value})}
+                    className="bg-black border border-white/[0.05] rounded-2xl p-5 text-sm text-white focus:ring-2 focus:ring-white/10 outline-none"
+                  />
+                  <input 
+                    type="password" 
+                    placeholder="Verify Cipher"
+                    value={passwords.confirm}
+                    onChange={(e) => setPasswords({...passwords, confirm: e.target.value})}
+                    className="bg-black border border-white/[0.05] rounded-2xl p-5 text-sm text-white focus:ring-2 focus:ring-white/10 outline-none"
+                  />
+                </div>
+                <button 
+                  onClick={handlePasswordChange}
+                  className="w-full py-5 bg-white text-black font-black uppercase tracking-[0.2em] text-[10px] rounded-2xl hover:bg-zinc-200 transition-all shadow-xl"
+                >
+                  Confirm Credential Rotation
+                </button>
+              </motion.div>
+            )}
+          </div>
+          
+          <div className="p-10 flex items-center justify-between group hover:bg-white/[0.02] transition-colors">
+            <div>
+              <p className="text-[9px] font-black text-zinc-600 uppercase tracking-widest mb-1">Data Sovereignty</p>
+              <p className="text-white font-black text-xl">Extract Intelligence Logs</p>
+            </div>
+            <button className="px-6 py-3 bg-zinc-950 text-white rounded-[1.25rem] text-[10px] font-black uppercase tracking-widest hover:bg-white hover:text-black transition-all border border-white/[0.05] flex items-center gap-3">
+              <Download className="w-4 h-4" /> Export Core
+            </button>
+          </div>
+          <div className="p-10 flex items-center justify-between group hover:bg-red-500/[0.02] transition-colors">
+            <div>
+              <p className="text-[9px] font-black text-red-900 uppercase tracking-widest mb-1">Critical Termination</p>
+              <p className="text-red-500 font-black text-xl">Decommission Account</p>
+            </div>
+            <button 
+              onClick={handleDeleteAccount}
+              className="px-6 py-3 bg-red-500/10 hover:bg-red-500 text-white rounded-[1.25rem] text-[10px] font-black uppercase tracking-widest transition-all flex items-center gap-3"
+            >
+              <Trash2 className="w-4 h-4" /> Purge Identity
+            </button>
+          </div>
+        </div>
+      </section>
+
+      {/* Visual Density Footer */}
+      <div className="p-12 bg-white text-black rounded-[3rem] relative overflow-hidden shadow-2xl">
+        <div className="absolute top-0 right-0 w-64 h-64 bg-zinc-100 blur-[80px] rounded-full -mr-32 -mt-32" />
+        <div className="relative z-10 grid grid-cols-2 md:grid-cols-4 gap-12">
+          <div>
+            <p className="text-[9px] font-black text-zinc-400 uppercase tracking-widest mb-2">Quizzes Indexed</p>
+            <p className="text-5xl font-black tabular-nums">{history.length}</p>
+          </div>
+          <div>
+            <p className="text-[9px] font-black text-zinc-400 uppercase tracking-widest mb-2">Mastery Index</p>
+            <p className="text-5xl font-black tabular-nums">{avgScore}%</p>
+          </div>
+          <div>
+            <p className="text-[9px] font-black text-zinc-400 uppercase tracking-widest mb-2">Current Streak</p>
+            <p className="text-5xl font-black tabular-nums">{user.streak || 0}</p>
+          </div>
+          <div>
+            <p className="text-[9px] font-black text-zinc-400 uppercase tracking-widest mb-2">Verification Rank</p>
+            <p className="text-5xl font-black uppercase">Elite</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                   <input 
                     type="password" 
