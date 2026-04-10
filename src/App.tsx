@@ -2363,7 +2363,6 @@ const SettingsView = ({
           </div>
         </div>
       </section>
-      </section>
 
       {/* Privacy & data Section */}
       <section className="space-y-6">
