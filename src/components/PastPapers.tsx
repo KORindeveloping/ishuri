@@ -105,8 +105,8 @@ export const PastPapers = ({ user, onStartQuiz }: { user: User, onStartQuiz?: (q
              <div className="px-3 py-1 bg-zinc-900 dark:bg-white text-white dark:text-black text-[10px] font-black uppercase tracking-widest rounded-lg">
                {displayLevel} Library
              </div>
-             <div className="px-3 py-1 bg-blue-500 text-white text-[10px] font-black uppercase tracking-widest rounded-lg shadow-lg animate-pulse">
-               v3.2 Verified
+             <div className="px-3 py-1 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 text-[10px] font-black uppercase tracking-widest rounded-lg border border-emerald-500/20 flex items-center gap-1.5">
+               <CheckCircle2 className="w-3 h-3" /> Official Board Repository
              </div>
              <div className="px-3 py-1 bg-zinc-100 dark:bg-zinc-800 text-zinc-500 dark:text-zinc-400 text-[10px] font-black uppercase tracking-widest rounded-lg border border-zinc-200 dark:border-zinc-700">
                {filteredPapers.length} Papers Available
@@ -281,10 +281,12 @@ export const PastPapers = ({ user, onStartQuiz }: { user: User, onStartQuiz?: (q
                           onChange={(e) => setConfig({...config, subject: e.target.value})}
                           className="w-full bg-zinc-50 dark:bg-black border border-zinc-200 dark:border-zinc-800 rounded-xl px-4 py-3 text-sm font-medium focus:ring-2 focus:ring-zinc-900/10 dark:focus:ring-white/20 outline-none text-zinc-900 dark:text-white"
                         >
-                          <option>Automotive</option>
-                          <option>Plumbing</option>
-                          <option>IT</option>
-                          <option>Electrical</option>
+                          {Array.from(new Set(PAST_PAPERS_DATA.filter(p => p.level === displayLevel).map(p => p.subject))).sort().map(sub => (
+                            <option key={sub} value={sub}>{sub}</option>
+                          ))}
+                          {PAST_PAPERS_DATA.filter(p => p.level === displayLevel).length === 0 && (
+                            <option value="General">General Study</option>
+                          )}
                         </select>
                       </div>
                       <div className="grid grid-cols-2 gap-4">
