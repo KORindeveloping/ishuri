@@ -7,7 +7,7 @@ export const MOCK_USER: User = {
   role: 'Student',
   trade: 'Sciences',
   streak: 1,
-  educationLevel: 'Nursery',
+  educationLevel: 'Advanced Level',
   competencies: [
     {
       trade: 'Sciences',
