@@ -1,25 +1,27 @@
 @import "tailwindcss";
 
+@variant dark (&:where(.dark, .dark *));
+
 @theme {
-  --color-background: var(--bg-color, #000000);
-  --color-foreground: var(--text-color, #ffffff);
-  --color-card: var(--card-bg, #09090b);
-  --color-card-foreground: var(--text-color, #ffffff);
-  --color-popover: var(--card-bg, #09090b);
-  --color-popover-foreground: var(--text-color, #ffffff);
-  --color-primary: var(--text-color, #ffffff);
-  --color-primary-foreground: var(--bg-color, #000000);
-  --color-secondary: var(--secondary-bg, #27272a);
-  --color-secondary-foreground: var(--text-color, #ffffff);
-  --color-muted: var(--secondary-bg, #27272a);
-  --color-muted-foreground: #a1a1aa;
-  --color-accent: var(--secondary-bg, #27272a);
-  --color-accent-foreground: var(--text-color, #ffffff);
-  --color-destructive: #7f1d1d;
+  --color-background: var(--bg-color, #ffffff);
+  --color-foreground: var(--text-color, #000000);
+  --color-card: var(--card-bg, #f4f4f5);
+  --color-card-foreground: var(--text-color, #000000);
+  --color-popover: var(--card-bg, #f4f4f5);
+  --color-popover-foreground: var(--text-color, #000000);
+  --color-primary: var(--text-color, #000000);
+  --color-primary-foreground: var(--bg-color, #ffffff);
+  --color-secondary: var(--secondary-bg, #e4e4e7);
+  --color-secondary-foreground: var(--text-color, #000000);
+  --color-muted: var(--secondary-bg, #e4e4e7);
+  --color-muted-foreground: #71717a;
+  --color-accent: var(--secondary-bg, #e4e4e7);
+  --color-accent-foreground: var(--text-color, #000000);
+  --color-destructive: #ef4444;
   --color-destructive-foreground: #ffffff;
-  --color-border: var(--border-color, #27272a);
-  --color-input: var(--border-color, #27272a);
-  --color-ring: #d4d4d8;
+  --color-border: var(--border-color, #e4e4e7);
+  --color-input: var(--border-color, #e4e4e7);
+  --color-ring: #18181b;
 }
 
 :root {

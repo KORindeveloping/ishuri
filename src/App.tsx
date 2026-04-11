@@ -90,9 +90,9 @@ const Toast = ({ message, type, onClose }: { message: string, type: 'success' | 
       exit={{ opacity: 0, scale: 0.9 }}
       className={cn(
         "fixed bottom-8 left-1/2 -translate-x-1/2 z-[200] px-6 py-4 rounded-2xl shadow-2xl flex items-center gap-3 border backdrop-blur-md",
-        type === 'success' ? "bg-green-500/10 border-green-500/20 text-green-500" :
-        type === 'error' ? "bg-red-500/10 border-red-500/20 text-red-500" :
-        "bg-white/10 border-white/20 text-white"
+        type === 'success' ? "bg-green-500/10 border-green-500/20 text-green-600 dark:text-green-400" :
+        type === 'error' ? "bg-red-500/10 border-red-500/20 text-red-600 dark:text-red-400" :
+        "bg-zinc-900/10 dark:bg-white/10 border-zinc-900/20 dark:border-white/20 text-zinc-900 dark:text-white"
       )}
     >
       {type === 'success' && <CheckCircle2 className="w-5 h-5" />}
@@ -116,22 +116,22 @@ const Modal = ({ title, children, onClose, onConfirm, confirmText = "Confirm", c
       initial={{ opacity: 0, scale: 0.9, y: 20 }}
       animate={{ opacity: 1, scale: 1, y: 0 }}
       exit={{ opacity: 0, scale: 0.9 }}
-      className="w-full max-w-md bg-zinc-900 rounded-[2.5rem] border border-zinc-800 p-8 shadow-2xl relative overflow-hidden"
+      className="w-full max-w-md bg-white dark:bg-zinc-900 rounded-[2.5rem] border border-zinc-200 dark:border-zinc-800 p-8 shadow-2xl relative overflow-hidden"
     >
-      <div className="absolute top-0 right-0 w-32 h-32 bg-white/5 blur-3xl rounded-full -mr-16 -mt-16" />
+      <div className="absolute top-0 right-0 w-32 h-32 bg-black/5 dark:bg-white/5 blur-3xl rounded-full -mr-16 -mt-16" />
       <header className="flex items-center justify-between mb-6 relative z-10">
-        <h3 className="text-xl font-black text-white uppercase tracking-tight">{title}</h3>
-        <button onClick={onClose} className="p-2 hover:bg-zinc-800 rounded-xl text-zinc-500 hover:text-white transition-colors">
+        <h3 className="text-xl font-black text-zinc-900 dark:text-white uppercase tracking-tight">{title}</h3>
+        <button onClick={onClose} className="p-2 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-xl text-zinc-500 hover:text-zinc-900 dark:hover:text-white transition-colors">
           <X className="w-5 h-5" />
         </button>
       </header>
-      <div className="relative z-10 mb-8 text-zinc-400 font-medium leading-relaxed">
+      <div className="relative z-10 mb-8 text-zinc-500 dark:text-zinc-400 font-medium leading-relaxed">
         {children}
       </div>
       <footer className="flex gap-4 relative z-10">
         <button 
           onClick={onClose}
-          className="flex-1 py-4 bg-zinc-800 text-zinc-400 rounded-2xl font-bold hover:bg-zinc-700 transition-all"
+          className="flex-1 py-4 bg-zinc-100 dark:bg-zinc-800 text-zinc-500 dark:text-zinc-400 rounded-2xl font-bold hover:bg-zinc-200 dark:hover:bg-zinc-700 transition-all"
         >
           Cancel
         </button>
@@ -139,8 +139,8 @@ const Modal = ({ title, children, onClose, onConfirm, confirmText = "Confirm", c
           <button 
             onClick={onConfirm}
             className={cn(
-              "flex-1 py-4 rounded-2xl font-black uppercase tracking-widest text-[10px] transition-all shadow-lg shadow-white/5",
-              confirmVariant === 'danger' ? "bg-red-500 text-white hover:bg-red-600" : "bg-white text-black hover:bg-zinc-200"
+              "flex-1 py-4 rounded-2xl font-black uppercase tracking-widest text-[10px] transition-all shadow-lg",
+              confirmVariant === 'danger' ? "bg-red-500 text-white hover:bg-red-600" : "bg-zinc-900 text-white hover:bg-zinc-800 dark:bg-white dark:text-black dark:hover:bg-zinc-200"
             )}
           >
             {confirmText}
@@ -158,20 +158,20 @@ const SidebarItem =
     className={cn(
       "flex items-center w-full px-4 py-3 mb-1 transition-all duration-200 rounded-xl group",
       active 
-        ? "bg-white text-black shadow-lg shadow-white/10" 
-        : "text-zinc-400 hover:bg-zinc-800 hover:text-white"
+        ? "bg-zinc-900 dark:bg-white text-white dark:text-black shadow-lg shadow-black/10 dark:shadow-white/10" 
+        : "text-zinc-500 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-800 hover:text-zinc-900 dark:hover:text-white"
     )}
   >
-    <Icon className={cn("w-5 h-5 mr-3", active ? "text-black" : "text-zinc-500 group-hover:text-white")} />
+    <Icon className={cn("w-5 h-5 mr-3", active ? "text-white dark:text-black" : "text-zinc-400 dark:text-zinc-500 group-hover:text-zinc-900 dark:group-hover:text-white")} />
     <span className="font-medium">{label}</span>
-    {active && <motion.div layoutId="sidebar-active" className="ml-auto w-1.5 h-1.5 rounded-full bg-black" />}
+    {active && <motion.div layoutId="sidebar-active" className="ml-auto w-1.5 h-1.5 rounded-full bg-white dark:bg-black" />}
   </button>
 );
 
 const RAGBadge = ({ status, progress }: { status: CompetencyStatus, progress: number }) => {
-  let color = "bg-zinc-800 text-zinc-400 border-zinc-700";
-  if (status === 'Competent') color = "bg-white text-black border-white";
-  if (status === 'Not Yet Competent' && progress > 40) color = "bg-zinc-700 text-white border-zinc-600";
+  let color = "bg-zinc-100 dark:bg-zinc-800 text-zinc-500 dark:text-zinc-400 border-zinc-200 dark:border-zinc-700";
+  if (status === 'Competent') color = "bg-zinc-900 dark:bg-white text-white dark:text-black border-zinc-900 dark:border-white";
+  if (status === 'Not Yet Competent' && progress > 40) color = "bg-zinc-200 dark:bg-zinc-700 text-zinc-900 dark:text-white border-zinc-300 dark:border-zinc-600";
 
   return (
     <span className={cn("px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider border", color)}>
@@ -292,35 +292,35 @@ const DashboardView = ({ user, onStartQuiz, onLogout, history, onNavigate, showT
 
   return (
     <div className="space-y-12 pb-24 font-sans">
-      <header className="relative overflow-hidden bg-[#0a0a0a] rounded-[3.5rem] p-12 md:p-16 border border-white/[0.05] shadow-2xl flex flex-col md:flex-row md:items-end justify-between gap-10">
-        <div className="absolute top-0 right-0 w-1/2 h-full bg-gradient-to-l from-white/[0.02] to-transparent pointer-events-none" />
+      <header className="relative overflow-hidden bg-zinc-100 dark:bg-zinc-950 rounded-[3.5rem] p-12 md:p-16 border border-zinc-200 dark:border-white/[0.05] shadow-2xl flex flex-col md:flex-row md:items-end justify-between gap-10">
+        <div className="absolute top-0 right-0 w-1/2 h-full bg-gradient-to-l from-black/[0.02] dark:from-white/[0.02] to-transparent pointer-events-none" />
         <div className="relative z-10">
           <div className="flex items-center gap-4 mb-8">
-            <div className="px-3.5 py-1.5 bg-white text-black text-[9px] font-black uppercase tracking-[0.3em] rounded-full shadow-[0_5px_15px_rgba(255,255,255,0.1)]">Active Session</div>
-            <div className="flex items-center gap-1.5 px-2.5 py-1.5 bg-zinc-900/50 backdrop-blur-md text-zinc-400 text-[10px] font-black uppercase tracking-widest rounded-full border border-white/[0.05]">
-              <Zap className="w-3.5 h-3.5 fill-current text-white" /> Exam Prep Mode
+            <div className="px-3.5 py-1.5 bg-zinc-900 dark:bg-white text-white dark:text-black text-[9px] font-black uppercase tracking-[0.3em] rounded-full shadow-[0_5px_15px_rgba(0,0,0,0.1)] dark:shadow-[0_5px_15px_rgba(255,255,255,0.1)]">Active Session</div>
+            <div className="flex items-center gap-1.5 px-2.5 py-1.5 bg-white dark:bg-zinc-900/50 backdrop-blur-md text-zinc-500 dark:text-zinc-400 text-[10px] font-black uppercase tracking-widest rounded-full border border-zinc-200 dark:border-white/[0.05]">
+              <Zap className="w-3.5 h-3.5 fill-current text-zinc-900 dark:text-white" /> Exam Prep Mode
             </div>
           </div>
-          <h1 className="text-5xl md:text-7xl font-black text-white tracking-tighter mb-4 leading-[0.9]">
+          <h1 className="text-5xl md:text-7xl font-black text-zinc-900 dark:text-white tracking-tighter mb-4 leading-[0.9]">
             Welcome back,<br />
-            <span className="text-zinc-700">{user.name.split(' ')[0]}.</span>
+            <span className="text-zinc-400 dark:text-zinc-700">{user.name.split(' ')[0]}.</span>
           </h1>
-          <p className="text-zinc-500 text-sm font-bold uppercase tracking-[0.2em]">{new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}</p>
+          <p className="text-zinc-500 dark:text-zinc-500 text-sm font-bold uppercase tracking-[0.2em]">{new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}</p>
         </div>
         
         <div className="flex items-center gap-10 relative z-10">
           <div className="text-right">
-            <p className="text-[10px] font-black text-zinc-600 uppercase tracking-[0.4em] mb-2">Finals Countdown</p>
+            <p className="text-[10px] font-black text-zinc-500 dark:text-zinc-600 uppercase tracking-[0.4em] mb-2">Finals Countdown</p>
             <div className="flex items-baseline gap-2 justify-end">
-              <span className="text-6xl font-black text-white tracking-tighter tabular-nums">14</span>
-              <span className="text-xs font-black text-zinc-500 uppercase tracking-widest">Days</span>
+              <span className="text-6xl font-black text-zinc-900 dark:text-white tracking-tighter tabular-nums">14</span>
+              <span className="text-xs font-black text-zinc-400 dark:text-zinc-500 uppercase tracking-widest">Days</span>
             </div>
           </div>
           <motion.div 
             whileHover={{ scale: 1.05, rotate: 5 }}
-            className="w-20 h-20 rounded-[2.5rem] bg-white flex items-center justify-center shadow-[0_20px_50px_rgba(255,255,255,0.15)]"
+            className="w-20 h-20 rounded-[2.5rem] bg-zinc-900 dark:bg-white flex items-center justify-center shadow-[0_20px_50px_rgba(0,0,0,0.1)] dark:shadow-[0_20px_50px_rgba(255,255,255,0.15)]"
           >
-            <Calendar className="w-10 h-10 text-black" />
+            <Calendar className="w-10 h-10 text-white dark:text-black" />
           </motion.div>
         </div>
       </header>
@@ -335,19 +335,19 @@ const DashboardView = ({ user, onStartQuiz, onLogout, history, onNavigate, showT
             whileHover={{ y: -8, scale: 1.02 }}
             key={stat.label} 
             className={cn(
-              "p-8 bg-zinc-900/40 backdrop-blur-3xl rounded-[3rem] border border-white/[0.03] hover:border-white/[0.1] transition-all group relative overflow-hidden",
+              "p-8 bg-white dark:bg-zinc-900/40 backdrop-blur-3xl rounded-[3rem] border border-zinc-200 dark:border-white/[0.03] hover:border-zinc-300 dark:hover:border-white/[0.1] transition-all group relative overflow-hidden shadow-sm",
               `dashboard-card-${i}`
             )}
           >
-            <div className="absolute bottom-0 right-0 w-24 h-24 bg-white/5 blur-3xl rounded-full -mb-12 -mr-12" />
+            <div className="absolute bottom-0 right-0 w-24 h-24 bg-black/5 dark:bg-white/5 blur-3xl rounded-full -mb-12 -mr-12" />
             <div className="flex items-center justify-between mb-8">
-              <div className="w-12 h-12 rounded-2xl bg-black flex items-center justify-center border border-white/[0.05] group-hover:bg-white transition-all duration-500">
-                <stat.icon className="w-6 h-6 text-zinc-500 group-hover:text-black transition-colors" />
+              <div className="w-12 h-12 rounded-2xl bg-zinc-100 dark:bg-black flex items-center justify-center border border-zinc-200 dark:border-white/[0.05] group-hover:bg-zinc-900 dark:group-hover:bg-white transition-all duration-500">
+                <stat.icon className="w-6 h-6 text-zinc-400 dark:text-zinc-500 group-hover:text-white dark:group-hover:text-black transition-colors" />
               </div>
-              <TrendingUp className="w-5 h-5 text-zinc-800 group-hover:text-white transition-colors" />
+              <TrendingUp className="w-5 h-5 text-zinc-300 dark:text-zinc-800 group-hover:text-zinc-900 dark:group-hover:text-white transition-colors" />
             </div>
-            <p className="text-[10px] font-black text-zinc-600 uppercase tracking-[0.3em] mb-1">{stat.label}</p>
-            <p className="text-4xl font-black text-white tracking-tighter">{stat.value}</p>
+            <p className="text-[10px] font-black text-zinc-500 dark:text-zinc-600 uppercase tracking-[0.3em] mb-1">{stat.label}</p>
+            <p className="text-4xl font-black text-zinc-900 dark:text-white tracking-tighter">{stat.value}</p>
           </motion.div>
         ))}
       </div>
@@ -356,14 +356,14 @@ const DashboardView = ({ user, onStartQuiz, onLogout, history, onNavigate, showT
         {/* Left Column */}
         <div className="lg:col-span-2 space-y-8">
           {/* Subject Progress */}
-          <section className="bg-zinc-900 p-8 rounded-[2rem] border border-zinc-800">
+          <section className="bg-white dark:bg-zinc-900 p-8 rounded-[2rem] border border-zinc-200 dark:border-zinc-800 shadow-sm">
             <div className="flex items-center justify-between mb-8">
-              <h2 className="text-xl font-black text-white flex items-center gap-3 uppercase tracking-tight">
-                <BarChart3 className="w-6 h-6 text-zinc-500" /> Subject Progress
+              <h2 className="text-xl font-black text-zinc-900 dark:text-white flex items-center gap-3 uppercase tracking-tight">
+                <BarChart3 className="w-6 h-6 text-zinc-400 dark:text-zinc-500" /> Subject Progress
               </h2>
               <button 
                 onClick={() => onNavigate('analytics')}
-                className="text-[10px] font-black text-zinc-500 hover:text-white uppercase tracking-widest transition-colors"
+                className="text-[10px] font-black text-zinc-400 dark:text-zinc-500 hover:text-zinc-900 dark:hover:text-white uppercase tracking-widest transition-colors"
               >
                 Detailed Analytics
               </button>
@@ -374,32 +374,32 @@ const DashboardView = ({ user, onStartQuiz, onLogout, history, onNavigate, showT
                   key={subject.name}
                   onClick={() => !generatingQuiz && startPracticeQuiz(subject.name)}
                   className={cn(
-                    "p-4 rounded-2xl border border-transparent hover:bg-black/40 hover:border-zinc-800 transition-all cursor-pointer group/subject relative",
+                    "p-4 rounded-2xl border border-transparent hover:bg-zinc-50 dark:hover:bg-black/40 hover:border-zinc-200 dark:hover:border-zinc-800 transition-all cursor-pointer group/subject relative",
                     `dashboard-card-${(idx + 4) % 10}`,
                     generatingQuiz === subject.name && "opacity-60 cursor-wait"
                   )}
                 >
                   <div className="flex items-center justify-between mb-3">
                     <div className="flex items-center gap-3">
-                      <span className="text-sm font-black text-zinc-300 uppercase tracking-wide group-hover/subject:text-white transition-colors">{subject.name}</span>
+                      <span className="text-sm font-black text-zinc-600 dark:text-zinc-300 uppercase tracking-wide group-hover/subject:text-zinc-900 dark:group-hover/subject:text-white transition-colors">{subject.name}</span>
                       {generatingQuiz === subject.name ? (
-                        <div className="w-3 h-3 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                        <div className="w-3 h-3 border-2 border-zinc-900 dark:border-white border-t-transparent rounded-full animate-spin" />
                       ) : (
-                        <div className="px-2 py-0.5 rounded-full bg-white/10 text-[8px] font-black text-zinc-500 uppercase tracking-widest group-hover/subject:bg-white group-hover/subject:text-black transition-all">
+                        <div className="px-2 py-0.5 rounded-full bg-zinc-100 dark:bg-white/10 text-[8px] font-black text-zinc-500 dark:text-zinc-500 uppercase tracking-widest group-hover/subject:bg-zinc-900 dark:group-hover/subject:bg-white group-hover/subject:text-white dark:group-hover/subject:text-black transition-all">
                           Master Topic
                         </div>
                       )}
                     </div>
-                    <span className="text-xs font-black text-white tabular-nums">{subject.progress}%</span>
+                    <span className="text-xs font-black text-zinc-900 dark:text-white tabular-nums">{subject.progress}%</span>
                   </div>
-                  <div className="w-full h-3 bg-black rounded-full overflow-hidden border border-zinc-800 p-0.5">
+                  <div className="w-full h-3 bg-zinc-100 dark:bg-black rounded-full overflow-hidden border border-zinc-200 dark:border-zinc-800 p-0.5">
                     <motion.div 
                       initial={{ width: 0 }}
                       animate={{ width: `${subject.progress}%` }}
                       className={cn(
                         "h-full rounded-full transition-all duration-1000",
-                        subject.progress >= 80 ? "bg-white shadow-[0_0_15px_rgba(255,255,255,0.3)]" : 
-                        subject.progress >= 40 ? "bg-zinc-500" : "bg-zinc-800"
+                        subject.progress >= 80 ? "bg-zinc-900 dark:bg-white shadow-[0_0_15px_rgba(0,0,0,0.1)] dark:shadow-[0_0_15px_rgba(255,255,255,0.3)]" : 
+                        subject.progress >= 40 ? "bg-zinc-500" : "bg-zinc-300 dark:bg-zinc-800"
                       )}
                     />
                   </div>
@@ -409,15 +409,15 @@ const DashboardView = ({ user, onStartQuiz, onLogout, history, onNavigate, showT
           </section>
 
           {/* Upcoming Exams */}
-          <section className="bg-zinc-900 p-8 rounded-[2rem] border border-zinc-800">
+          <section className="bg-white dark:bg-zinc-900 p-8 rounded-[2rem] border border-zinc-200 dark:border-zinc-800 shadow-sm">
             <div className="flex items-center justify-between mb-8">
-              <h2 className="text-xl font-black text-white flex items-center gap-3 uppercase tracking-tight">
-                <AlertTriangle className="w-6 h-6 text-zinc-500" /> Upcoming Exams
+              <h2 className="text-xl font-black text-zinc-900 dark:text-white flex items-center gap-3 uppercase tracking-tight">
+                <AlertTriangle className="w-6 h-6 text-zinc-400 dark:text-zinc-500" /> Upcoming Exams
               </h2>
             </div>
             <div className="space-y-4">
               {upcomingExams.map((exam) => (
-                <div key={exam.id} className="flex items-center justify-between p-5 bg-black rounded-2xl border border-zinc-800 hover:border-zinc-700 transition-all group">
+                <div key={exam.id} className="flex items-center justify-between p-5 bg-zinc-50 dark:bg-black rounded-2xl border border-zinc-200 dark:border-zinc-800 hover:border-zinc-300 dark:hover:border-zinc-700 transition-all group">
                   <div className="flex items-center gap-5">
                     <div className={cn(
                       "w-1.5 h-12 rounded-full",
@@ -426,15 +426,15 @@ const DashboardView = ({ user, onStartQuiz, onLogout, history, onNavigate, showT
                       "bg-green-500 shadow-[0_0_15px_rgba(34,197,94,0.2)]"
                     )} />
                     <div>
-                      <h3 className="font-black text-white text-lg tracking-tight">{exam.title}</h3>
-                      <p className="text-xs text-zinc-500 font-bold uppercase tracking-widest mt-1">{exam.trade} • {exam.date}</p>
+                      <h3 className="font-black text-zinc-900 dark:text-white text-lg tracking-tight">{exam.title}</h3>
+                      <p className="text-xs text-zinc-500 dark:text-zinc-500 font-bold uppercase tracking-widest mt-1">{exam.trade} • {exam.date}</p>
                     </div>
                   </div>
                   <div className={cn(
                     "px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest border",
-                    exam.urgency === 'critical' ? "bg-red-500/10 text-red-500 border-red-500/20" : 
-                    exam.urgency === 'soon' ? "bg-yellow-500/10 text-yellow-500 border-yellow-500/20" : 
-                    "bg-green-500/10 text-green-500 border-green-500/20"
+                    exam.urgency === 'critical' ? "bg-red-500/10 text-red-600 dark:text-red-500 border-red-500/20" : 
+                    exam.urgency === 'soon' ? "bg-yellow-500/10 text-yellow-600 dark:text-yellow-500 border-yellow-500/20" : 
+                    "bg-green-500/10 text-green-600 dark:text-green-500 border-green-500/20"
                   )}>
                     {exam.urgency === 'critical' ? 'Very Soon' : exam.urgency === 'soon' ? 'Coming Up' : 'Still Time'}
                   </div>
@@ -444,26 +444,26 @@ const DashboardView = ({ user, onStartQuiz, onLogout, history, onNavigate, showT
           </section>
 
           {/* Course Lessons */}
-          <section className="bg-zinc-900 p-8 rounded-[2rem] border border-zinc-800">
+          <section className="bg-white dark:bg-zinc-900 p-8 rounded-[2rem] border border-zinc-200 dark:border-zinc-800 shadow-sm">
             <div className="flex items-center justify-between mb-8">
-              <h2 className="text-xl font-black text-white flex items-center gap-3 uppercase tracking-tight">
-                <BookOpen className="w-6 h-6 text-zinc-500" /> Course Lessons
+              <h2 className="text-xl font-black text-zinc-900 dark:text-white flex items-center gap-3 uppercase tracking-tight">
+                <BookOpen className="w-6 h-6 text-zinc-400 dark:text-zinc-500" /> Course Lessons
               </h2>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {subjects.slice(0, 4).map((subject, idx) => (
-                <div key={idx} className="p-6 bg-black rounded-3xl border border-zinc-800 hover:border-white transition-all group">
+                <div key={idx} className="p-6 bg-zinc-50 dark:bg-black rounded-3xl border border-zinc-200 dark:border-zinc-800 hover:border-zinc-900 dark:hover:border-white transition-all group">
                   <div className="flex items-center justify-between mb-4">
-                    <div className="w-10 h-10 rounded-xl bg-zinc-900 flex items-center justify-center border border-zinc-800 group-hover:bg-white group-hover:text-black transition-colors">
+                    <div className="w-10 h-10 rounded-xl bg-white dark:bg-zinc-900 flex items-center justify-center border border-zinc-200 dark:border-zinc-800 group-hover:bg-zinc-900 dark:group-hover:bg-white group-hover:text-white dark:group-hover:text-black transition-colors">
                       <GraduationCap className="w-5 h-5" />
                     </div>
-                    <span className="text-[10px] font-black text-zinc-600 uppercase tracking-widest">Module {idx + 1}</span>
+                    <span className="text-[10px] font-black text-zinc-400 dark:text-zinc-600 uppercase tracking-widest">Module {idx + 1}</span>
                   </div>
-                  <h3 className="font-black text-white text-lg tracking-tight mb-2 line-clamp-1">{subject.name}</h3>
-                  <p className="text-xs text-zinc-500 mb-6">Learn the core concepts of {subject.name.split(' ')[0]} and prepare for your competency test.</p>
+                  <h3 className="font-black text-zinc-900 dark:text-white text-lg tracking-tight mb-2 line-clamp-1">{subject.name}</h3>
+                  <p className="text-xs text-zinc-500 dark:text-zinc-500 mb-6">Learn the core concepts of {subject.name.split(' ')[0]} and prepare for your competency test.</p>
                   <button 
                     onClick={() => startPracticeQuiz(subject.name)}
-                    className="w-full py-3 bg-zinc-900 text-white rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-white hover:text-black transition-all"
+                    className="w-full py-3 bg-zinc-100 dark:bg-zinc-900 text-zinc-900 dark:text-white rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-zinc-900 dark:hover:bg-white hover:text-white dark:hover:text-black transition-all"
                   >
                     Start Lesson Quiz
                   </button>
@@ -473,14 +473,14 @@ const DashboardView = ({ user, onStartQuiz, onLogout, history, onNavigate, showT
           </section>
 
           {/* Practice Quizzes */}
-          <section className="bg-zinc-900 p-8 rounded-[2rem] border border-zinc-800">
+          <section className="bg-white dark:bg-zinc-900 p-8 rounded-[2rem] border border-zinc-200 dark:border-zinc-800 shadow-sm">
             <div className="flex items-center justify-between mb-8">
-              <h2 className="text-xl font-black text-white flex items-center gap-3 uppercase tracking-tight">
-                <Zap className="w-6 h-6 text-zinc-500" /> Practice Quizzes
+              <h2 className="text-xl font-black text-zinc-900 dark:text-white flex items-center gap-3 uppercase tracking-tight">
+                <Zap className="w-6 h-6 text-zinc-400 dark:text-zinc-500" /> Practice Quizzes
               </h2>
-              <div className="flex items-center gap-2 px-3 py-1 bg-zinc-800 rounded-full border border-zinc-700">
+              <div className="flex items-center gap-2 px-3 py-1 bg-zinc-100 dark:bg-zinc-800 rounded-full border border-zinc-200 dark:border-zinc-700">
                 <div className="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse" />
-                <p className="text-[10px] font-black text-zinc-400 uppercase tracking-widest">AI Engine Ready</p>
+                <p className="text-[10px] font-black text-zinc-500 dark:text-zinc-400 uppercase tracking-widest">AI Engine Ready</p>
               </div>
             </div>
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
@@ -489,16 +489,16 @@ const DashboardView = ({ user, onStartQuiz, onLogout, history, onNavigate, showT
                   key={subject.name}
                   onClick={() => startPracticeQuiz(subject.name)}
                   disabled={generatingQuiz !== null}
-                  className="flex flex-col items-center justify-center p-6 bg-black rounded-3xl border border-zinc-800 hover:bg-white hover:text-black transition-all group relative overflow-hidden disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="flex flex-col items-center justify-center p-6 bg-zinc-50 dark:bg-black rounded-3xl border border-zinc-200 dark:border-zinc-800 hover:bg-zinc-900 dark:hover:bg-white hover:text-white dark:hover:text-black transition-all group relative overflow-hidden disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  <div className="absolute top-0 right-0 w-12 h-12 bg-white/5 -mr-6 -mt-6 rounded-full group-hover:bg-black/10" />
-                  <div className="w-12 h-12 rounded-2xl bg-zinc-900 flex items-center justify-center mb-4 group-hover:bg-black group-hover:text-white transition-colors border border-zinc-800">
+                  <div className="absolute top-0 right-0 w-12 h-12 bg-black/5 dark:bg-white/5 -mr-6 -mt-6 rounded-full group-hover:bg-white/10 dark:group-hover:bg-black/10" />
+                  <div className="w-12 h-12 rounded-2xl bg-white dark:bg-zinc-900 flex items-center justify-center mb-4 group-hover:bg-zinc-900 dark:group-hover:bg-black group-hover:text-white dark:group-hover:text-white transition-colors border border-zinc-200 dark:border-zinc-800">
                     {generatingQuiz === subject.name ? (
                       <motion.div 
                         animate={{ rotate: 360 }}
                         transition={{ repeat: Infinity, duration: 1, ease: "linear" }}
                       >
-                        <Zap className="w-6 h-6 text-white" />
+                        <Zap className="w-6 h-6 text-zinc-900 dark:text-white" />
                       </motion.div>
                     ) : (
                       <BookOpen className="w-6 h-6" />
@@ -520,9 +520,9 @@ const DashboardView = ({ user, onStartQuiz, onLogout, history, onNavigate, showT
         {/* Right Column */}
         <div className="space-y-8">
           {/* Today's Tasks */}
-          <section className="bg-zinc-900 p-8 rounded-[2rem] border border-zinc-800">
-            <h2 className="text-xl font-black text-white flex items-center gap-3 uppercase tracking-tight mb-8">
-              <CheckSquare className="w-6 h-6 text-zinc-500" /> Today's Tasks
+          <section className="bg-white dark:bg-zinc-900 p-8 rounded-[2rem] border border-zinc-200 dark:border-zinc-800 shadow-sm">
+            <h2 className="text-xl font-black text-zinc-900 dark:text-white flex items-center gap-3 uppercase tracking-tight mb-8">
+              <CheckSquare className="w-6 h-6 text-zinc-400 dark:text-zinc-500" /> Today's Tasks
             </h2>
             <div className="space-y-4">
               {tasks.length > 0 ? (
@@ -530,32 +530,32 @@ const DashboardView = ({ user, onStartQuiz, onLogout, history, onNavigate, showT
                   <button 
                     key={task.id}
                     onClick={() => toggleTask(task.id)}
-                    className="w-full flex items-center gap-4 p-4 rounded-2xl bg-black border border-zinc-800 hover:border-zinc-700 transition-all text-left group"
+                    className="w-full flex items-center gap-4 p-4 rounded-2xl bg-zinc-50 dark:bg-black border border-zinc-200 dark:border-zinc-800 hover:border-zinc-300 dark:hover:border-zinc-700 transition-all text-left group"
                   >
                     <div className={cn(
                       "w-6 h-6 rounded-lg border-2 flex items-center justify-center transition-all",
-                      task.completed ? "bg-white border-white" : "border-zinc-800 group-hover:border-zinc-600"
+                      task.completed ? "bg-zinc-900 dark:bg-white border-zinc-900 dark:border-white" : "border-zinc-200 dark:border-zinc-800 group-hover:border-zinc-400 dark:group-hover:border-zinc-600"
                     )}>
-                      {task.completed && <Check className="w-4 h-4 text-black stroke-[4]" />}
+                      {task.completed && <Check className="w-4 h-4 text-white dark:text-black stroke-[4]" />}
                     </div>
                     <span className={cn(
                       "text-sm font-bold transition-all",
-                      task.completed ? "text-zinc-600 line-through" : "text-zinc-200"
+                      task.completed ? "text-zinc-400 dark:text-zinc-600 line-through" : "text-zinc-700 dark:text-zinc-200"
                     )}>
                       {task.text}
                     </span>
                   </button>
                 ))
               ) : (
-                <div className="py-8 text-center border-2 border-dashed border-zinc-800 rounded-2xl">
-                  <p className="text-zinc-500 text-xs font-bold uppercase tracking-widest">No tasks for today.</p>
-                  <p className="text-zinc-700 text-[10px] mt-1">Add a goal below to start tracking.</p>
+                <div className="py-8 text-center border-2 border-dashed border-zinc-200 dark:border-zinc-800 rounded-2xl">
+                  <p className="text-zinc-400 dark:text-zinc-500 text-xs font-bold uppercase tracking-widest">No tasks for today.</p>
+                  <p className="text-zinc-300 dark:text-zinc-700 text-[10px] mt-1">Add a goal below to start tracking.</p>
                 </div>
               )}
             </div>
             <button 
               onClick={() => setIsAddingGoal(true)}
-              className="w-full mt-8 py-4 border-2 border-dashed border-zinc-800 rounded-2xl text-zinc-600 text-[10px] font-black uppercase tracking-widest hover:border-zinc-600 hover:text-zinc-400 transition-all flex items-center justify-center gap-2"
+              className="w-full mt-8 py-4 border-2 border-dashed border-zinc-200 dark:border-zinc-800 rounded-2xl text-zinc-400 dark:text-zinc-600 text-[10px] font-black uppercase tracking-widest hover:border-zinc-400 dark:hover:border-zinc-600 hover:text-zinc-600 dark:hover:text-zinc-400 transition-all flex items-center justify-center gap-2"
             >
               <Plus className="w-4 h-4" /> Add New Goal
             </button>
@@ -568,9 +568,9 @@ const DashboardView = ({ user, onStartQuiz, onLogout, history, onNavigate, showT
                   initial={{ opacity: 0, scale: 0.9 }}
                   animate={{ opacity: 1, scale: 1 }}
                   exit={{ opacity: 0, scale: 0.9 }}
-                  className="bg-zinc-900 p-8 rounded-[2.5rem] border border-zinc-800 w-full max-w-md shadow-2xl"
+                  className="bg-white dark:bg-zinc-900 p-8 rounded-[2.5rem] border border-zinc-200 dark:border-zinc-800 w-full max-w-md shadow-2xl"
                 >
-                  <h3 className="text-xl font-black text-white mb-6 uppercase tracking-tight">New Study Goal / Exam</h3>
+                  <h3 className="text-xl font-black text-zinc-900 dark:text-white mb-6 uppercase tracking-tight">New Study Goal / Exam</h3>
                   <div className="space-y-6">
                     <div className="space-y-2">
                       <label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest ml-1">Title</label>
@@ -579,7 +579,7 @@ const DashboardView = ({ user, onStartQuiz, onLogout, history, onNavigate, showT
                         value={newGoal}
                         onChange={(e) => setNewGoal(e.target.value)}
                         placeholder="e.g. Final Theory Exam"
-                        className="w-full bg-black border border-zinc-800 rounded-2xl py-4 px-6 text-white outline-none focus:ring-2 focus:ring-white/10"
+                        className="w-full bg-zinc-50 dark:bg-black border border-zinc-200 dark:border-zinc-800 rounded-2xl py-4 px-6 text-zinc-900 dark:text-white outline-none focus:ring-2 focus:ring-zinc-900/10 dark:focus:ring-white/10"
                       />
                     </div>
 
@@ -589,7 +589,7 @@ const DashboardView = ({ user, onStartQuiz, onLogout, history, onNavigate, showT
                         type="date" 
                         value={newGoalDate}
                         onChange={(e) => setNewGoalDate(e.target.value)}
-                        className="w-full bg-black border border-zinc-800 rounded-2xl py-4 px-6 text-white outline-none focus:ring-2 focus:ring-white/10 [color-scheme:dark]"
+                        className="w-full bg-zinc-50 dark:bg-black border border-zinc-200 dark:border-zinc-800 rounded-2xl py-4 px-6 text-zinc-900 dark:text-white outline-none focus:ring-2 focus:ring-zinc-900/10 dark:focus:ring-white/10 [color-scheme:light] dark:[color-scheme:dark]"
                       />
                     </div>
 
@@ -603,8 +603,8 @@ const DashboardView = ({ user, onStartQuiz, onLogout, history, onNavigate, showT
                             className={cn(
                               "py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all border",
                               newGoalUrgency === u 
-                                ? "bg-white text-black border-white" 
-                                : "bg-black text-zinc-500 border-zinc-800 hover:border-zinc-700"
+                                ? "bg-zinc-900 dark:bg-white text-white dark:text-black border-zinc-900 dark:border-white" 
+                                : "bg-zinc-50 dark:bg-black text-zinc-500 border-zinc-200 dark:border-zinc-800 hover:border-zinc-300 dark:hover:border-zinc-700"
                             )}
                           >
                             {u}
@@ -620,7 +620,7 @@ const DashboardView = ({ user, onStartQuiz, onLogout, history, onNavigate, showT
                           setNewGoal('');
                           setNewGoalDate('');
                         }}
-                        className="flex-1 py-4 bg-zinc-800 text-white rounded-2xl font-bold hover:bg-zinc-700 transition-all"
+                        className="flex-1 py-4 bg-zinc-100 dark:bg-zinc-800 text-zinc-900 dark:text-white rounded-2xl font-bold hover:bg-zinc-200 dark:hover:bg-zinc-700 transition-all"
                       >
                         Cancel
                       </button>
@@ -638,7 +638,7 @@ const DashboardView = ({ user, onStartQuiz, onLogout, history, onNavigate, showT
                             }
                           }
                         }}
-                        className="flex-1 py-4 bg-white text-black rounded-2xl font-bold hover:bg-zinc-100 transition-all"
+                        className="flex-1 py-4 bg-zinc-900 dark:bg-white text-white dark:text-black rounded-2xl font-bold hover:bg-zinc-800 dark:hover:bg-zinc-100 transition-all shadow-lg"
                       >
                         Save
                       </button>
@@ -650,9 +650,9 @@ const DashboardView = ({ user, onStartQuiz, onLogout, history, onNavigate, showT
           </AnimatePresence>
 
           {/* Streak Tracker */}
-          <section className="bg-zinc-900 p-8 rounded-[2rem] border border-zinc-800">
-            <h2 className="text-xl font-black text-white flex items-center gap-3 uppercase tracking-tight mb-8">
-              <Flame className="w-6 h-6 text-zinc-500" /> Consistency
+          <section className="bg-white dark:bg-zinc-900 p-8 rounded-[2rem] border border-zinc-200 dark:border-zinc-800 shadow-sm">
+            <h2 className="text-xl font-black text-zinc-900 dark:text-white flex items-center gap-3 uppercase tracking-tight mb-8">
+              <Flame className="w-6 h-6 text-zinc-400 dark:text-zinc-500" /> Consistency
             </h2>
             <div className="flex justify-between mb-10">
               {['M', 'T', 'W', 'T', 'F', 'S', 'S'].map((day, i) => {
@@ -667,25 +667,27 @@ const DashboardView = ({ user, onStartQuiz, onLogout, history, onNavigate, showT
                   <div key={i} className="flex flex-col items-center gap-3">
                     <div className={cn(
                       "w-9 h-9 rounded-xl flex items-center justify-center text-[10px] font-black transition-all",
-                      isActive ? "bg-white text-black shadow-[0_0_20px_rgba(255,255,255,0.2)]" : "bg-zinc-800 text-zinc-600"
+                      isActive 
+                        ? "bg-zinc-900 dark:bg-white text-white dark:text-black shadow-[0_0_20px_rgba(0,0,0,0.1)] dark:shadow-[0_0_20px_rgba(255,255,255,0.2)]" 
+                        : "bg-zinc-100 dark:bg-zinc-800 text-zinc-400 dark:text-zinc-600"
                     )}>
                       {isActive ? <Check className="w-5 h-5 stroke-[3]" /> : day}
                     </div>
-                    <span className={cn("text-[10px] font-black uppercase", isActive ? "text-white" : "text-zinc-700")}>{day}</span>
+                    <span className={cn("text-[10px] font-black uppercase", isActive ? "text-zinc-900 dark:text-white" : "text-zinc-300 dark:text-zinc-700")}>{day}</span>
                   </div>
                 );
               })}
             </div>
             
             <div className="space-y-6">
-              <div className="p-5 bg-black rounded-3xl border border-zinc-800 relative overflow-hidden">
-                <div className="absolute top-0 right-0 w-1 h-full bg-zinc-700" />
-                <p className="text-[10px] font-black text-zinc-500 uppercase tracking-widest mb-2">Subject Concentration</p>
-                <p className="text-lg font-black text-white tracking-tight">{user.subjects?.split(',')[0] || 'Core Theory'}</p>
-                <p className="text-xs font-bold text-zinc-500 mt-1">Mastery: 42%</p>
+              <div className="p-5 bg-zinc-50 dark:bg-black rounded-3xl border border-zinc-200 dark:border-zinc-800 relative overflow-hidden">
+                <div className="absolute top-0 right-0 w-1 h-full bg-zinc-200 dark:bg-zinc-700" />
+                <p className="text-[10px] font-black text-zinc-500 dark:text-zinc-500 uppercase tracking-widest mb-2">Subject Concentration</p>
+                <p className="text-lg font-black text-zinc-900 dark:text-white tracking-tight">{user.subjects?.split(',')[0] || 'Core Theory'}</p>
+                <p className="text-xs font-bold text-zinc-400 dark:text-zinc-500 mt-1">Mastery: 42%</p>
               </div>
 
-              <div className="p-6 bg-white text-black rounded-3xl shadow-xl shadow-white/5">
+              <div className="p-6 bg-zinc-900 dark:bg-white text-white dark:text-black rounded-3xl shadow-xl shadow-black/10 dark:shadow-white/5">
                 <div className="flex items-center gap-2 mb-2">
                   <Target className="w-4 h-4" />
                   <p className="text-[10px] font-black uppercase tracking-widest">Recommended Focus</p>
@@ -693,7 +695,7 @@ const DashboardView = ({ user, onStartQuiz, onLogout, history, onNavigate, showT
                 {subjects.length > 0 ? (
                   <>
                     <p className="text-sm font-black leading-tight">Mastering {subjects.sort((a,b) => a.progress - b.progress)[0].name}</p>
-                    <p className="text-[10px] font-bold text-zinc-500 mt-1">Based on your {subjects.sort((a,b) => a.progress - b.progress)[0].progress}% mastery, this needs immediate attention.</p>
+                    <p className="text-[10px] font-bold text-zinc-400 dark:text-zinc-500 mt-1">Based on your {subjects.sort((a,b) => a.progress - b.progress)[0].progress}% mastery, this needs immediate attention.</p>
                   </>
                 ) : (
                   <p className="text-sm font-black leading-tight">Complete more quizzes for AI recommendations</p>
@@ -763,35 +765,36 @@ const AnalyticsView = ({ history, user, onStartQuiz, showToast }: {
   return (
     <div className="space-y-8 pb-12">
       <header>
-        <h1 className="text-3xl font-black text-white tracking-tight">Learning Analytics</h1>
+        <h1 className="text-3xl font-black text-zinc-900 dark:text-white tracking-tight uppercase">Learning Analytics</h1>
         <p className="text-zinc-500 font-medium">Deep dive into your mastery and exam readiness.</p>
       </header>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        <div className="lg:col-span-2 bg-zinc-900 p-8 rounded-[2.5rem] border border-zinc-800">
-          <h2 className="text-xl font-black text-white mb-8 uppercase tracking-tight">Skill Mastery Breakdown</h2>
+        <div className="lg:col-span-2 bg-white dark:bg-zinc-900 p-8 rounded-[2.5rem] border border-zinc-200 dark:border-zinc-800 shadow-sm">
+          <h2 className="text-xl font-black text-zinc-900 dark:text-white mb-8 uppercase tracking-tight">Skill Mastery Breakdown</h2>
           <div className="h-80 w-full">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={chartData}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#27272a" vertical={false} />
-                <XAxis dataKey="name" stroke="#52525b" fontSize={12} tickLine={false} axisLine={false} />
-                <YAxis stroke="#52525b" fontSize={12} tickLine={false} axisLine={false} />
+                <CartesianGrid strokeDasharray="3 3" stroke="currentColor" className="text-zinc-100 dark:text-zinc-800" vertical={false} />
+                <XAxis dataKey="name" stroke="currentColor" className="text-zinc-400 dark:text-zinc-600" fontSize={12} tickLine={false} axisLine={false} />
+                <YAxis stroke="currentColor" className="text-zinc-400 dark:text-zinc-600" fontSize={12} tickLine={false} axisLine={false} />
                 <Tooltip 
-                  contentStyle={{ backgroundColor: '#18181b', border: '1px solid #27272a', borderRadius: '12px' }}
-                  itemStyle={{ color: '#fff', fontWeight: 'bold' }}
+                  contentStyle={{ backgroundColor: 'currentColor', border: 'none', borderRadius: '12px' }}
+                  className="text-white dark:text-zinc-900"
+                  itemStyle={{ fontWeight: 'bold' }}
                 />
-                <Bar dataKey="mastery" fill="#fff" radius={[6, 6, 0, 0]} />
+                <Bar dataKey="mastery" fill="currentColor" className="text-zinc-900 dark:text-white" radius={[6, 6, 0, 0]} />
               </BarChart>
             </ResponsiveContainer>
           </div>
         </div>
 
-        <div className="bg-zinc-900 p-8 rounded-[2.5rem] border border-zinc-800 flex flex-col items-center justify-center text-center">
-          <div className="w-32 h-32 rounded-full border-8 border-white/10 flex items-center justify-center relative mb-6">
-            <div className="absolute inset-0 border-8 border-white border-t-transparent rounded-full animate-[spin_3s_linear_infinite]" />
-            <span className="text-3xl font-black text-white">{avgMastery}%</span>
+        <div className="bg-white dark:bg-zinc-900 p-8 rounded-[2.5rem] border border-zinc-200 dark:border-zinc-800 shadow-sm flex flex-col items-center justify-center text-center">
+          <div className="w-32 h-32 rounded-full border-8 border-zinc-50 dark:border-white/10 flex items-center justify-center relative mb-6">
+            <div className="absolute inset-0 border-8 border-zinc-900 dark:border-white border-t-transparent rounded-full animate-[spin_3s_linear_infinite]" />
+            <span className="text-3xl font-black text-zinc-900 dark:text-white">{avgMastery}%</span>
           </div>
-          <h3 className="text-lg font-black text-white mb-2 uppercase">Exam Readiness</h3>
+          <h3 className="text-lg font-black text-zinc-900 dark:text-white mb-2 uppercase">Exam Readiness</h3>
           <p className="text-sm text-zinc-500 font-medium leading-relaxed">
             Based on your recent {history.length} quizzes and learning history, you are projected to score a <b>{avgMastery >= 75 ? 'Distinction' : avgMastery >= 60 ? 'First Class' : 'Pass'}</b> in the upcoming finals.
           </p>
@@ -804,26 +807,26 @@ const AnalyticsView = ({ history, user, onStartQuiz, showToast }: {
             key={subject.name}
             onClick={() => !generatingQuiz && startPracticeQuiz(subject.name)}
             className={cn(
-              "p-8 bg-zinc-900 rounded-[2.5rem] border border-zinc-800 hover:border-zinc-700 transition-all cursor-pointer group flex items-center justify-between",
+              "p-8 bg-white dark:bg-zinc-900 rounded-[2.5rem] border border-zinc-200 dark:border-zinc-800 hover:border-zinc-300 dark:hover:border-zinc-700 transition-all shadow-sm cursor-pointer group flex items-center justify-between",
               generatingQuiz === subject.name && "opacity-60 cursor-wait"
             )}
           >
             <div>
-              <p className="text-[10px] font-black text-zinc-500 uppercase tracking-widest mb-1">Mastery for {subject.name}</p>
-              <h4 className="text-xl font-black text-white mb-4 line-clamp-1">{subject.name}</h4>
+              <p className="text-[10px] font-black text-zinc-400 dark:text-zinc-500 uppercase tracking-widest mb-1">Mastery for {subject.name}</p>
+              <h4 className="text-xl font-black text-zinc-900 dark:text-white mb-4 line-clamp-1">{subject.name}</h4>
               <div className="flex items-center gap-3">
-                <div className="px-3 py-1 rounded-full bg-white text-black text-[10px] font-black uppercase tracking-widest group-hover:bg-zinc-200">
+                <div className="px-3 py-1 rounded-full bg-zinc-900 dark:bg-white text-white dark:text-black text-[10px] font-black uppercase tracking-widest group-hover:bg-zinc-800 dark:group-hover:bg-zinc-200">
                   {generatingQuiz === subject.name ? 'Generating...' : 'Master Topic'}
                 </div>
-                <span className="text-xs font-bold text-zinc-500 uppercase">Progress: {subject.progress}%</span>
+                <span className="text-xs font-bold text-zinc-400 dark:text-zinc-500 uppercase">Progress: {subject.progress}%</span>
               </div>
             </div>
-            <div className="w-16 h-16 rounded-full bg-zinc-800 flex items-center justify-center border border-zinc-700 relative overflow-hidden">
+            <div className="w-16 h-16 rounded-full bg-zinc-50 dark:bg-zinc-800 flex items-center justify-center border border-zinc-200 dark:border-zinc-700 relative overflow-hidden">
                <div 
-                 className="absolute bottom-0 left-0 w-full bg-white/10 transition-all duration-1000" 
+                 className="absolute bottom-0 left-0 w-full bg-zinc-900/10 dark:bg-white/10 transition-all duration-1000" 
                  style={{ height: `${subject.progress}%` }} 
                />
-               <Target className="w-6 h-6 text-white relative z-10" />
+               <Target className="w-6 h-6 text-zinc-900 dark:text-white relative z-10" />
             </div>
           </div>
         ))}
@@ -898,16 +901,16 @@ const FlashcardsView = () => {
     <div className="space-y-8 flex flex-col items-center p-4 min-h-[600px]">
       <header className="w-full flex flex-col sm:flex-row sm:items-center justify-between gap-6">
         <div>
-          <h1 className="text-3xl font-black text-white tracking-tight uppercase">Active Recall Flashcards</h1>
+          <h1 className="text-3xl font-black text-zinc-900 dark:text-white tracking-tight uppercase">Active Recall Flashcards</h1>
           <p className="text-zinc-500 font-medium">Master key concepts through spaced repetition.</p>
         </div>
         <div className="flex gap-4">
-          <div className="px-4 py-2 bg-zinc-900 rounded-xl border border-zinc-800 text-[10px] font-black uppercase text-zinc-500 flex items-center gap-2">
+          <div className="px-4 py-2 bg-zinc-50 dark:bg-zinc-900 rounded-xl border border-zinc-200 dark:border-zinc-800 text-[10px] font-black uppercase text-zinc-400 dark:text-zinc-500 flex items-center gap-2">
             <Clock className="w-3 h-3" /> Due Today: {dueCards.length}
           </div>
           <button 
             onClick={() => setShowAddModal(true)}
-            className="px-6 py-3 bg-white text-black font-black uppercase tracking-widest text-xs rounded-2xl flex items-center gap-2 hover:bg-zinc-200 transition-all shadow-xl shadow-white/10"
+            className="px-6 py-3 bg-zinc-900 dark:bg-white text-white dark:text-black font-black uppercase tracking-widest text-xs rounded-2xl flex items-center gap-2 hover:bg-zinc-800 dark:hover:bg-zinc-200 transition-all shadow-xl shadow-black/10 dark:shadow-white/10"
           >
             <Plus className="w-4 h-4" /> Add New Card
           </button>
@@ -915,13 +918,13 @@ const FlashcardsView = () => {
       </header>
 
       {dueCards.length === 0 ? (
-        <div className="text-center py-24 border-2 border-dashed border-zinc-800 rounded-3xl w-full max-w-lg mt-12">
-          <div className="w-16 h-16 bg-zinc-900 rounded-2xl flex items-center justify-center mx-auto mb-6">
-            <CheckCircle2 className="w-8 h-8 text-white" />
+        <div className="text-center py-24 border-2 border-dashed border-zinc-200 dark:border-zinc-800 rounded-3xl w-full max-w-lg mt-12">
+          <div className="w-16 h-16 bg-zinc-100 dark:bg-zinc-900 rounded-2xl flex items-center justify-center mx-auto mb-6">
+            <CheckCircle2 className="w-8 h-8 text-zinc-900 dark:text-white" />
           </div>
           <p className="text-zinc-500 font-bold mb-2">All caught up!</p>
-          <p className="text-zinc-700 text-xs font-medium mb-8">No cards due for review right now.</p>
-          <button onClick={() => setShowAddModal(true)} className="text-white font-black hover:underline uppercase tracking-widest text-[10px]">Create more cards</button>
+          <p className="text-zinc-400 dark:text-zinc-700 text-xs font-medium mb-8">No cards due for review right now.</p>
+          <button onClick={() => setShowAddModal(true)} className="text-zinc-900 dark:text-white font-black hover:underline uppercase tracking-widest text-[10px]">Create more cards</button>
         </div>
       ) : (
         <div className="relative w-full max-w-lg mt-12">
@@ -934,30 +937,30 @@ const FlashcardsView = () => {
             transition={{ duration: 0.6, type: 'spring', stiffness: 260, damping: 20 }}
             className="w-full h-full relative preserve-3d"
           >
-            <div className="absolute inset-0 bg-zinc-900 border-2 border-zinc-800 rounded-[3rem] p-12 flex flex-col items-center justify-center text-center backface-hidden shadow-2xl">
-              <p className="text-[10px] font-black text-zinc-500 uppercase tracking-widest mb-8">Question {index + 1}/{dueCards.length}</p>
-              <h2 className="text-2xl font-black text-white leading-tight">{dueCards[index].q}</h2>
-              <p className="text-xs text-zinc-600 mt-12 font-bold uppercase tracking-widest">Tap to reveal answer</p>
+            <div className="absolute inset-0 bg-white dark:bg-zinc-900 border-2 border-zinc-200 dark:border-zinc-800 rounded-[3rem] p-12 flex flex-col items-center justify-center text-center backface-hidden shadow-2xl">
+              <p className="text-[10px] font-black text-zinc-400 dark:text-zinc-500 uppercase tracking-widest mb-8">Question {index + 1}/{dueCards.length}</p>
+              <h2 className="text-2xl font-black text-zinc-900 dark:text-white leading-tight">{dueCards[index].q}</h2>
+              <p className="text-xs text-zinc-400 dark:text-zinc-600 mt-12 font-bold uppercase tracking-widest">Tap to reveal answer</p>
               <button 
                 onClick={(e) => deleteCard(e, index)}
-                className="absolute top-8 right-8 p-2 bg-zinc-800 text-zinc-600 hover:text-red-500 rounded-xl transition-colors"
+                className="absolute top-8 right-8 p-2 bg-zinc-100 dark:bg-zinc-800 text-zinc-400 dark:text-zinc-600 hover:text-red-500 rounded-xl transition-colors"
               >
                 <Trash2 className="w-4 h-4" />
               </button>
             </div>
-            <div className="absolute inset-0 bg-white border-2 border-white rounded-[3rem] p-12 flex flex-col items-center justify-center text-center backface-hidden rotate-y-180 shadow-2xl">
-              <p className="text-[10px] font-black text-zinc-400 uppercase tracking-widest mb-8">Answer</p>
-              <h2 className="text-2xl font-black text-black leading-tight">{dueCards[index].a}</h2>
+            <div className="absolute inset-0 bg-zinc-900 dark:bg-white border-2 border-zinc-900 dark:border-white rounded-[3rem] p-12 flex flex-col items-center justify-center text-center backface-hidden rotate-y-180 shadow-2xl">
+              <p className="text-[10px] font-black text-zinc-500 dark:text-zinc-400 uppercase tracking-widest mb-8">Answer</p>
+              <h2 className="text-2xl font-black text-white dark:text-black leading-tight">{dueCards[index].a}</h2>
               <div className="mt-12 flex gap-4 w-full">
                 <button 
                   onClick={(e) => { e.stopPropagation(); handlePerformance('hard'); }}
-                  className="flex-1 py-4 bg-zinc-100 text-black rounded-2xl font-black uppercase tracking-widest text-[10px] hover:bg-zinc-200 transition-all border border-black/10"
+                  className="flex-1 py-4 bg-zinc-800 dark:bg-zinc-100 text-white dark:text-black rounded-2xl font-black uppercase tracking-widest text-[10px] hover:bg-zinc-700 dark:hover:bg-zinc-200 transition-all border border-white/10 dark:border-black/10"
                 >
                   Hard (1d)
                 </button>
                 <button 
                   onClick={(e) => { e.stopPropagation(); handlePerformance('easy'); }}
-                  className="flex-1 py-4 bg-black text-white rounded-2xl font-black uppercase tracking-widest text-[10px] hover:bg-zinc-800 transition-all shadow-lg"
+                  className="flex-1 py-4 bg-white dark:bg-black text-black dark:text-white rounded-2xl font-black uppercase tracking-widest text-[10px] hover:bg-zinc-100 dark:hover:bg-zinc-900 transition-all shadow-lg"
                 >
                   Easy ({dueCards[index].interval * 2}d)
                 </button>
@@ -969,15 +972,15 @@ const FlashcardsView = () => {
         <div className="flex justify-center gap-6 mt-12">
           <button 
             onClick={(e) => { e.stopPropagation(); setIndex((index - 1 + dueCards.length) % dueCards.length); setFlipped(false); }}
-            className="w-14 h-14 rounded-2xl bg-zinc-900 border border-zinc-800 flex items-center justify-center hover:bg-white hover:text-black transition-all shadow-xl group"
+            className="w-14 h-14 rounded-2xl bg-zinc-50 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 flex items-center justify-center hover:bg-zinc-900 dark:hover:bg-white hover:text-white dark:hover:text-black transition-all shadow-xl group"
           >
-            <ChevronRight className="w-5 h-5 rotate-180 text-zinc-500 group-hover:text-black" />
+            <ChevronRight className="w-5 h-5 rotate-180 text-zinc-400 dark:text-zinc-500 group-hover:text-white dark:group-hover:text-black" />
           </button>
           <button 
             onClick={(e) => { e.stopPropagation(); setIndex((index + 1) % dueCards.length); setFlipped(false); }}
-            className="w-14 h-14 rounded-2xl bg-zinc-900 border border-zinc-800 flex items-center justify-center hover:bg-white hover:text-black transition-all shadow-xl group"
+            className="w-14 h-14 rounded-2xl bg-zinc-50 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 flex items-center justify-center hover:bg-zinc-900 dark:hover:bg-white hover:text-white dark:hover:text-black transition-all shadow-xl group"
           >
-            <ChevronRight className="w-5 h-5 text-zinc-500 group-hover:text-black" />
+            <ChevronRight className="w-5 h-5 text-zinc-400 dark:text-zinc-500 group-hover:text-white dark:group-hover:text-black" />
           </button>
         </div>
       </div>
@@ -989,26 +992,26 @@ const FlashcardsView = () => {
               initial={{ opacity: 0, scale: 0.9 }}
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.9 }}
-              className="bg-zinc-900 p-8 rounded-[2.5rem] border border-zinc-800 w-full max-w-md shadow-2xl"
+              className="bg-white dark:bg-zinc-900 p-8 rounded-[2.5rem] border border-zinc-200 dark:border-zinc-800 w-full max-w-md shadow-2xl"
             >
-              <h3 className="text-xl font-black text-white mb-6 uppercase tracking-tight">New Flashcard</h3>
+              <h3 className="text-xl font-black text-zinc-900 dark:text-white mb-6 uppercase tracking-tight">New Flashcard</h3>
               <div className="space-y-4">
                 <div>
-                  <label className="block text-[10px] font-black text-zinc-500 uppercase tracking-widest mb-2 ml-1">Question</label>
+                  <label className="block text-[10px] font-black text-zinc-400 dark:text-zinc-500 uppercase tracking-widest mb-2 ml-1">Question</label>
                   <textarea 
                     value={newCard.q}
                     onChange={(e) => setNewCard({...newCard, q: e.target.value})}
-                    className="w-full bg-black border border-zinc-800 rounded-2xl py-4 px-6 text-white outline-none focus:ring-2 focus:ring-white/10 min-h-[100px]"
+                    className="w-full bg-zinc-50 dark:bg-black border border-zinc-200 dark:border-zinc-800 rounded-2xl py-4 px-6 text-zinc-900 dark:text-white outline-none focus:ring-2 focus:ring-zinc-900/10 dark:focus:ring-white/10 min-h-[100px]"
                     placeholder="e.g. What is the capital of Rwanda?"
                   />
                 </div>
                 <div>
-                  <label className="block text-[10px] font-black text-zinc-500 uppercase tracking-widest mb-2 ml-1">Answer</label>
+                  <label className="block text-[10px] font-black text-zinc-400 dark:text-zinc-500 uppercase tracking-widest mb-2 ml-1">Answer</label>
                   <input 
                     type="text"
                     value={newCard.a}
                     onChange={(e) => setNewCard({...newCard, a: e.target.value})}
-                    className="w-full bg-black border border-zinc-800 rounded-2xl py-4 px-6 text-white outline-none focus:ring-2 focus:ring-white/10"
+                    className="w-full bg-zinc-50 dark:bg-black border border-zinc-200 dark:border-zinc-800 rounded-2xl py-4 px-6 text-zinc-900 dark:text-white outline-none focus:ring-2 focus:ring-zinc-900/10 dark:focus:ring-white/10"
                     placeholder="e.g. Kigali"
                   />
                 </div>
@@ -1016,13 +1019,13 @@ const FlashcardsView = () => {
               <div className="flex gap-4 mt-8">
                 <button 
                   onClick={() => setShowAddModal(false)}
-                  className="flex-1 py-4 bg-zinc-800 text-zinc-400 rounded-2xl font-bold hover:bg-zinc-700 transition-all"
+                  className="flex-1 py-4 bg-zinc-100 dark:bg-zinc-800 text-zinc-500 dark:text-zinc-400 rounded-2xl font-bold hover:bg-zinc-200 dark:hover:bg-zinc-700 transition-all"
                 >
                   Cancel
                 </button>
                 <button 
                   onClick={addCard}
-                  className="flex-1 py-4 bg-white text-black rounded-2xl font-black uppercase tracking-widest text-xs hover:bg-zinc-200 transition-all"
+                  className="flex-1 py-4 bg-zinc-900 dark:bg-white text-white dark:text-black rounded-2xl font-black uppercase tracking-widest text-xs hover:bg-zinc-800 dark:hover:bg-zinc-200 transition-all"
                 >
                   Create Card
                 </button>
@@ -1088,7 +1091,7 @@ const PlannerView = ({ user }: { user: User }) => {
     <div className="space-y-8">
       <header className="flex flex-col sm:flex-row sm:items-center justify-between gap-6">
         <div>
-          <h1 className="text-3xl font-black text-white tracking-tight uppercase">Smart Study Planner</h1>
+          <h1 className="text-3xl font-black text-zinc-900 dark:text-white tracking-tight uppercase">Smart Study Planner</h1>
           <p className="text-zinc-500 font-medium capitalize">Tailored for {user.educationLevel || 'General'} Student</p>
         </div>
         <button 
@@ -1097,7 +1100,7 @@ const PlannerView = ({ user }: { user: User }) => {
               setSchedule(Object.entries(defaultTasks).map(([day, tasks]) => ({ day, tasks })));
             }
           }}
-          className="px-4 py-2 bg-zinc-800 text-zinc-400 rounded-xl text-[10px] font-black uppercase tracking-widest hover:text-white transition-colors border border-zinc-700"
+          className="px-4 py-2 bg-white dark:bg-zinc-800 text-zinc-500 dark:text-zinc-400 rounded-xl text-[10px] font-black uppercase tracking-widest hover:text-zinc-900 dark:hover:text-white transition-colors border border-zinc-200 dark:border-zinc-700 shadow-sm"
         >
           Reset Schedule
         </button>
@@ -1105,32 +1108,32 @@ const PlannerView = ({ user }: { user: User }) => {
 
       <div className="grid grid-cols-1 md:grid-cols-5 gap-6">
         {schedule.map((s: any) => (
-          <div key={s.day} className="bg-zinc-900 p-6 rounded-[2.5rem] border border-zinc-800 flex flex-col min-h-[400px]">
+          <div key={s.day} className="bg-white dark:bg-zinc-900 p-6 rounded-[2.5rem] border border-zinc-200 dark:border-zinc-800 flex flex-col min-h-[400px] shadow-sm">
             <div className="flex items-center justify-between mb-6">
-              <h3 className="font-black text-white uppercase tracking-widest text-[10px]">{s.day}</h3>
+              <h3 className="font-black text-zinc-900 dark:text-white uppercase tracking-widest text-[10px]">{s.day}</h3>
               <button 
                 onClick={() => addTask(s.day)}
-                className="w-6 h-6 rounded-lg bg-zinc-800 text-zinc-500 hover:bg-white hover:text-black transition-all flex items-center justify-center"
+                className="w-6 h-6 rounded-lg bg-zinc-100 dark:bg-zinc-800 text-zinc-400 dark:text-zinc-500 hover:bg-zinc-900 dark:hover:bg-white hover:text-white dark:hover:text-black transition-all flex items-center justify-center"
               >
                 <Plus className="w-4 h-4" />
               </button>
             </div>
             <div className="space-y-3 flex-1">
               {s.tasks.map((t: string, i: number) => (
-                <div key={i} className="group p-4 bg-black rounded-2xl border border-zinc-800 text-[11px] font-bold text-zinc-300 relative flex items-center gap-3">
+                <div key={i} className="group p-4 bg-zinc-50 dark:bg-black rounded-2xl border border-zinc-200 dark:border-zinc-800 text-[11px] font-bold text-zinc-600 dark:text-zinc-300 relative flex items-center gap-3 shadow-sm">
                   {getIcon(t)}
                   {t}
                   <button 
                     onClick={() => removeTask(s.day, i)}
-                    className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 p-1 text-zinc-600 hover:text-red-500 transition-all"
+                    className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 p-1 text-zinc-400 dark:text-zinc-600 hover:text-red-500 transition-all"
                   >
                     <X className="w-3 h-3" />
                   </button>
                 </div>
               ))}
               {s.tasks.length === 0 && (
-                <div className="h-full flex flex-col items-center justify-center border-2 border-dashed border-zinc-800 rounded-2xl py-8 text-center">
-                  <p className="text-[10px] font-bold text-zinc-700 uppercase">Rest Day</p>
+                <div className="h-full flex flex-col items-center justify-center border-2 border-dashed border-zinc-200 dark:border-zinc-800 rounded-2xl py-8 text-center">
+                  <p className="text-[10px] font-bold text-zinc-300 dark:text-zinc-700 uppercase">Rest Day</p>
                 </div>
               )}
             </div>
@@ -1214,7 +1217,7 @@ const QuizHistoryView = ({ history, onReviewQuiz, showToast }: {
     <div className="space-y-8 pb-12">
       <header className="flex flex-col sm:flex-row sm:items-center justify-between gap-6">
         <div>
-          <h1 className="text-3xl font-black text-white tracking-tight uppercase">Quiz History</h1>
+          <h1 className="text-3xl font-black text-zinc-900 dark:text-white tracking-tight uppercase">Quiz History</h1>
           <p className="text-zinc-500 font-medium">Review your previous attempts and track improvement.</p>
         </div>
         {selectedItems.length > 0 && (
@@ -1222,7 +1225,7 @@ const QuizHistoryView = ({ history, onReviewQuiz, showToast }: {
             initial={{ opacity: 0, x: 20 }}
             animate={{ opacity: 1, x: 0 }}
             onClick={exportSelectedAsPDF}
-            className="px-6 py-3 bg-white text-black font-black uppercase tracking-widest text-xs rounded-2xl flex items-center gap-2 hover:bg-zinc-200 transition-all shadow-xl shadow-white/10"
+            className="px-6 py-3 bg-zinc-900 dark:bg-white text-white dark:text-black font-black uppercase tracking-widest text-xs rounded-2xl flex items-center gap-2 hover:bg-zinc-800 dark:hover:bg-zinc-200 transition-all shadow-xl shadow-black/10 dark:shadow-white/10"
           >
             <Download className="w-4 h-4" /> Export Selected ({selectedItems.length})
           </motion.button>
@@ -1230,10 +1233,10 @@ const QuizHistoryView = ({ history, onReviewQuiz, showToast }: {
       </header>
 
       {history.length === 0 ? (
-        <div className="flex flex-col items-center justify-center py-20 bg-zinc-900/50 rounded-[2.5rem] border border-zinc-800 border-dashed">
-          <HistoryIcon className="w-16 h-16 text-zinc-700 mb-4" />
-          <p className="text-zinc-500 font-bold uppercase tracking-widest text-sm">No quizzes completed yet.</p>
-          <p className="text-zinc-600 text-xs mt-2">Finish a practice quiz to see it here.</p>
+        <div className="flex flex-col items-center justify-center py-20 bg-zinc-50 dark:bg-zinc-900/50 rounded-[2.5rem] border border-zinc-200 dark:border-zinc-800 border-dashed shadow-sm">
+          <HistoryIcon className="w-16 h-16 text-zinc-300 dark:text-zinc-700 mb-4" />
+          <p className="text-zinc-400 dark:text-zinc-500 font-bold uppercase tracking-widest text-sm">No quizzes completed yet.</p>
+          <p className="text-zinc-400 dark:text-zinc-600 text-xs mt-2">Finish a practice quiz to see it here.</p>
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -1246,12 +1249,12 @@ const QuizHistoryView = ({ history, onReviewQuiz, showToast }: {
               className={cn(
                 "p-8 rounded-[2rem] border transition-all group relative overflow-hidden cursor-pointer",
                 selectedItems.includes(item.id) 
-                  ? "bg-white text-black border-white shadow-2xl shadow-white/10" 
-                  : "bg-zinc-900 border-zinc-800 hover:border-zinc-700 text-white"
+                  ? "bg-zinc-900 dark:bg-white text-white dark:text-black border-zinc-900 dark:border-white shadow-2xl shadow-black/10 dark:shadow-white/10" 
+                  : "bg-white dark:bg-zinc-900 border-zinc-200 dark:border-zinc-800 hover:border-zinc-300 dark:hover:border-zinc-700 text-zinc-900 dark:text-white shadow-sm"
               )}
             >
                {selectedItems.includes(item.id) && (
-                 <div className="absolute top-4 right-4 bg-black text-white p-1 rounded-lg">
+                 <div className="absolute top-4 right-4 bg-white dark:bg-black text-black dark:text-white p-1 rounded-lg">
                    <Check className="w-4 h-4 stroke-[4]" />
                  </div>
                )}
@@ -1260,25 +1263,25 @@ const QuizHistoryView = ({ history, onReviewQuiz, showToast }: {
                  <div className="flex items-center gap-4">
                    <div className={cn(
                      "w-12 h-12 rounded-2xl flex items-center justify-center border transition-colors",
-                     selectedItems.includes(item.id) ? "bg-black/5 border-black/10" : "bg-zinc-800 border-zinc-700"
+                     selectedItems.includes(item.id) ? "bg-white/10 dark:bg-black/5 border-white/20 dark:border-black/10" : "bg-zinc-50 dark:bg-zinc-800 border-zinc-200 dark:border-zinc-700"
                    )}>
-                     <FileText className={cn("w-6 h-6", selectedItems.includes(item.id) ? "text-black" : "text-zinc-500")} />
+                     <FileText className={cn("w-6 h-6", selectedItems.includes(item.id) ? "text-white dark:text-black" : "text-zinc-400 dark:text-zinc-500")} />
                    </div>
                    <div>
                      <h3 className="font-black text-lg tracking-tight uppercase line-clamp-1">{item.title}</h3>
-                     <p className={cn("text-[10px] font-black uppercase tracking-widest", selectedItems.includes(item.id) ? "text-zinc-500" : "text-zinc-600")}>{item.dateCompleted}</p>
+                     <p className={cn("text-[10px] font-black uppercase tracking-widest", selectedItems.includes(item.id) ? "text-zinc-400 dark:text-zinc-500" : "text-zinc-400 dark:text-zinc-600")}>{item.dateCompleted}</p>
                    </div>
                  </div>
                  <div className="flex flex-col items-end">
                    <div className="flex items-baseline gap-1">
                      <span className="text-3xl font-black">{item.score}</span>
-                     <span className={cn("text-xs font-bold", selectedItems.includes(item.id) ? "text-zinc-400" : "text-zinc-500")}>/{item.totalPoints}</span>
+                     <span className={cn("text-xs font-bold", selectedItems.includes(item.id) ? "text-zinc-400 dark:text-zinc-400" : "text-zinc-400 dark:text-zinc-500")}>/{item.totalPoints}</span>
                    </div>
                    <div className={cn(
                      "mt-2 px-2.5 py-1 rounded-lg text-[9px] font-black uppercase tracking-[0.2em]",
                      (item.score / item.totalPoints >= 0.7) 
-                        ? (selectedItems.includes(item.id) ? "bg-black text-white" : "bg-green-500/10 text-green-500")
-                        : (selectedItems.includes(item.id) ? "bg-black/20 text-black" : "bg-yellow-500/10 text-yellow-500")
+                        ? (selectedItems.includes(item.id) ? "bg-white dark:bg-black text-black dark:text-white" : "bg-green-500/10 text-green-600 dark:text-green-500")
+                        : (selectedItems.includes(item.id) ? "bg-white/20 dark:bg-black/20 text-white dark:text-black" : "bg-yellow-500/10 text-yellow-600 dark:text-yellow-500")
                    )}>
                      {(item.score / item.totalPoints * 100).toFixed(0)}% Mastery
                    </div>
@@ -1290,7 +1293,7 @@ const QuizHistoryView = ({ history, onReviewQuiz, showToast }: {
                   onClick={(e) => { e.stopPropagation(); onReviewQuiz(item); }}
                   className={cn(
                     "flex-1 py-4 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all flex items-center justify-center gap-2",
-                    selectedItems.includes(item.id) ? "bg-black text-white hover:bg-zinc-800" : "bg-zinc-800 hover:bg-white hover:text-black"
+                    selectedItems.includes(item.id) ? "bg-white dark:bg-black text-black dark:text-white hover:bg-zinc-100 dark:hover:bg-zinc-800" : "bg-zinc-50 dark:bg-zinc-800 text-zinc-900 dark:text-white hover:bg-zinc-900 dark:hover:bg-white hover:text-white dark:hover:text-black"
                   )}
                  >
                    <Search className="w-3.5 h-3.5" /> Review Answers
@@ -1299,7 +1302,7 @@ const QuizHistoryView = ({ history, onReviewQuiz, showToast }: {
                   onClick={(e) => { e.stopPropagation(); (window as any).refreshQuiz(item.quiz); }}
                   className={cn(
                     "px-5 py-4 rounded-2xl transition-all",
-                    selectedItems.includes(item.id) ? "bg-black/10 text-black hover:bg-black/20" : "bg-zinc-800 hover:bg-zinc-700 text-white"
+                    selectedItems.includes(item.id) ? "bg-white/10 dark:bg-black/10 text-white dark:text-black hover:bg-white/20 dark:hover:bg-black/20" : "bg-zinc-50 dark:bg-zinc-800 text-zinc-900 dark:text-white hover:bg-zinc-100 dark:hover:bg-zinc-700"
                   )}
                  >
                    <RotateCcw className="w-5 h-5" />
@@ -1469,12 +1472,12 @@ const AssessmentView = ({
       <div className="space-y-8 pb-12">
         <header className="flex flex-col sm:flex-row sm:items-center justify-between gap-6">
           <div>
-            <h1 className="text-3xl font-black text-white tracking-tight uppercase">Assessment Library</h1>
+            <h1 className="text-3xl font-black text-zinc-900 dark:text-white tracking-tight uppercase">Assessment Library</h1>
             <p className="text-zinc-500 font-medium">Choose a practice exam or certification simulation.</p>
           </div>
-          <div className="flex items-center gap-3 bg-zinc-900 px-5 py-3 rounded-2xl border border-zinc-800 focus-within:border-zinc-600 transition-all">
+          <div className="flex items-center gap-3 bg-zinc-50 dark:bg-zinc-900 px-5 py-3 rounded-2xl border border-zinc-200 dark:border-zinc-800 focus-within:border-zinc-400 dark:focus-within:border-zinc-600 transition-all">
             <Search className="w-5 h-5 text-zinc-500" />
-            <input type="text" placeholder="Search assessments..." className="bg-transparent border-none text-sm focus:ring-0 text-white w-48 font-bold" />
+            <input type="text" placeholder="Search assessments..." className="bg-transparent border-none text-sm focus:ring-0 text-zinc-900 dark:text-white w-48 font-bold" />
           </div>
         </header>
 
@@ -1483,41 +1486,41 @@ const AssessmentView = ({
             <motion.div
               key={exam.id}
               whileHover={{ y: -5 }}
-              className="bg-zinc-900 rounded-[2.5rem] border border-zinc-800 p-8 flex flex-col group hover:border-zinc-700 transition-all cursor-pointer overflow-hidden relative"
+              className="bg-zinc-50 dark:bg-zinc-900 rounded-[2.5rem] border border-zinc-200 dark:border-zinc-800 p-8 flex flex-col group hover:border-zinc-300 dark:hover:border-zinc-700 transition-all cursor-pointer overflow-hidden relative"
               onClick={() => setActiveExam(exam)}
             >
-              <div className="absolute top-0 right-0 w-32 h-32 bg-white/5 blur-3xl -mr-16 -mt-16 rounded-full" />
+              <div className="absolute top-0 right-0 w-32 h-32 bg-black/5 dark:bg-white/5 blur-3xl -mr-16 -mt-16 rounded-full" />
               <div className="flex items-center justify-between mb-8">
-                <div className="w-14 h-14 rounded-[1.25rem] bg-zinc-800 flex items-center justify-center border border-zinc-700 group-hover:bg-white group-hover:text-black transition-all">
+                <div className="w-14 h-14 rounded-[1.25rem] bg-zinc-100 dark:bg-zinc-800 flex items-center justify-center border border-zinc-200 dark:border-zinc-700 group-hover:bg-zinc-900 dark:group-hover:bg-white group-hover:text-white dark:group-hover:text-black transition-all">
                   <BookOpen className="w-7 h-7" />
                 </div>
                 <div className="flex flex-col items-end gap-2">
-                  <div className="px-3 py-1 rounded-full bg-black/40 text-[9px] font-black text-zinc-500 uppercase tracking-widest border border-zinc-800">
+                  <div className="px-3 py-1 rounded-full bg-zinc-200/50 dark:bg-black/40 text-[9px] font-black text-zinc-500 uppercase tracking-widest border border-zinc-300 dark:border-zinc-800">
                     {exam.timeLimit} Min
                   </div>
                   <button 
                     onClick={(e) => exportAssessmentAsPDF(e, exam)}
-                    className="p-2 bg-zinc-800 text-zinc-400 rounded-xl hover:bg-white hover:text-black transition-all"
+                    className="p-2 bg-zinc-100 dark:bg-zinc-800 text-zinc-400 rounded-xl hover:bg-zinc-900 dark:hover:bg-white hover:text-white dark:hover:text-black transition-all"
                   >
                     <Download className="w-4 h-4" />
                   </button>
                 </div>
               </div>
-              <h3 className="text-xl font-black text-white mb-2 leading-tight">{exam.title}</h3>
+              <h3 className="text-xl font-black text-zinc-900 dark:text-white mb-2 leading-tight">{exam.title}</h3>
               <p className="text-xs text-zinc-500 font-medium mb-8 uppercase tracking-widest">{exam.trade} Certification</p>
               
               <div className="mt-auto flex items-center justify-between">
                 <div className="flex -space-x-2">
                    {[1,2,3].map(i => (
-                     <div key={i} className="w-8 h-8 rounded-full bg-zinc-800 border-2 border-zinc-900 flex items-center justify-center text-[10px] font-black text-white overflow-hidden">
+                     <div key={i} className="w-8 h-8 rounded-full bg-zinc-100 dark:bg-zinc-800 border-2 border-white dark:border-zinc-900 flex items-center justify-center text-[10px] font-black text-zinc-900 dark:text-white overflow-hidden">
                        <img src={`https://i.pravatar.cc/100?img=${i+10}`} alt="user" />
                      </div>
                    ))}
-                   <div className="w-8 h-8 rounded-full bg-zinc-800 border-2 border-zinc-900 flex items-center justify-center text-[10px] font-black text-zinc-500">
+                   <div className="w-8 h-8 rounded-full bg-zinc-100 dark:bg-zinc-800 border-2 border-white dark:border-zinc-900 flex items-center justify-center text-[10px] font-black text-zinc-500">
                      +12
                    </div>
                 </div>
-                <div className="flex items-center gap-2 text-white font-black text-[10px] uppercase tracking-widest">
+                <div className="flex items-center gap-2 text-zinc-900 dark:text-white font-black text-[10px] uppercase tracking-widest">
                   Start Exam <ChevronRight className="w-4 h-4" />
                 </div>
               </div>
@@ -1789,26 +1792,26 @@ const PortfolioView = ({ user, showToast }: {
     <div className="space-y-8 pb-12">
       <header className="flex flex-col md:flex-row md:items-center justify-between gap-6">
         <div>
-          <h1 className="text-3xl font-black text-white tracking-tight uppercase">E-Portfolio</h1>
+          <h1 className="text-3xl font-black text-zinc-900 dark:text-white tracking-tight uppercase">E-Portfolio</h1>
           <p className="text-zinc-500 font-medium">Manage your certifications and practical evidence.</p>
         </div>
         <div className="flex items-center gap-3">
-          <div className="bg-zinc-900 p-1.5 rounded-2xl border border-zinc-800 flex">
+          <div className="bg-zinc-100 dark:bg-zinc-900 p-1.5 rounded-2xl border border-zinc-200 dark:border-zinc-800 flex">
             <button 
               onClick={() => setUploadType('evidence')}
-              className={cn("px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all", uploadType === 'evidence' ? "bg-white text-black shadow-lg shadow-white/10" : "text-zinc-500")}
+              className={cn("px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all", uploadType === 'evidence' ? "bg-white dark:bg-zinc-800 text-zinc-900 dark:text-white shadow-lg shadow-black/5 dark:shadow-white/5" : "text-zinc-500")}
             >
               Evidence
             </button>
             <button 
               onClick={() => setUploadType('certificate')}
-              className={cn("px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all", uploadType === 'certificate' ? "bg-white text-black shadow-lg shadow-white/10" : "text-zinc-500")}
+              className={cn("px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all", uploadType === 'certificate' ? "bg-white dark:bg-zinc-800 text-zinc-900 dark:text-white shadow-lg shadow-black/5 dark:shadow-white/5" : "text-zinc-500")}
             >
               Certificate
             </button>
           </div>
-          <label className="px-6 py-3 bg-white text-black rounded-2xl text-xs font-black uppercase tracking-widest hover:bg-zinc-200 transition-all shadow-xl shadow-white/10 cursor-pointer flex items-center gap-2">
-            {loading ? <div className="w-4 h-4 border-2 border-black/20 border-t-black rounded-full animate-spin" /> : <Plus className="w-4 h-4" />}
+          <label className="px-6 py-3 bg-zinc-900 dark:bg-white text-white dark:text-black rounded-2xl text-xs font-black uppercase tracking-widest hover:bg-zinc-800 dark:hover:bg-zinc-200 transition-all shadow-xl shadow-black/10 dark:shadow-white/10 cursor-pointer flex items-center gap-2">
+            {loading ? <div className="w-4 h-4 border-2 border-white/20 dark:border-black/20 border-t-white dark:border-t-black rounded-full animate-spin" /> : <Plus className="w-4 h-4" />}
             {uploadType === 'certificate' ? 'Upload Certificate' : 'Upload Evidence'}
             <input type="file" className="hidden" onChange={handleFileUpload} disabled={loading} />
           </label>
@@ -1819,26 +1822,26 @@ const PortfolioView = ({ user, showToast }: {
         <motion.div 
           initial={{ opacity: 0, y: -10 }}
           animate={{ opacity: 1, y: 0 }}
-          className="bg-zinc-800/30 border border-zinc-700 p-6 rounded-[2.5rem] space-y-4"
+          className="bg-zinc-50 dark:bg-zinc-800/30 border border-zinc-200 dark:border-zinc-700 p-6 rounded-[2.5rem] space-y-4"
         >
           <div className="flex items-center gap-3">
-            <Zap className="w-5 h-5 text-white" />
-            <h2 className="text-lg font-black text-white uppercase tracking-tight">AI Learning Level Profile</h2>
+            <Zap className="w-5 h-5 text-zinc-900 dark:text-white" />
+            <h2 className="text-lg font-black text-zinc-900 dark:text-white uppercase tracking-tight">AI Learning Level Profile</h2>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div className="p-4 bg-black/40 rounded-2xl border border-zinc-800">
+            <div className="p-4 bg-white dark:bg-black/40 rounded-2xl border border-zinc-200 dark:border-zinc-800">
               <p className="text-[10px] font-black text-zinc-500 uppercase tracking-widest mb-1">Detected Education Level</p>
-              <p className="text-xl font-black text-white">{user.educationLevel || 'Analyzing...'}</p>
+              <p className="text-xl font-black text-zinc-900 dark:text-white">{user.educationLevel || 'Analyzing...'}</p>
             </div>
-            <div className="p-4 bg-black/40 rounded-2xl border border-zinc-800">
+            <div className="p-4 bg-white dark:bg-black/40 rounded-2xl border border-zinc-200 dark:border-zinc-800">
               <p className="text-[10px] font-black text-zinc-500 uppercase tracking-widest mb-1">Trade Specialization</p>
-              <p className="text-xl font-black text-white">{user.trade || 'General'}</p>
+              <p className="text-xl font-black text-zinc-900 dark:text-white">{user.trade || 'General'}</p>
             </div>
-            <div className="p-4 bg-black/40 rounded-2xl border border-zinc-800">
+            <div className="p-4 bg-white dark:bg-black/40 rounded-2xl border border-zinc-200 dark:border-zinc-800">
               <p className="text-[10px] font-black text-zinc-500 uppercase tracking-widest mb-1">Verification Status</p>
               <div className="flex items-center gap-2">
                 <div className="w-2 h-2 rounded-full bg-green-500" />
-                <p className="text-xl font-black text-white">AI Verified</p>
+                <p className="text-xl font-black text-zinc-900 dark:text-white">AI Verified</p>
               </div>
             </div>
           </div>
@@ -1847,7 +1850,7 @@ const PortfolioView = ({ user, showToast }: {
       )}
       <div className="space-y-6">
         <div className="flex items-center justify-between">
-          <h2 className="text-lg font-bold text-white flex items-center gap-2">
+          <h2 className="text-lg font-bold text-zinc-900 dark:text-white flex items-center gap-2">
             <FolderOpen className="w-5 h-5 text-zinc-500" /> Portfolio Items
           </h2>
         </div>
@@ -1856,7 +1859,7 @@ const PortfolioView = ({ user, showToast }: {
             <div 
               key={item.id} 
               className={cn(
-                "bg-zinc-900 rounded-2xl border border-zinc-800 shadow-sm overflow-hidden group cursor-pointer transition-all hover:border-zinc-700",
+                "bg-white dark:bg-zinc-900 rounded-2xl border border-zinc-200 dark:border-zinc-800 shadow-sm overflow-hidden group cursor-pointer transition-all hover:border-zinc-300 dark:hover:border-zinc-700",
                 item.type === 'certificate' && "ring-2 ring-[#c8b97a]/20 border-[#c8b97a]/30"
               )}
               onClick={() => {
@@ -1875,7 +1878,7 @@ const PortfolioView = ({ user, showToast }: {
                   )}
                   <span className={cn(
                     "px-2.5 py-1 rounded-lg text-[10px] font-bold uppercase tracking-wider shadow-sm",
-                    item.status === 'Verified' ? "bg-white text-black" : "bg-zinc-700 text-white"
+                    item.status === 'Verified' ? "bg-zinc-900 dark:bg-white text-white dark:text-black" : "bg-zinc-100 dark:bg-zinc-700 text-zinc-900 dark:text-white"
                   )}>
                     {item.status}
                   </span>
@@ -1898,12 +1901,12 @@ const PortfolioView = ({ user, showToast }: {
               <div className="p-5">
                 <h3 className={cn(
                   "font-bold mb-1",
-                  item.type === 'certificate' ? "text-[#c8b97a]" : "text-white"
+                  item.type === 'certificate' ? "text-[#c8b97a]" : "text-zinc-900 dark:text-white"
                 )}>{item.title}</h3>
-                <p className="text-sm text-zinc-400 line-clamp-2 mb-4">{item.description}</p>
-                <div className="flex items-center justify-between pt-4 border-t border-zinc-800">
+                <p className="text-sm text-zinc-500 dark:text-zinc-400 line-clamp-2 mb-4">{item.description}</p>
+                <div className="flex items-center justify-between pt-4 border-t border-zinc-100 dark:border-zinc-800">
                   <span className="text-xs text-zinc-500 font-medium">{item.timestamp}</span>
-                  <button className="text-sm font-bold text-white hover:text-zinc-300">
+                  <button className="text-sm font-bold text-zinc-900 dark:text-white hover:text-zinc-600 dark:hover:text-zinc-300">
                     {item.type === 'certificate' ? 'View Certificate' : 'View Details'}
                   </button>
                 </div>
@@ -2184,10 +2187,10 @@ const SettingsView = ({
 
   return (
     <div className="max-w-4xl mx-auto space-y-12 pb-32 font-sans">
-      <header className="relative overflow-hidden bg-zinc-950 rounded-[3rem] p-12 border border-white/[0.05] shadow-2xl">
-        <div className="absolute top-0 right-0 w-1/2 h-full bg-gradient-to-l from-white/[0.02] to-transparent pointer-events-none" />
+      <header className="relative overflow-hidden bg-zinc-100 dark:bg-zinc-950 rounded-[3rem] p-12 border border-zinc-200 dark:border-white/[0.05] shadow-2xl">
+        <div className="absolute top-0 right-0 w-1/2 h-full bg-gradient-to-l from-black/[0.02] dark:from-white/[0.02] to-transparent pointer-events-none" />
         <div className="relative z-10">
-          <h1 className="text-5xl font-black text-white tracking-tighter mb-2">SYSTEM<span className="text-zinc-700">SETTINGS</span></h1>
+          <h1 className="text-5xl font-black text-zinc-900 dark:text-white tracking-tighter mb-2">SYSTEM<span className="text-zinc-400 dark:text-zinc-700">SETTINGS</span></h1>
           <p className="text-zinc-500 font-bold uppercase tracking-[0.3em] text-[10px]">Intelligence Dashboard & Preference Control</p>
         </div>
       </header>
@@ -2197,11 +2200,11 @@ const SettingsView = ({
         <div className="flex items-center gap-3 text-zinc-500 font-black uppercase tracking-[0.2em] text-[10px] px-2">
           <UserIcon className="w-4 h-4" /> Identity Core
         </div>
-        <div className="bg-zinc-900/40 backdrop-blur-3xl rounded-[2.5rem] border border-white/[0.05] divide-y divide-white/[0.05] overflow-hidden shadow-2xl">
+        <div className="bg-white dark:bg-zinc-900/40 backdrop-blur-3xl rounded-[2.5rem] border border-zinc-200 dark:border-white/[0.05] divide-y divide-zinc-200 dark:divide-white/[0.05] overflow-hidden shadow-2xl">
           {/* Avatar Upload */}
           <div className="p-10 flex flex-col md:flex-row md:items-center gap-10">
             <div className="relative group">
-              <div className="w-32 h-32 rounded-[2.5rem] bg-black overflow-hidden border-2 border-white/[0.05] flex items-center justify-center group-hover:border-white/20 transition-all">
+              <div className="w-32 h-32 rounded-[2.5rem] bg-zinc-100 dark:bg-black overflow-hidden border-2 border-zinc-200 dark:border-white/[0.05] flex items-center justify-center group-hover:border-zinc-300 dark:group-hover:border-white/20 transition-all">
                 {user.avatarUrl ? (
                   <img src={user.avatarUrl.startsWith('http') ? user.avatarUrl : `http://localhost:5000${user.avatarUrl}`} alt="Avatar" className="w-full h-full object-cover" />
                 ) : (
@@ -2213,26 +2216,26 @@ const SettingsView = ({
                   </div>
                 )}
               </div>
-              <label className="absolute -bottom-2 -right-2 w-10 h-10 bg-white rounded-2xl flex items-center justify-center cursor-pointer shadow-xl hover:scale-110 transition-transform">
-                <Camera className="w-5 h-5 text-black" />
+              <label className="absolute -bottom-2 -right-2 w-10 h-10 bg-zinc-900 dark:bg-white rounded-2xl flex items-center justify-center cursor-pointer shadow-xl hover:scale-110 transition-transform">
+                <Camera className="w-5 h-5 text-white dark:text-black" />
                 <input type="file" accept="image/*" className="hidden" onChange={(e) => e.target.files?.[0] && handleAvatarChange(e.target.files[0])} disabled={uploadingAvatar} />
               </label>
             </div>
             
             <div className="flex-1 space-y-6">
               <div>
-                <p className="text-[9px] font-black text-zinc-600 uppercase tracking-widest mb-2">Student Verification</p>
-                <h3 className="text-3xl font-black text-white uppercase tracking-tight">{user.name}</h3>
+                <p className="text-[9px] font-black text-zinc-400 dark:text-zinc-600 uppercase tracking-widest mb-2">Student Verification</p>
+                <h3 className="text-3xl font-black text-zinc-900 dark:text-white uppercase tracking-tight">{user.name}</h3>
                 <p className="text-zinc-500 text-xs font-bold font-mono mt-1 opacity-50">{user.email}</p>
               </div>
               
               <div className="space-y-3">
-                <p className="text-[9px] font-black text-zinc-600 uppercase tracking-widest">Neural ID Presets</p>
+                <p className="text-[9px] font-black text-zinc-400 dark:text-zinc-600 uppercase tracking-widest">Neural ID Presets</p>
                 <div className="flex gap-3">
                   {[1, 2, 3, 4, 5].map((i) => {
                     const url = `https://api.dicebear.com/7.x/avataaars/svg?seed=${user.name + i}`;
                     return (
-                      <button key={i} onClick={() => handleAvatarChange(url)} className="w-12 h-12 rounded-xl border border-white/[0.05] overflow-hidden hover:border-white transition-all hover:scale-105 active:scale-95">
+                      <button key={i} onClick={() => handleAvatarChange(url)} className="w-12 h-12 rounded-xl border border-zinc-200 dark:border-white/[0.05] overflow-hidden hover:border-zinc-900 dark:hover:border-white transition-all hover:scale-105 active:scale-95">
                         <img src={url} className="w-full h-full" alt="Preset" />
                       </button>
                     );
@@ -2242,14 +2245,14 @@ const SettingsView = ({
             </div>
           </div>
 
-          <div className="p-8 flex items-center justify-between group hover:bg-white/[0.02] transition-colors">
+          <div className="p-8 flex items-center justify-between group hover:bg-zinc-50 dark:hover:bg-white/[0.02] transition-colors">
             <div>
-              <p className="text-[9px] font-black text-zinc-600 uppercase tracking-widest mb-1">Display Name</p>
+              <p className="text-[9px] font-black text-zinc-400 dark:text-zinc-600 uppercase tracking-widest mb-1">Display Name</p>
               <input 
                 type="text"
                 value={user.name}
                 onChange={(e) => setUser({...user, name: e.target.value})}
-                className="bg-transparent text-white font-black text-xl border-none p-0 focus:ring-0 w-full"
+                className="bg-transparent text-zinc-900 dark:text-white font-black text-xl border-none p-0 focus:ring-0 w-full"
               />
             </div>
             <button 
@@ -2261,7 +2264,7 @@ const SettingsView = ({
                   alert('Sync failed.');
                 }
               }}
-              className="px-6 py-3 bg-zinc-950 text-white rounded-[1.25rem] text-[10px] font-black uppercase tracking-widest hover:bg-white hover:text-black transition-all border border-white/[0.05]"
+              className="px-6 py-3 bg-zinc-100 dark:bg-zinc-950 text-zinc-900 dark:text-white rounded-[1.25rem] text-[10px] font-black uppercase tracking-widest hover:bg-zinc-900 hover:text-white dark:hover:bg-white dark:hover:text-black transition-all border border-zinc-200 dark:border-white/[0.05]"
             >
               Update ID
             </button>
@@ -2274,20 +2277,20 @@ const SettingsView = ({
         <div className="flex items-center gap-3 text-zinc-500 font-black uppercase tracking-[0.2em] text-[10px] px-2">
           <Sun className="w-4 h-4" /> Visual Environment
         </div>
-        <div className="bg-zinc-900/40 backdrop-blur-3xl rounded-[2.5rem] border border-white/[0.05] divide-y divide-white/[0.05] overflow-hidden shadow-2xl">
+        <div className="bg-white dark:bg-zinc-900/40 backdrop-blur-3xl rounded-[2.5rem] border border-zinc-200 dark:border-white/[0.05] divide-y divide-zinc-200 dark:divide-white/[0.05] overflow-hidden shadow-2xl">
           <div className="p-10 flex flex-col md:flex-row md:items-center justify-between gap-8">
             <div>
-              <p className="text-[9px] font-black text-zinc-600 uppercase tracking-widest mb-2">Interface Theme</p>
-              <p className="text-white font-black text-2xl uppercase tracking-tight">{theme}</p>
+              <p className="text-[9px] font-black text-zinc-400 dark:text-zinc-600 uppercase tracking-widest mb-2">Interface Theme</p>
+              <p className="text-zinc-900 dark:text-white font-black text-2xl uppercase tracking-tight">{theme}</p>
             </div>
-            <div className="flex gap-2 p-1.5 bg-black/60 rounded-[1.5rem] border border-white/[0.05]">
+            <div className="flex gap-2 p-1.5 bg-zinc-100 dark:bg-black/60 rounded-[1.5rem] border border-zinc-200 dark:border-white/[0.05]">
               {(['light', 'dark', 'auto'] as const).map(t => (
                 <button 
                   key={t} 
                   onClick={() => setTheme(t)}
                   className={cn(
                     "px-6 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all", 
-                    theme === t ? "bg-white text-black shadow-xl" : "text-zinc-500 hover:text-white"
+                    theme === t ? "bg-zinc-900 dark:bg-white text-white dark:text-black shadow-xl" : "text-zinc-500 hover:text-zinc-900 dark:hover:text-white"
                   )}
                 >
                   {t}
@@ -2297,18 +2300,18 @@ const SettingsView = ({
           </div>
           <div className="p-10">
             <div className="flex items-center justify-between mb-6">
-              <p className="text-[9px] font-black text-zinc-600 uppercase tracking-widest">Neural Font Scaling</p>
-              <span className="text-xl font-black text-white font-mono">{fontSize}px</span>
+              <p className="text-[9px] font-black text-zinc-400 dark:text-zinc-600 uppercase tracking-widest">Neural Font Scaling</p>
+              <span className="text-xl font-black text-zinc-900 dark:text-white font-mono">{fontSize}px</span>
             </div>
             <div className="relative flex items-center">
               <input 
                 type="range" min="12" max="24"
                 value={fontSize}
                 onChange={(e) => setFontSize(Number(e.target.value))}
-                className="w-full h-1.5 bg-black rounded-full appearance-none cursor-pointer accent-white"
+                className="w-full h-1.5 bg-zinc-200 dark:bg-black rounded-full appearance-none cursor-pointer accent-zinc-900 dark:accent-white"
               />
             </div>
-            <div className="flex justify-between mt-4 text-[9px] text-zinc-600 font-black uppercase tracking-widest">
+            <div className="flex justify-between mt-4 text-[9px] text-zinc-400 dark:text-zinc-600 font-black uppercase tracking-widest">
               <span>Standard (12)</span>
               <span>Industrial (24)</span>
             </div>
@@ -2321,16 +2324,16 @@ const SettingsView = ({
         <div className="flex items-center gap-3 text-zinc-500 font-black uppercase tracking-[0.2em] text-[10px] px-2">
           <Lock className="w-4 h-4" /> Encryption & Privacy
         </div>
-        <div className="bg-zinc-900/40 backdrop-blur-3xl rounded-[2.5rem] border border-white/[0.05] divide-y divide-white/[0.05] overflow-hidden shadow-2xl">
+        <div className="bg-white dark:bg-zinc-900/40 backdrop-blur-3xl rounded-[2.5rem] border border-zinc-200 dark:border-white/[0.05] divide-y divide-zinc-200 dark:divide-white/[0.05] overflow-hidden shadow-2xl">
           <div className="p-10">
             <div className="flex items-center justify-between mb-8">
               <div>
-                <p className="text-[9px] font-black text-zinc-600 uppercase tracking-widest mb-1">Access Protocol</p>
-                <p className="text-white font-black text-xl">Rotate Security Credentials</p>
+                <p className="text-[9px] font-black text-zinc-400 dark:text-zinc-600 uppercase tracking-widest mb-1">Access Protocol</p>
+                <p className="text-zinc-900 dark:text-white font-black text-xl">Rotate Security Credentials</p>
               </div>
               <button 
                 onClick={() => setIsChangingPassword(!isChangingPassword)}
-                className="px-6 py-3 bg-zinc-950 text-white rounded-[1.25rem] text-[10px] font-black uppercase tracking-widest hover:bg-white hover:text-black transition-all border border-white/[0.05]"
+                className="px-6 py-3 bg-zinc-100 dark:bg-zinc-950 text-zinc-900 dark:text-white rounded-[1.25rem] text-[10px] font-black uppercase tracking-widest hover:bg-zinc-900 hover:text-white dark:hover:bg-white dark:hover:text-black transition-all border border-zinc-200 dark:border-white/[0.05]"
               >
                 {isChangingPassword ? 'Abort' : 'Initialize Rotation'}
               </button>
@@ -2340,7 +2343,7 @@ const SettingsView = ({
               <motion.div 
                 initial={{ opacity: 0, y: -10 }}
                 animate={{ opacity: 1, y: 0 }}
-                className="space-y-6 pt-10 border-t border-white/[0.05]"
+                className="space-y-6 pt-10 border-t border-zinc-200 dark:border-white/[0.05]"
               >
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                   <input 
@@ -2348,26 +2351,26 @@ const SettingsView = ({
                     placeholder="Current Cipher"
                     value={passwords.current}
                     onChange={(e) => setPasswords({...passwords, current: e.target.value})}
-                    className="bg-black border border-white/[0.05] rounded-2xl p-5 text-sm text-white focus:ring-2 focus:ring-white/10 outline-none"
+                    className="bg-zinc-50 dark:bg-black border border-zinc-200 dark:border-white/[0.05] rounded-2xl p-5 text-sm text-zinc-900 dark:text-white focus:ring-2 focus:ring-zinc-900/10 dark:focus:ring-white/10 outline-none"
                   />
                   <input 
                     type="password" 
                     placeholder="New Cipher"
                     value={passwords.new}
                     onChange={(e) => setPasswords({...passwords, new: e.target.value})}
-                    className="bg-black border border-white/[0.05] rounded-2xl p-5 text-sm text-white focus:ring-2 focus:ring-white/10 outline-none"
+                    className="bg-zinc-50 dark:bg-black border border-zinc-200 dark:border-white/[0.05] rounded-2xl p-5 text-sm text-zinc-900 dark:text-white focus:ring-2 focus:ring-zinc-900/10 dark:focus:ring-white/10 outline-none"
                   />
                   <input 
                     type="password" 
                     placeholder="Verify Cipher"
                     value={passwords.confirm}
                     onChange={(e) => setPasswords({...passwords, confirm: e.target.value})}
-                    className="bg-black border border-white/[0.05] rounded-2xl p-5 text-sm text-white focus:ring-2 focus:ring-white/10 outline-none"
+                    className="bg-zinc-50 dark:bg-black border border-zinc-200 dark:border-white/[0.05] rounded-2xl p-5 text-sm text-zinc-900 dark:text-white focus:ring-2 focus:ring-zinc-900/10 dark:focus:ring-white/10 outline-none"
                   />
                 </div>
                 <button 
                   onClick={handlePasswordChange}
-                  className="w-full py-5 bg-white text-black font-black uppercase tracking-[0.2em] text-[10px] rounded-2xl hover:bg-zinc-200 transition-all shadow-xl"
+                  className="w-full py-5 bg-zinc-900 dark:bg-white text-white dark:text-black font-black uppercase tracking-[0.2em] text-[10px] rounded-2xl hover:bg-zinc-800 dark:hover:bg-zinc-200 transition-all shadow-xl"
                 >
                   Confirm Credential Rotation
                 </button>
@@ -2375,12 +2378,12 @@ const SettingsView = ({
             )}
           </div>
           
-          <div className="p-10 flex items-center justify-between group hover:bg-white/[0.02] transition-colors">
+          <div className="p-10 flex items-center justify-between group hover:bg-zinc-50 dark:hover:bg-white/[0.02] transition-colors">
             <div>
-              <p className="text-[9px] font-black text-zinc-600 uppercase tracking-widest mb-1">Data Sovereignty</p>
-              <p className="text-white font-black text-xl">Extract Intelligence Logs</p>
+              <p className="text-[9px] font-black text-zinc-400 dark:text-zinc-600 uppercase tracking-widest mb-1">Data Sovereignty</p>
+              <p className="text-zinc-900 dark:text-white font-black text-xl">Extract Intelligence Logs</p>
             </div>
-            <button className="px-6 py-3 bg-zinc-950 text-white rounded-[1.25rem] text-[10px] font-black uppercase tracking-widest hover:bg-white hover:text-black transition-all border border-white/[0.05] flex items-center gap-3">
+            <button className="px-6 py-3 bg-zinc-100 dark:bg-zinc-950 text-zinc-900 dark:text-white rounded-[1.25rem] text-[10px] font-black uppercase tracking-widest hover:bg-zinc-900 hover:text-white dark:hover:bg-white dark:hover:text-black transition-all border border-zinc-200 dark:border-white/[0.05] flex items-center gap-3">
               <Download className="w-4 h-4" /> Export Core
             </button>
           </div>
@@ -2391,7 +2394,7 @@ const SettingsView = ({
             </div>
             <button 
               onClick={handleDeleteAccount}
-              className="px-6 py-3 bg-red-500/10 hover:bg-red-500 text-white rounded-[1.25rem] text-[10px] font-black uppercase tracking-widest transition-all flex items-center gap-3"
+              className="px-6 py-3 bg-red-500/10 hover:bg-red-500 text-red-500 dark:text-white rounded-[1.25rem] text-[10px] font-black uppercase tracking-widest transition-all flex items-center gap-3"
             >
               <Trash2 className="w-4 h-4" /> Purge Identity
             </button>
@@ -2400,23 +2403,23 @@ const SettingsView = ({
       </section>
 
       {/* Visual Density Footer */}
-      <div className="p-12 bg-white text-black rounded-[3rem] relative overflow-hidden shadow-2xl">
-        <div className="absolute top-0 right-0 w-64 h-64 bg-zinc-100 blur-[80px] rounded-full -mr-32 -mt-32" />
+      <div className="p-12 bg-zinc-900 dark:bg-white text-white dark:text-black rounded-[3rem] relative overflow-hidden shadow-2xl">
+        <div className="absolute top-0 right-0 w-64 h-64 bg-zinc-800 dark:bg-zinc-100 blur-[80px] rounded-full -mr-32 -mt-32" />
         <div className="relative z-10 grid grid-cols-2 md:grid-cols-4 gap-12">
           <div>
-            <p className="text-[9px] font-black text-zinc-400 uppercase tracking-widest mb-2">Quizzes Indexed</p>
+            <p className="text-[9px] font-black text-zinc-500 dark:text-zinc-400 uppercase tracking-widest mb-2">Quizzes Indexed</p>
             <p className="text-5xl font-black tabular-nums">{history.length}</p>
           </div>
           <div>
-            <p className="text-[9px] font-black text-zinc-400 uppercase tracking-widest mb-2">Mastery Index</p>
+            <p className="text-[9px] font-black text-zinc-500 dark:text-zinc-400 uppercase tracking-widest mb-2">Mastery Index</p>
             <p className="text-5xl font-black tabular-nums">{avgScore}%</p>
           </div>
           <div>
-            <p className="text-[9px] font-black text-zinc-400 uppercase tracking-widest mb-2">Current Streak</p>
+            <p className="text-[9px] font-black text-zinc-500 dark:text-zinc-400 uppercase tracking-widest mb-2">Current Streak</p>
             <p className="text-5xl font-black tabular-nums">{user.streak || 0}</p>
           </div>
           <div>
-            <p className="text-[9px] font-black text-zinc-400 uppercase tracking-widest mb-2">Verification Rank</p>
+            <p className="text-[9px] font-black text-zinc-500 dark:text-zinc-400 uppercase tracking-widest mb-2">Verification Rank</p>
             <p className="text-5xl font-black uppercase">Elite</p>
           </div>
         </div>
@@ -3177,7 +3180,7 @@ export default function App() {
       )}>
         <div className="h-full flex flex-col p-6">
           <div className="flex items-center gap-3 mb-10 px-2">
-            <div className="w-10 h-10 bg-black dark:bg-white rounded-xl flex items-center justify-center shadow-lg shadow-black/10 dark:shadow-white/10">
+            <div className="w-10 h-10 bg-zinc-900 dark:bg-white rounded-xl flex items-center justify-center shadow-lg shadow-black/10 dark:shadow-white/10">
               <ShieldCheck className="w-6 h-6 text-white dark:text-black" />
             </div>
             <div>
@@ -3187,7 +3190,7 @@ export default function App() {
           </div>
 
           <nav className="flex-1">
-            <div className="text-[10px] font-bold text-zinc-600 uppercase tracking-widest mb-4 px-2">Main Menu</div>
+            <div className="text-[10px] font-bold text-zinc-500 dark:text-zinc-600 uppercase tracking-widest mb-4 px-2">Main Menu</div>
             <SidebarItem icon={LayoutDashboard} label="Dashboard" active={activeTab === 'dashboard'} onClick={() => handleTabChange('dashboard')} />
             <SidebarItem icon={BookOpen} label="Assessments" active={activeTab === 'assessments'} onClick={() => handleTabChange('assessments')} />
             <SidebarItem icon={HistoryIcon} label="Quiz History" active={activeTab === 'history'} onClick={() => handleTabChange('history')} />
@@ -3197,44 +3200,44 @@ export default function App() {
             <SidebarItem icon={FolderOpen} label="E-Portfolio" active={activeTab === 'portfolio'} onClick={() => handleTabChange('portfolio')} />
             <SidebarItem icon={ClipboardCheck} label="Past Papers" active={activeTab === 'papers'} onClick={() => handleTabChange('papers')} />
             
-            <div className="mt-10 text-[10px] font-bold text-zinc-600 uppercase tracking-widest mb-4 px-2">System</div>
+            <div className="mt-10 text-[10px] font-bold text-zinc-500 dark:text-zinc-600 uppercase tracking-widest mb-4 px-2">System</div>
             <SidebarItem icon={Settings} label="Settings" active={activeTab === 'settings'} onClick={() => handleTabChange('settings')} />
           </nav>
 
-          <div className="mt-auto pt-8 border-t border-white/[0.05]">
-            <div className="bg-black/40 rounded-3xl p-5 border border-white/[0.05] mb-6">
+          <div className="mt-auto pt-8 border-t border-zinc-200 dark:border-white/[0.05]">
+            <div className="bg-zinc-100 dark:bg-black/40 rounded-3xl p-5 border border-zinc-200 dark:border-white/[0.05] mb-6">
               <div className="flex items-center justify-between mb-4">
-                <p className="text-[9px] font-black text-zinc-600 uppercase tracking-widest">System Engine</p>
+                <p className="text-[9px] font-black text-zinc-400 dark:text-zinc-600 uppercase tracking-widest">System Engine</p>
                 <div className="flex items-center gap-1.5">
                   <div className="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse" />
-                  <span className="text-[9px] font-black text-green-500 uppercase">Online</span>
+                  <span className="text-[9px] font-black text-green-600 dark:text-green-500 uppercase">Online</span>
                 </div>
               </div>
               <div className="space-y-3">
                 <div className="flex justify-between items-end">
                   <p className="text-[10px] font-bold text-zinc-500">AI Latency</p>
-                  <p className="text-[10px] font-black text-white">24ms</p>
+                  <p className="text-[10px] font-black text-zinc-900 dark:text-white">24ms</p>
                 </div>
-                <div className="h-1 w-full bg-zinc-900 rounded-full overflow-hidden">
-                  <div className="h-full bg-white w-3/4" />
+                <div className="h-1 w-full bg-zinc-200 dark:bg-zinc-900 rounded-full overflow-hidden">
+                  <div className="h-full bg-zinc-900 dark:bg-white w-3/4" />
                 </div>
               </div>
             </div>
 
             <div className="flex items-center gap-4 px-3 mb-8">
-              <div className="w-10 h-10 rounded-full bg-zinc-900 overflow-hidden border border-zinc-800">
+              <div className="w-10 h-10 rounded-full bg-zinc-200 dark:bg-zinc-900 overflow-hidden border border-zinc-200 dark:border-zinc-800">
                 <img src="https://i.pravatar.cc/100?img=12" alt="profile" referrerPolicy="no-referrer" />
               </div>
               <div className="flex-1 min-w-0">
-                <p className="text-sm font-bold text-white truncate">{user.name}</p>
-                <p className="text-xs text-zinc-500 truncate">{user.trade} Student</p>
+                <p className="text-sm font-bold text-zinc-900 dark:text-white truncate">{user.name}</p>
+                <p className="text-xs text-zinc-500 dark:text-zinc-500 truncate">{user.trade} Student</p>
               </div>
             </div>
             <button 
               onClick={handleLogout}
-              className="flex items-center w-full px-4 py-3 text-zinc-500 hover:bg-zinc-900 hover:text-white transition-colors rounded-xl font-medium group"
+              className="flex items-center w-full px-4 py-3 text-zinc-500 dark:text-zinc-500 hover:bg-zinc-200 dark:hover:bg-zinc-900 hover:text-zinc-900 dark:hover:text-white transition-colors rounded-xl font-medium group"
             >
-              <LogOut className="w-5 h-5 mr-3 text-zinc-600 group-hover:text-white" />
+              <LogOut className="w-5 h-5 mr-3 text-zinc-400 dark:text-zinc-600 group-hover:text-zinc-900 dark:group-hover:text-white" />
               Sign Out
             </button>
           </div>
@@ -3264,10 +3267,10 @@ export default function App() {
           <div className="flex items-center gap-4 relative">
             <button 
               onClick={() => setShowNotifications(!showNotifications)}
-              className="p-2.5 text-zinc-400 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-900 rounded-2xl relative transition-colors"
+              className="p-2.5 text-zinc-500 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-900 rounded-2xl relative transition-colors"
             >
               <Bell className="w-5 h-5" />
-              <span className="absolute top-2.5 right-2.5 w-2 h-2 bg-black dark:bg-white rounded-full border-2 border-white dark:border-black" />
+              <span className="absolute top-2.5 right-2.5 w-2 h-2 bg-zinc-900 dark:bg-white rounded-full border-2 border-white dark:border-black" />
             </button>
 
             <AnimatePresence>
@@ -3288,7 +3291,7 @@ export default function App() {
                         )} />
                         <div>
                           <p className="text-xs font-bold text-zinc-900 dark:text-white">{n.title}</p>
-                          <p className="text-[10px] text-zinc-400 dark:text-zinc-500 mt-0.5">{n.text}</p>
+                          <p className="text-[10px] text-zinc-500 dark:text-zinc-500 mt-0.5">{n.text}</p>
                         </div>
                       </div>
                     ))}
