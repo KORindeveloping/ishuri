@@ -34,6 +34,8 @@ import {
   Zap,
   Award,
   FileText,
+  Share2,
+  Star,
   Shield,
   ExternalLink,
   QrCode,
@@ -1762,7 +1764,10 @@ const PortfolioView = ({ user, showToast }: {
 }) => {
   const [items, setItems] = useState<PortfolioItem[]>([]);
   const [loading, setLoading] = useState(false);
-  const [uploadType, setUploadType] = useState<'evidence' | 'certificate'>('evidence');
+  const [activeTab, setActiveTab] = useState<'overview' | 'evidence' | 'certificates' | 'upload'>('overview');
+  const [itemCategory, setItemCategory] = useState<PortfolioItem['category']>('Task Media');
+  const [isPublic, setIsPublic] = useState(false);
+  const [showCaseMode, setShowCaseMode] = useState(false);
 
   useEffect(() => {
     const fetchPortfolio = async () => {
@@ -1783,177 +1788,237 @@ const PortfolioView = ({ user, showToast }: {
     setLoading(true);
     const formData = new FormData();
     formData.append('media', file);
-    formData.append('title', uploadType === 'certificate' ? `Certificate: ${file.name}` : `Evidence: ${file.name}`);
-    formData.append('description', `${uploadType === 'certificate' ? 'Official document' : 'Work evidence'} uploaded on ${new Date().toLocaleDateString()}`);
-    formData.append('type', uploadType);
+    formData.append('title', file.name.split('.')[0]);
+    formData.append('description', `Achievement artifact uploaded for ${user.educationLevel}`);
+    formData.append('type', activeTab === 'certificates' ? 'certificate' : 'evidence');
+    formData.append('category', activeTab === 'certificates' ? 'Achievement' : itemCategory || 'Task Media');
 
     try {
       const newItem = await api.uploadEvidence(formData);
       setItems(prev => [newItem, ...prev]);
-      showToast(`${uploadType === 'certificate' ? 'Certificate' : 'Evidence'} uploaded successfully!`);
+      showToast('Artifact added to your digital storage!', 'success');
+      setActiveTab('overview');
     } catch (e) {
-      console.error('Upload failed:', e);
-      showToast('Failed to upload portfolio item.', 'error');
+      showToast('Upload failed. Please try again.', 'error');
     } finally {
       setLoading(false);
     }
   };
 
-  const [selectedCertificate, setSelectedCertificate] = useState<boolean>(false);
+  const togglePin = (id: string) => {
+    setItems(prev => prev.map(item => 
+      item.id === id ? { ...item, isPinned: !item.isPinned } : item
+    ));
+    showToast('Showcase updated for stakeholders');
+  };
+
+  const filteredItems = items.filter(item => {
+    if (showCaseMode) return item.isPinned;
+    if (activeTab === 'evidence') return item.type === 'evidence';
+    if (activeTab === 'certificates') return item.type === 'certificate';
+    return true;
+  });
+
+  const stats = {
+    total: items.length,
+    verified: items.filter(i => i.status === 'Verified').length,
+    certificates: items.filter(i => i.type === 'certificate').length,
+    evidence: items.filter(i => i.type === 'evidence').length
+  };
 
   return (
-    <div className="space-y-8 pb-12">
-      <header className="flex flex-col md:flex-row md:items-center justify-between gap-6">
+    <div className="space-y-8 pb-24">
+      <header className="flex flex-col lg:flex-row lg:items-end justify-between gap-8">
         <div>
-          <h1 className="text-3xl font-black text-zinc-900 dark:text-white tracking-tight uppercase">E-Portfolio</h1>
-          <p className="text-zinc-500 font-medium">Manage your certifications and practical evidence.</p>
-        </div>
-        <div className="flex items-center gap-3">
-          <div className="bg-zinc-100 dark:bg-zinc-900 p-1.5 rounded-2xl border border-zinc-200 dark:border-zinc-800 flex">
-            <button 
-              onClick={() => setUploadType('evidence')}
-              className={cn("px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all", uploadType === 'evidence' ? "bg-white dark:bg-zinc-800 text-zinc-900 dark:text-white shadow-lg shadow-black/5 dark:shadow-white/5" : "text-zinc-500")}
-            >
-              Evidence
-            </button>
-            <button 
-              onClick={() => setUploadType('certificate')}
-              className={cn("px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all", uploadType === 'certificate' ? "bg-white dark:bg-zinc-800 text-zinc-900 dark:text-white shadow-lg shadow-black/5 dark:shadow-white/5" : "text-zinc-500")}
-            >
-              Certificate
-            </button>
+          <div className="flex items-center gap-3 mb-4">
+             <div className="px-3 py-1 bg-zinc-900 dark:bg-white text-white dark:text-black text-[10px] font-black uppercase tracking-widest rounded-lg">
+               E-Portfolio Hub
+             </div>
+             {isPublic && (
+               <div className="px-3 py-1 bg-emerald-500 text-white text-[10px] font-black uppercase tracking-widest rounded-lg animate-pulse">
+                 Live Showcase Active
+               </div>
+             )}
           </div>
-          <label className="px-6 py-3 bg-zinc-900 dark:bg-white text-white dark:text-black rounded-2xl text-xs font-black uppercase tracking-widest hover:bg-zinc-800 dark:hover:bg-zinc-200 transition-all shadow-xl shadow-black/10 dark:shadow-white/10 cursor-pointer flex items-center gap-2">
-            {loading ? <div className="w-4 h-4 border-2 border-white/20 dark:border-black/20 border-t-white dark:border-t-black rounded-full animate-spin" /> : <Plus className="w-4 h-4" />}
-            {uploadType === 'certificate' ? 'Upload Certificate' : 'Upload Evidence'}
-            <input type="file" className="hidden" onChange={handleFileUpload} disabled={loading} />
-          </label>
+          <h1 className="text-4xl font-black text-zinc-900 dark:text-white tracking-tighter uppercase mb-2">Digital Management Tool</h1>
+          <p className="text-zinc-500 font-medium max-w-2xl">Track your learning journey, skills, and professional growth for mentors, parents, and future employers.</p>
+        </div>
+        
+        <div className="flex items-center gap-3">
+           <button 
+             onClick={() => setShowCaseMode(!showCaseMode)}
+             className={cn(
+               "px-6 py-3 rounded-2xl text-xs font-black uppercase tracking-widest transition-all shadow-xl flex items-center gap-2",
+               showCaseMode 
+                ? "bg-emerald-500 text-white shadow-emerald-500/20" 
+                : "bg-zinc-100 dark:bg-zinc-900 text-zinc-500 dark:text-zinc-400 shadow-black/5"
+             )}
+           >
+             <Award className="w-4 h-4" /> {showCaseMode ? 'Exit Preview' : 'Guardian Preview'}
+           </button>
+           <button 
+             onClick={() => setIsPublic(!isPublic)}
+             className="px-6 py-3 bg-zinc-900 dark:bg-white text-white dark:text-black rounded-2xl text-xs font-black uppercase tracking-widest hover:scale-105 transition-all shadow-xl shadow-black/10 dark:shadow-white/10 flex items-center gap-2"
+           >
+             <Share2 className="w-4 h-4" /> {isPublic ? 'Stop Sharing' : 'Share Portfolio'}
+           </button>
         </div>
       </header>
 
-      {uploadType === 'certificate' && (
-        <motion.div 
-          initial={{ opacity: 0, y: -10 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="bg-zinc-50 dark:bg-zinc-800/30 border border-zinc-200 dark:border-zinc-700 p-6 rounded-[2.5rem] space-y-4"
-        >
-          <div className="flex items-center gap-3">
-            <Zap className="w-5 h-5 text-zinc-900 dark:text-white" />
-            <h2 className="text-lg font-black text-zinc-900 dark:text-white uppercase tracking-tight">AI Learning Level Profile</h2>
+      {/* Stats & Nav */}
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+         {[
+           { label: 'Total Artifacts', val: stats.total, icon: FolderOpen, tab: 'overview' as const },
+           { label: 'Work Evidence', val: stats.evidence, icon: Camera, tab: 'evidence' as const },
+           { label: 'Official Docs', val: stats.certificates, icon: Award, tab: 'certificates' as const },
+           { label: 'Verified Proof', val: stats.verified, icon: CheckCircle2, tab: 'overview' as const }
+         ].map(stat => (
+           <button 
+             key={stat.label}
+             onClick={() => setActiveTab(stat.tab)}
+             className={cn(
+               "p-6 rounded-[2rem] border text-left transition-all group",
+               activeTab === stat.tab 
+                ? "bg-zinc-900 dark:bg-white border-transparent" 
+                : "bg-white dark:bg-zinc-900/40 border-zinc-200 dark:border-white/[0.05] hover:border-zinc-300 dark:hover:border-white/[0.1]"
+             )}
+           >
+             <stat.icon className={cn("w-6 h-6 mb-4 transition-colors", activeTab === stat.tab ? "text-white dark:text-black" : "text-zinc-400")} />
+             <p className={cn("text-[10px] font-black uppercase tracking-widest mb-1", activeTab === stat.tab ? "text-zinc-400 dark:text-zinc-500" : "text-zinc-500")}>{stat.label}</p>
+             <p className={cn("text-3xl font-black", activeTab === stat.tab ? "text-white dark:text-black" : "text-zinc-900 dark:text-white")}>{stat.val}</p>
+           </button>
+         ))}
+      </div>
+
+      <div className="flex flex-col lg:flex-row gap-8">
+        <div className="flex-1 space-y-6">
+          <div className="flex items-center justify-between">
+             <div className="flex items-center gap-2">
+               <div className="w-2 h-8 bg-zinc-900 dark:bg-white rounded-full" />
+               <h2 className="text-xl font-black text-zinc-900 dark:text-white uppercase tracking-tight">
+                 {showCaseMode ? 'Stakeholder Showcase' : `${activeTab.charAt(0).toUpperCase() + activeTab.slice(1)} Items`}
+               </h2>
+             </div>
+             {activeTab !== 'overview' && !showCaseMode && (
+               <label className="flex items-center gap-2 px-6 py-3 bg-zinc-100 dark:bg-zinc-900 rounded-2xl text-[10px] font-black uppercase tracking-widest cursor-pointer hover:bg-zinc-200 dark:hover:bg-zinc-800 transition-all border border-zinc-200 dark:border-zinc-800">
+                 <Plus className="w-4 h-4" /> Add To {activeTab}
+                 <input type="file" className="hidden" onChange={handleFileUpload} disabled={loading} />
+               </label>
+             )}
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div className="p-4 bg-white dark:bg-black/40 rounded-2xl border border-zinc-200 dark:border-zinc-800">
-              <p className="text-[10px] font-black text-zinc-500 uppercase tracking-widest mb-1">Detected Education Level</p>
-              <p className="text-xl font-black text-zinc-900 dark:text-white">{user.educationLevel || 'Analyzing...'}</p>
-            </div>
-            <div className="p-4 bg-white dark:bg-black/40 rounded-2xl border border-zinc-200 dark:border-zinc-800">
-              <p className="text-[10px] font-black text-zinc-500 uppercase tracking-widest mb-1">Trade Specialization</p>
-              <p className="text-xl font-black text-zinc-900 dark:text-white">{user.trade || 'General'}</p>
-            </div>
-            <div className="p-4 bg-white dark:bg-black/40 rounded-2xl border border-zinc-200 dark:border-zinc-800">
-              <p className="text-[10px] font-black text-zinc-500 uppercase tracking-widest mb-1">Verification Status</p>
-              <div className="flex items-center gap-2">
-                <div className="w-2 h-2 rounded-full bg-green-500" />
-                <p className="text-xl font-black text-zinc-900 dark:text-white">AI Verified</p>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <AnimatePresence mode="popLayout">
+              {filteredItems.map((item) => (
+                <motion.div 
+                  key={item.id}
+                  layout
+                  initial={{ opacity: 0, scale: 0.9 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  exit={{ opacity: 0, scale: 0.9 }}
+                  className="bg-white dark:bg-zinc-900 p-6 rounded-[2.5rem] border border-zinc-200 dark:border-white/[0.05] relative group"
+                >
+                   <div className="aspect-video rounded-3xl overflow-hidden mb-6 relative">
+                     <img src={item.mediaUrl} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" alt={item.title} />
+                     <div className="absolute top-4 left-4 flex gap-2">
+                       <div className="px-3 py-1 bg-black/60 backdrop-blur-md text-white text-[8px] font-black uppercase tracking-widest rounded-lg border border-white/10">
+                         {item.category || item.type}
+                       </div>
+                       {item.status === 'Verified' && (
+                         <div className="px-3 py-1 bg-emerald-500 text-white text-[8px] font-black uppercase tracking-widest rounded-lg flex items-center gap-1">
+                           <CheckCircle2 className="w-2.5 h-2.5" /> Verified Proof
+                         </div>
+                       )}
+                     </div>
+                     <button 
+                       onClick={() => togglePin(item.id)}
+                       className={cn(
+                        "absolute top-4 right-4 p-2 rounded-xl backdrop-blur-md border transition-all",
+                        item.isPinned ? "bg-amber-500 border-amber-400 text-white" : "bg-black/60 border-white/10 text-white/40 hover:text-white"
+                       )}
+                     >
+                       <Star className={cn("w-4 h-4", item.isPinned && "fill-current")} />
+                     </button>
+                   </div>
+                   
+                   <h3 className="text-lg font-black text-zinc-900 dark:text-white uppercase tracking-tight mb-2">{item.title}</h3>
+                   <p className="text-sm text-zinc-500 dark:text-zinc-400 mb-6 line-clamp-2">{item.description}</p>
+                   
+                   <div className="flex items-center justify-between pt-6 border-t border-zinc-100 dark:border-zinc-800">
+                     <div className="flex items-center gap-2">
+                       <div className="w-8 h-8 rounded-full bg-zinc-100 dark:bg-zinc-800 flex items-center justify-center">
+                         <FileText className="w-4 h-4 text-zinc-400" />
+                       </div>
+                       <div>
+                         <p className="text-[8px] font-black text-zinc-400 uppercase tracking-widest">Uploaded</p>
+                         <p className="text-[10px] font-bold text-zinc-900 dark:text-white">{item.timestamp}</p>
+                       </div>
+                     </div>
+                     <button className="text-[10px] font-black uppercase tracking-widest text-zinc-400 hover:text-zinc-900 dark:hover:text-white transition-colors">
+                       View Artifact
+                     </button>
+                   </div>
+                </motion.div>
+              ))}
+            </AnimatePresence>
+
+            {filteredItems.length === 0 && (
+              <div className="col-span-full py-24 text-center border-2 border-dashed border-zinc-200 dark:border-zinc-800 rounded-[3rem]">
+                <FolderOpen className="w-12 h-12 text-zinc-300 dark:text-zinc-700 mx-auto mb-4" />
+                <p className="text-zinc-400 dark:text-zinc-500 font-bold uppercase tracking-widest">No artifacts found</p>
+                <p className="text-zinc-300 dark:text-zinc-700 text-xs mt-1">Start by uploading your verified work or certificates.</p>
               </div>
-            </div>
+            )}
           </div>
-          <p className="text-xs text-zinc-500 font-medium">AI Level Detection Active: Certificates uploaded are automatically analyzed to keep your learning profile up to date.</p>
-        </motion.div>
-      )}
-      <div className="space-y-6">
-        <div className="flex items-center justify-between">
-          <h2 className="text-lg font-bold text-zinc-900 dark:text-white flex items-center gap-2">
-            <FolderOpen className="w-5 h-5 text-zinc-500" /> Portfolio Items
-          </h2>
         </div>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {items.map((item) => (
-            <div 
-              key={item.id} 
-              className={cn(
-                "bg-white dark:bg-zinc-900 rounded-2xl border border-zinc-200 dark:border-zinc-800 shadow-sm overflow-hidden group cursor-pointer transition-all hover:border-zinc-300 dark:hover:border-zinc-700",
-                item.type === 'certificate' && "ring-2 ring-[#c8b97a]/20 border-[#c8b97a]/30"
-              )}
-              onClick={() => {
-                if (item.type === 'certificate') {
-                  setSelectedCertificate(true);
-                }
-              }}
-            >
-              <div className="aspect-video relative overflow-hidden">
-                <img src={item.mediaUrl} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" alt={item.title} referrerPolicy="no-referrer" />
-                <div className="absolute top-3 right-3 flex gap-2">
-                  {item.type === 'certificate' && (
-                    <span className="px-2.5 py-1 rounded-lg text-[10px] font-bold uppercase tracking-wider bg-[#c8b97a] text-[#1a1a2e] shadow-lg">
-                      Certificate
-                    </span>
-                  )}
-                  <span className={cn(
-                    "px-2.5 py-1 rounded-lg text-[10px] font-bold uppercase tracking-wider shadow-sm",
-                    item.status === 'Verified' ? "bg-zinc-900 dark:bg-white text-white dark:text-black" : "bg-zinc-100 dark:bg-zinc-700 text-zinc-900 dark:text-white"
-                  )}>
-                    {item.status}
-                  </span>
-                </div>
-                {item.mediaType === 'video' && (
-                  <div className="absolute inset-0 flex items-center justify-center bg-black/20">
-                    <div className="w-12 h-12 rounded-full bg-white/10 backdrop-blur-md flex items-center justify-center">
-                      <Video className="w-6 h-6 text-white" />
-                    </div>
-                  </div>
-                )}
-                {item.type === 'certificate' && (
-                  <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                    <div className="px-4 py-2 bg-[#c8b97a] text-[#1a1a2e] rounded-lg font-bold text-xs uppercase tracking-widest flex items-center gap-2">
-                      <Award className="w-4 h-4" /> View Certificate
-                    </div>
-                  </div>
-                )}
+
+        {/* Benefits Sidebar */}
+        <div className="w-full lg:w-96 space-y-6">
+           <div className="p-8 bg-zinc-900 dark:bg-white rounded-[2.5rem] text-white dark:text-black shadow-2xl overflow-hidden relative">
+              <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 dark:bg-black/5 blur-3xl -mr-16 -mt-16" />
+              <Zap className="w-8 h-8 mb-6" />
+              <h3 className="text-2xl font-black uppercase tracking-tight mb-4">Portfolio Benefits</h3>
+              <div className="space-y-6">
+                 {[
+                   { t: 'Verification', d: 'Ensures your work is authentic and verified by experts.', i: CheckCircle2 },
+                   { t: 'Progress Tracking', d: 'See how your skills grow from early work to mastery.', i: TrendingUp },
+                   { t: 'Career Readiness', d: 'Prove your competencies to future employers & parents.', i: Award }
+                 ].map(b => (
+                   <div key={b.t} className="flex gap-4">
+                      <div className="mt-1">
+                        <b.i className="w-5 h-5 text-white/40 dark:text-black/40" />
+                      </div>
+                      <div>
+                        <p className="text-xs font-black uppercase tracking-widest mb-1">{b.t}</p>
+                        <p className="text-[10px] text-white/60 dark:text-black/60 font-medium leading-relaxed">{b.d}</p>
+                      </div>
+                   </div>
+                 ))}
               </div>
-              <div className="p-5">
-                <h3 className={cn(
-                  "font-bold mb-1",
-                  item.type === 'certificate' ? "text-[#c8b97a]" : "text-zinc-900 dark:text-white"
-                )}>{item.title}</h3>
-                <p className="text-sm text-zinc-500 dark:text-zinc-400 line-clamp-2 mb-4">{item.description}</p>
-                <div className="flex items-center justify-between pt-4 border-t border-zinc-100 dark:border-zinc-800">
-                  <span className="text-xs text-zinc-500 font-medium">{item.timestamp}</span>
-                  <button className="text-sm font-bold text-zinc-900 dark:text-white hover:text-zinc-600 dark:hover:text-zinc-300">
-                    {item.type === 'certificate' ? 'View Certificate' : 'View Details'}
-                  </button>
-                </div>
-              </div>
-            </div>
-          ))}
+           </div>
+
+           <div className="p-8 bg-zinc-100 dark:bg-zinc-900/40 border border-zinc-200 dark:border-zinc-800 rounded-[2.5rem]">
+              <h3 className="font-black text-zinc-900 dark:text-white uppercase tracking-tight mb-4 flex items-center gap-2">
+                <Share2 className="w-4 h-4" /> Parent Sharing
+              </h3>
+              <p className="text-xs text-zinc-500 dark:text-zinc-400 font-medium mb-6 leading-relaxed">
+                Parents and Guardians can view your "Pinned" achievements to see your real-world progress in {user.trade || 'your studies'}.
+              </p>
+              <button 
+                onClick={() => setIsPublic(!isPublic)}
+                className="w-full py-4 border border-zinc-300 dark:border-zinc-700 rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-white dark:hover:bg-zinc-800 transition-all"
+              >
+                {isPublic ? 'Disable Access' : 'Create Share Link'}
+              </button>
+           </div>
         </div>
       </div>
 
       {/* Certificate Modal */}
       <AnimatePresence>
-        {selectedCertificate && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 md:p-8">
-            <motion.div 
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              onClick={() => setSelectedCertificate(false)}
-              className="absolute inset-0 bg-black/90 backdrop-blur-sm"
-            />
-            <motion.div 
-              initial={{ opacity: 0, scale: 0.9, y: 20 }}
-              animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.9, y: 20 }}
-              className="relative w-full max-w-6xl max-h-[90vh] overflow-y-auto"
-            >
-              <button 
-                onClick={() => setSelectedCertificate(false)}
-                className="absolute top-4 right-4 z-50 p-2 bg-white/10 hover:bg-white/20 rounded-full transition-colors"
-              >
-                <X className="w-6 h-6 text-white" />
-              </button>
-              <CertificateView user={user} />
-            </motion.div>
+        {items.find(i => i.type === 'certificate') && (
+          <div className="hidden">
+             {/* This is a placeholder as I redesigned the view.  */}
           </div>
         )}
       </AnimatePresence>

@@ -71,6 +71,8 @@ export interface PortfolioItem {
   verifierFeedback?: string;
   timestamp: string;
   type?: 'evidence' | 'certificate';
+  category?: 'Workplace Observation' | 'Task Media' | 'Project Report' | 'Achievement';
+  isPinned?: boolean; // For Showcase
 }
 export interface QuizHistoryItem {
   id: string;
