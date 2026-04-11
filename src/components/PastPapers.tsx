@@ -105,6 +105,9 @@ export const PastPapers = ({ user, onStartQuiz }: { user: User, onStartQuiz?: (q
              <div className="px-3 py-1 bg-zinc-900 dark:bg-white text-white dark:text-black text-[10px] font-black uppercase tracking-widest rounded-lg">
                {displayLevel} Library
              </div>
+             <div className="px-3 py-1 bg-blue-500 text-white text-[10px] font-black uppercase tracking-widest rounded-lg shadow-lg animate-pulse">
+               v3.2 Verified
+             </div>
              <div className="px-3 py-1 bg-zinc-100 dark:bg-zinc-800 text-zinc-500 dark:text-zinc-400 text-[10px] font-black uppercase tracking-widest rounded-lg border border-zinc-200 dark:border-zinc-700">
                {filteredPapers.length} Papers Available
              </div>
