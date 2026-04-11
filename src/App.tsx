@@ -65,7 +65,7 @@ import {
   LineChart,
   Line
 } from 'recharts';
-import { cn } from './lib/utils';
+import { cn, getVerificationRank } from './lib/utils';
 import { MOCK_USER, MOCK_ASSESSMENTS } from './constants';
 import { User, Trade, Skill, CompetencyStatus, Assessment, PortfolioItem, QuizHistoryItem } from './types';
 import { VerificationChecklist } from './components/VerificationChecklist';
@@ -272,8 +272,8 @@ const DashboardView = ({ user, onStartQuiz, onLogout, history, onNavigate, showT
 
   const stats = [
     { label: 'Study Streak', value: `${user.streak || 0} Days`, icon: Flame, color: 'text-white' },
-    { label: 'Topics Mastered', value: skills.filter(s => s.status === 'Competent').length.toString(), icon: Trophy, color: 'text-white' },
     { label: 'Avg. Quiz Score', value: `${avgDashboardScore}%`, icon: BarChart3, color: 'text-white' },
+    { label: 'Current Rank', value: getVerificationRank(avgDashboardScore).rank, icon: Trophy, color: 'text-white' },
     { label: 'Quizzes Taken', value: history.length.toString(), icon: Hourglass, color: 'text-white' },
   ];
 
@@ -347,7 +347,12 @@ const DashboardView = ({ user, onStartQuiz, onLogout, history, onNavigate, showT
               <TrendingUp className="w-5 h-5 text-zinc-300 dark:text-zinc-800 group-hover:text-zinc-900 dark:group-hover:text-white transition-colors" />
             </div>
             <p className="text-[10px] font-black text-zinc-500 dark:text-zinc-600 uppercase tracking-[0.3em] mb-1">{stat.label}</p>
-            <p className="text-4xl font-black text-zinc-900 dark:text-white tracking-tighter">{stat.value}</p>
+            <p className="text-4xl font-black text-zinc-900 dark:text-white tracking-tighter flex items-end gap-2">
+              {stat.value}
+              {stat.label === 'Current Rank' && (
+                <span className="text-[8px] font-black text-emerald-500 bg-emerald-500/10 px-1 rounded uppercase tracking-widest mb-1.5 leading-none px-1.5 py-1 animate-pulse">Live</span>
+              )}
+            </p>
           </motion.div>
         ))}
       </div>
@@ -780,7 +785,6 @@ const AnalyticsView = ({ history, user, onStartQuiz, showToast }: {
                 <YAxis stroke="currentColor" className="text-zinc-400 dark:text-zinc-600" fontSize={12} tickLine={false} axisLine={false} />
                 <Tooltip 
                   contentStyle={{ backgroundColor: 'currentColor', border: 'none', borderRadius: '12px' }}
-                  className="text-white dark:text-zinc-900"
                   itemStyle={{ fontWeight: 'bold' }}
                 />
                 <Bar dataKey="mastery" fill="currentColor" className="text-zinc-900 dark:text-white" radius={[6, 6, 0, 0]} />
@@ -1644,8 +1648,17 @@ const AssessmentView = ({
                       </div>
                       <p className="text-sm text-zinc-400 mb-4">This task requires a supervisor to verify your performance using the digital checklist.</p>
                       {practicalScore !== null ? (
-                        <div className="flex items-center gap-2 text-white font-bold">
-                          <CheckCircle2 className="w-5 h-5" /> Verified Score: {practicalScore}%
+                        <div className="flex items-center gap-4">
+                          <div className={cn(
+                            "flex items-center gap-2 font-bold px-3 py-1.5 rounded-lg border",
+                            getVerificationRank(practicalScore).color,
+                            getVerificationRank(practicalScore).bg,
+                            getVerificationRank(practicalScore).border
+                          )}>
+                            <CheckCircle2 className="w-4 h-4" />
+                            <span>Rank {getVerificationRank(practicalScore).rank} ({getVerificationRank(practicalScore).label})</span>
+                          </div>
+                          <span className="text-sm font-medium text-zinc-500">{practicalScore}% Accuracy</span>
                         </div>
                       ) : (
                         <button 
@@ -2420,7 +2433,11 @@ const SettingsView = ({
           </div>
           <div>
             <p className="text-[9px] font-black text-zinc-500 dark:text-zinc-400 uppercase tracking-widest mb-2">Verification Rank</p>
-            <p className="text-5xl font-black uppercase">Elite</p>
+            <p className={cn("text-5xl font-black uppercase flex items-center gap-4", getVerificationRank(avgScore).color)}>
+              {getVerificationRank(avgScore).rank}
+              <span className="text-[10px] font-black bg-zinc-900/10 dark:bg-white/10 px-2 py-1 rounded-lg uppercase tracking-widest">v2.1</span>
+            </p>
+            <p className="text-[10px] font-black opacity-50 uppercase tracking-widest">{getVerificationRank(avgScore).label}</p>
           </div>
         </div>
       </div>
@@ -3103,7 +3120,7 @@ export default function App() {
 
     const view = (() => {
       switch (activeTab) {
-        case 'dashboard': return <DashboardView user={user} onStartQuiz={handleStartCustomQuiz} onLogout={handleLogout} history={history} onNavigate={handleTabChange} />;
+        case 'dashboard': return <DashboardView user={user} onStartQuiz={handleStartCustomQuiz} onLogout={handleLogout} history={history} onNavigate={handleTabChange} showToast={showToast} />;
         case 'assessments': return (
           <AssessmentView 
             assessments={MOCK_ASSESSMENTS} 
@@ -3116,10 +3133,11 @@ export default function App() {
             reviewHistoryItem={reviewHistoryItem}
           />
         );
-        case 'history': return <QuizHistoryView history={history} onReviewQuiz={handleReviewHistoryQuiz} />;
-        case 'analytics': return <AnalyticsView history={history} user={user} onStartQuiz={handleStartCustomQuiz} />;
+        case 'history': return <QuizHistoryView history={history} onReviewQuiz={handleReviewHistoryQuiz} showToast={showToast} />;
+        case 'analytics': return <AnalyticsView history={history} user={user} onStartQuiz={handleStartCustomQuiz} showToast={showToast} />;
         case 'flashcards': return <FlashcardsView />;
-        case 'planner': return <PlannerView user={user} />;        case 'portfolio': return <PortfolioView user={user} />;
+        case 'planner': return <PlannerView user={user} />;
+        case 'portfolio': return <PortfolioView user={user} showToast={showToast} />;
         case 'papers': return <PastPapers onStartQuiz={handleStartCustomQuiz} />;
         case 'settings': return (
           <SettingsView 
@@ -3132,7 +3150,7 @@ export default function App() {
             history={history}
             onLogout={handleLogout}
           />
-        );        default: return <DashboardView user={user} onStartQuiz={handleStartCustomQuiz} onLogout={handleLogout} history={history} onNavigate={handleTabChange} />;
+        );        default: return <DashboardView user={user} onStartQuiz={handleStartCustomQuiz} onLogout={handleLogout} history={history} onNavigate={handleTabChange} showToast={showToast} />;
       }
     })();
 

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { CheckCircle2, AlertCircle, Save, UserCheck } from 'lucide-react';
-import { cn } from '../lib/utils';
+import { cn, getVerificationRank } from '../lib/utils';
 
 interface ChecklistItem {
   id: string;
@@ -34,7 +34,19 @@ export const VerificationChecklist = ({ onComplete }: { onComplete: (score: numb
           <UserCheck className="w-6 h-6 text-zinc-900 dark:text-white" />
           <h3 className="font-bold text-lg uppercase tracking-tight">Practical Verification Checklist</h3>
         </div>
-        <span className="text-[10px] font-bold bg-zinc-900 dark:bg-white text-white dark:text-black px-2 py-1 rounded uppercase tracking-widest">External Verifier Mode</span>
+        <div className="flex items-center gap-2">
+          {items.some(i => i.status !== 'Pending') && (
+            <div className={cn(
+              "px-3 py-1 rounded-lg text-[10px] font-black border",
+              getVerificationRank((items.filter(i => i.status === 'Pass').length / items.length) * 100).bg,
+              getVerificationRank((items.filter(i => i.status === 'Pass').length / items.length) * 100).color,
+              getVerificationRank((items.filter(i => i.status === 'Pass').length / items.length) * 100).border
+            )}>
+              Current Rank: {getVerificationRank((items.filter(i => i.status === 'Pass').length / items.length) * 100).rank}
+            </div>
+          )}
+          <span className="text-[10px] font-bold bg-zinc-900 dark:bg-white text-white dark:text-black px-2 py-1 rounded uppercase tracking-widest">External Verifier Mode</span>
+        </div>
       </div>
       
       <div className="p-6 space-y-4 bg-zinc-100 dark:bg-black">
