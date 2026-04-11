@@ -1,5 +1,8 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { FileText, Download, ExternalLink, Tag, Zap, X, CheckCircle2, Camera, Loader2, Search, Video, Award, FolderOpen } from 'lucide-react';
+import { 
+  FileText, Download, ExternalLink, Tag, Zap, X, CheckCircle2, Camera, Loader2, Search, Video, Award, FolderOpen,
+  Calculator, FlaskConical, Globe, Languages, TrendingUp, Atom, Microscope, Palette, BookOpen
+} from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Trade, Assessment, PortfolioItem } from '../types'; // Import PortfolioItem
 import { cn } from '../lib/utils';
@@ -10,6 +13,19 @@ import { PaperMetadata, PAST_PAPERS_DATA } from '../data/pastPapersData';
 import { User } from '../types';
 
 export const PastPapers = ({ user, onStartQuiz }: { user: User, onStartQuiz?: (quiz: Assessment) => void }) => {
+  const getSubjectIcon = (subject: string, isNursery?: boolean) => {
+    if (isNursery) return Palette;
+    const sub = subject.toLowerCase();
+    if (sub.includes('math')) return Calculator;
+    if (sub.includes('science') || sub.includes('set') || sub.includes('chem')) return FlaskConical;
+    if (sub.includes('phys')) return Atom;
+    if (sub.includes('biol')) return Microscope;
+    if (sub.includes('social') || sub.includes('sre') || sub.includes('history') || sub.includes('geography') || sub.includes('religion')) return Globe;
+    if (sub.includes('english') || sub.includes('kinyarwanda') || sub.includes('francais') || sub.includes('literature') || sub.includes('lang')) return Languages;
+    if (sub.includes('econ')) return TrendingUp;
+    return FileText;
+  };
+
   const [showGenerator, setShowGenerator] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
   const [selectedPaper, setSelectedPaper] = useState<PaperMetadata | null>(null);
@@ -171,7 +187,7 @@ export const PastPapers = ({ user, onStartQuiz }: { user: User, onStartQuiz?: (q
               
               <div className="flex items-start justify-between mb-8">
                 <div className="w-14 h-14 rounded-2xl bg-zinc-100 dark:bg-black/40 flex items-center justify-center border border-zinc-200 dark:border-white/[0.05] group-hover:bg-zinc-900 dark:group-hover:bg-white group-hover:text-white dark:group-hover:text-black transition-all duration-500">
-                  <FileText className="w-7 h-7" />
+                  {React.createElement(getSubjectIcon(paper.subject, paper.isNursery), { className: "w-7 h-7" })}
                 </div>
                 <div className="text-right">
                   <p className="text-[10px] font-black text-zinc-400 dark:text-zinc-600 uppercase tracking-widest mb-1">{paper.year}</p>
