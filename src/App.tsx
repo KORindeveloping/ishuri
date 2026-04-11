@@ -1789,7 +1789,7 @@ const PortfolioView = ({ user, showToast }: {
     const formData = new FormData();
     formData.append('media', file);
     formData.append('title', file.name.split('.')[0]);
-    formData.append('description', `Achievement artifact uploaded for ${user.educationLevel}`);
+    formData.append('description', `Skill artifact uploaded for ${user.educationLevel}`);
     formData.append('type', activeTab === 'certificates' ? 'certificate' : 'evidence');
     formData.append('category', activeTab === 'certificates' ? 'Achievement' : itemCategory || 'Task Media');
 
@@ -1869,9 +1869,9 @@ const PortfolioView = ({ user, showToast }: {
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
          {[
            { label: 'Total Artifacts', val: stats.total, icon: FolderOpen, tab: 'overview' as const },
-           { label: 'Work Evidence', val: stats.evidence, icon: Camera, tab: 'evidence' as const },
+           { label: 'Learning Proofs', val: stats.evidence, icon: Camera, tab: 'evidence' as const },
            { label: 'Official Docs', val: stats.certificates, icon: Award, tab: 'certificates' as const },
-           { label: 'Verified Proof', val: stats.verified, icon: CheckCircle2, tab: 'overview' as const }
+           { label: 'Verified Skills', val: stats.verified, icon: CheckCircle2, tab: 'overview' as const }
          ].map(stat => (
            <button 
              key={stat.label}
@@ -1999,7 +1999,7 @@ const PortfolioView = ({ user, showToast }: {
 
            <div className="p-8 bg-zinc-100 dark:bg-zinc-900/40 border border-zinc-200 dark:border-zinc-800 rounded-[2.5rem]">
               <h3 className="font-black text-zinc-900 dark:text-white uppercase tracking-tight mb-4 flex items-center gap-2">
-                <Share2 className="w-4 h-4" /> Parent Sharing
+                <Share2 className="w-4 h-4" /> Stakeholder Sharing
               </h3>
               <p className="text-xs text-zinc-500 dark:text-zinc-400 font-medium mb-6 leading-relaxed">
                 Parents and Guardians can view your "Pinned" achievements to see your real-world progress in {user.trade || 'your studies'}.
