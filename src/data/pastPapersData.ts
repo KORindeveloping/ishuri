@@ -4,21 +4,21 @@ export interface PaperMetadata {
   fileName: string;
   subject: string;
   year: number;
-  level: 'Primary' | 'S3' | 'S6';
+  level: 'Nursery' | 'Primary' | 'S3' | 'S6';
   isNursery?: boolean;
 }
 
 export const PAST_PAPERS_DATA: PaperMetadata[] = [
   // Nursery / Pre-Primary
-  { id: 'nur-1', title: 'Nursery Activity 1', fileName: '2016_1-Nursery.pdf', subject: 'Activity', year: 2016, level: 'Primary', isNursery: true },
-  { id: 'nur-2', title: 'Nursery Activity 2', fileName: '2016_2-Nursery.pdf', subject: 'Activity', year: 2016, level: 'Primary', isNursery: true },
-  { id: 'nur-3', title: 'Nursery Activity 3', fileName: '2016_3-Nursery.pdf', subject: 'Activity', year: 2016, level: 'Primary', isNursery: true },
-  { id: 'nur-4', title: 'Nursery Activity 4', fileName: '2016_4-Nursery.pdf', subject: 'Activity', year: 2016, level: 'Primary', isNursery: true },
-  { id: 'nur-5', title: 'Nursery Activity 5', fileName: '2016_5-Nursery.pdf', subject: 'Activity', year: 2016, level: 'Primary', isNursery: true },
-  { id: 'nur-6', title: 'Nursery Activity 6', fileName: '2016_6-Nursery.pdf', subject: 'Activity', year: 2016, level: 'Primary', isNursery: true },
-  { id: 'nur-7', title: 'Nursery Activity 7', fileName: '2016_7-Nursery.pdf', subject: 'Activity', year: 2016, level: 'Primary', isNursery: true },
-  { id: 'nur-9', title: 'Nursery Activity 9', fileName: '2016_9-Nursery.pdf', subject: 'Activity', year: 2016, level: 'Primary', isNursery: true },
-  { id: 'nur-10', title: 'Nursery Activity 10', fileName: '2016_10-Nursery.pdf', subject: 'Activity', year: 2016, level: 'Primary', isNursery: true },
+  { id: 'nur-1', title: 'Nursery Activity 1', fileName: '2016_1-Nursery.pdf', subject: 'Activity', year: 2016, level: 'Nursery', isNursery: true },
+  { id: 'nur-2', title: 'Nursery Activity 2', fileName: '2016_2-Nursery.pdf', subject: 'Activity', year: 2016, level: 'Nursery', isNursery: true },
+  { id: 'nur-3', title: 'Nursery Activity 3', fileName: '2016_3-Nursery.pdf', subject: 'Activity', year: 2016, level: 'Nursery', isNursery: true },
+  { id: 'nur-4', title: 'Nursery Activity 4', fileName: '2016_4-Nursery.pdf', subject: 'Activity', year: 2016, level: 'Nursery', isNursery: true },
+  { id: 'nur-5', title: 'Nursery Activity 5', fileName: '2016_5-Nursery.pdf', subject: 'Activity', year: 2016, level: 'Nursery', isNursery: true },
+  { id: 'nur-6', title: 'Nursery Activity 6', fileName: '2016_6-Nursery.pdf', subject: 'Activity', year: 2016, level: 'Nursery', isNursery: true },
+  { id: 'nur-7', title: 'Nursery Activity 7', fileName: '2016_7-Nursery.pdf', subject: 'Activity', year: 2016, level: 'Nursery', isNursery: true },
+  { id: 'nur-9', title: 'Nursery Activity 9', fileName: '2016_9-Nursery.pdf', subject: 'Activity', year: 2016, level: 'Nursery', isNursery: true },
+  { id: 'nur-10', title: 'Nursery Activity 10', fileName: '2016_10-Nursery.pdf', subject: 'Activity', year: 2016, level: 'Nursery', isNursery: true },
 
   // Primary (P6 / General)
   { id: 'p6-2018-is', title: 'Integrated Sciences', fileName: '2018 Integrated Sciences Past Paper.pdf', subject: 'Integrated Sciences', year: 2018, level: 'Primary' },

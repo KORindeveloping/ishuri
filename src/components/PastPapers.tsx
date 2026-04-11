@@ -25,21 +25,34 @@ export const PastPapers = ({ user, onStartQuiz }: { user: User, onStartQuiz?: (q
   const [isScanning, setIsScanning] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const getDisplayLevel = (eduLevel?: string): 'Primary' | 'S3' | 'S6' => {
+  const getDisplayLevel = (eduLevel?: string): 'Nursery' | 'Primary' | 'S3' | 'S6' => {
     if (!eduLevel) return 'S6';
-    if (eduLevel === 'Pre Primary' || eduLevel === 'Primary') return 'Primary';
-    if (eduLevel.toLowerCase().includes('ordinary') || eduLevel.toLowerCase().includes('s3')) return 'S3';
+    const level = eduLevel.toLowerCase();
+    if (level.includes('nursery') || level.includes('pre primary') || level.includes('preprimary')) return 'Nursery';
+    if (level.includes('primary')) return 'Primary';
+    if (level.includes('ordinary') || level.includes('s3')) return 'S3';
     return 'S6';
   };
 
   const displayLevel = getDisplayLevel(user.educationLevel);
   
   const filteredPapers = PAST_PAPERS_DATA.filter(paper => {
+    // 1. Level Filter
     const matchesLevel = paper.level === displayLevel;
+    if (!matchesLevel) return false;
+
+    // 2. Primary Subject Restriction (Specific to your request)
+    if (displayLevel === 'Primary') {
+      const allowedSubjects = ['Mathematics', 'Integrated Sciences', 'SET', 'English', 'Ikinyarwanda', 'Social Religious Studies', 'SRE'];
+      if (!allowedSubjects.includes(paper.subject)) return false;
+    }
+
+    // 3. Search & Year Filter
     const matchesSearch = paper.title.toLowerCase().includes(searchQuery.toLowerCase()) || 
                          paper.subject.toLowerCase().includes(searchQuery.toLowerCase());
     const matchesYear = selectedYear === 'All Years' || paper.year.toString() === selectedYear;
-    return matchesLevel && matchesSearch && matchesYear;
+    
+    return matchesSearch && matchesYear;
   });
 
   const years = ['All Years', ...Array.from(new Set(PAST_PAPERS_DATA.filter(p => p.level === displayLevel).map(p => p.year.toString())))].sort().reverse();
