@@ -1045,107 +1045,210 @@ const FlashcardsView = () => {
 };
 
 const PlannerView = ({ user }: { user: User }) => {
-  const isNursery = user.educationLevel === 'Pre Primary';
-  const isPrimary = user.educationLevel?.includes('Primary');
-  
-  const getIcon = (task: string) => {
-    if (isNursery) return <BookOpen className="w-4 h-4 text-pink-500" />;
-    if (isPrimary) return <Target className="w-4 h-4 text-blue-500" />;
-    return <Zap className="w-4 h-4 text-yellow-500" />;
-  };
-
-  const defaultTasks: Record<string, string[]> = isNursery ? {
-    "Monday": ["Coloring Shapes", "Singing ABCs"],
-    "Tuesday": ["Counting Blocks", "Story Time"],
-    "Wednesday": ["Nature Walk", "Drawing"],
-    "Thursday": ["Rhyme Time", "Puzzle Solving"],
-    "Friday": ["Show & Tell", "Outdoor Play"],
-  } : isPrimary ? {
-    "Monday": ["Kinyarwanda Reading", "Math Basics"],
-    "Tuesday": ["English Grammar", "Science Intro"],
-    "Wednesday": ["Social Studies", "Creative Arts"],
-    "Thursday": ["Math Practice", "English Quiz"],
-    "Friday": ["Weekly Test", "Physical Ed"],
-  } : {
-    "Monday": ["Technical Theory", "Applied Maths"],
-    "Tuesday": ["Lab Practice", "Safety Protocols"],
-    "Wednesday": ["Trade Skills", "Technical Drawing"],
-    "Thursday": ["Advanced Modules", "Past Papers"],
-    "Friday": ["Mock Assessment", "Portfolio Update"],
-  };
-
   const [schedule, setSchedule] = useState(() => {
     const saved = localStorage.getItem(`tvet_planner_${user.id}`);
+    const defaultTasks = {
+      "Monday": [], "Tuesday": [], "Wednesday": [], "Thursday": [], "Friday": []
+    };
     return saved ? JSON.parse(saved) : Object.entries(defaultTasks).map(([day, tasks]) => ({ day, tasks }));
   });
+
+  const [showAddModal, setShowAddModal] = useState<string | null>(null);
+  const [newTask, setNewTask] = useState({ text: '', category: 'Theory' as 'Theory' | 'Practice' | 'Revision' | 'Portfolio' });
 
   useEffect(() => {
     localStorage.setItem(`tvet_planner_${user.id}`, JSON.stringify(schedule));
   }, [schedule, user.id]);
 
-  const addTask = (day: string) => {
-    const task = prompt(`Add task for ${day}:`);
-    if (!task) return;
-    setSchedule(schedule.map((s: any) => s.day === day ? { ...s, tasks: [...s.tasks, task] } : s));
+  const addTask = () => {
+    if (!showAddModal || !newTask.text) return;
+    setSchedule(schedule.map((s: any) => 
+      s.day === showAddModal ? { ...s, tasks: [...s.tasks, newTask] } : s
+    ));
+    setNewTask({ text: '', category: 'Theory' });
+    setShowAddModal(null);
   };
 
   const removeTask = (day: string, taskIdx: number) => {
-    setSchedule(schedule.map((s: any) => s.day === day ? { ...s, tasks: s.tasks.filter((_: any, i: number) => i !== taskIdx) } : s));
+    setSchedule(schedule.map((s: any) => 
+      s.day === day ? { ...s, tasks: s.tasks.filter((_: any, i: number) => i !== taskIdx) } : s
+    ));
+  };
+
+  const toggleTask = (day: string, taskIdx: number) => {
+    setSchedule(schedule.map((s: any) => 
+      s.day === day ? { 
+        ...s, 
+        tasks: s.tasks.map((t: any, i: number) => i === taskIdx ? { ...t, completed: !t.completed } : t)
+      } : s
+    ));
+  };
+
+  const categoryColors = {
+    Theory: 'bg-blue-500',
+    Practice: 'bg-emerald-500',
+    Revision: 'bg-amber-500',
+    Portfolio: 'bg-purple-500'
   };
 
   return (
-    <div className="space-y-8">
-      <header className="flex flex-col sm:flex-row sm:items-center justify-between gap-6">
+    <div className="space-y-8 pb-12">
+      <header className="flex flex-col md:flex-row md:items-end justify-between gap-8">
         <div>
-          <h1 className="text-3xl font-black text-zinc-900 dark:text-white tracking-tight uppercase">Smart Study Planner</h1>
-          <p className="text-zinc-500 font-medium capitalize">Tailored for {user.educationLevel || 'General'} Student</p>
+          <div className="flex items-center gap-2 mb-3">
+             <div className="px-3 py-1 bg-zinc-900 dark:bg-white text-white dark:text-black text-[10px] font-black uppercase tracking-widest rounded-lg">
+               Smart Study Engine
+             </div>
+             <p className="text-[10px] font-black text-zinc-400 uppercase tracking-widest">v2.0 Professional</p>
+          </div>
+          <h1 className="text-4xl font-black text-zinc-900 dark:text-white tracking-tighter uppercase mb-2">Weekly Learning Planner</h1>
+          <p className="text-zinc-500 font-medium">Strategize your {user.trade || 'academic'} journey with precision.</p>
         </div>
         <button 
           onClick={() => {
-            if (window.confirm('Reset to default schedule?')) {
-              setSchedule(Object.entries(defaultTasks).map(([day, tasks]) => ({ day, tasks })));
-            }
+            if (window.confirm('Clear all tasks?')) setSchedule(schedule.map((s: any) => ({ ...s, tasks: [] })));
           }}
-          className="px-4 py-2 bg-white dark:bg-zinc-800 text-zinc-500 dark:text-zinc-400 rounded-xl text-[10px] font-black uppercase tracking-widest hover:text-zinc-900 dark:hover:text-white transition-colors border border-zinc-200 dark:border-zinc-700 shadow-sm"
+          className="px-6 py-3 bg-zinc-100 dark:bg-zinc-800 text-zinc-500 dark:text-zinc-400 rounded-2xl text-[10px] font-black uppercase tracking-widest hover:text-red-500 transition-all border border-zinc-200 dark:border-zinc-700"
         >
-          Reset Schedule
+          Reset Weekly Board
         </button>
       </header>
 
-      <div className="grid grid-cols-1 md:grid-cols-5 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
         {schedule.map((s: any) => (
-          <div key={s.day} className="bg-white dark:bg-zinc-900 p-6 rounded-[2.5rem] border border-zinc-200 dark:border-zinc-800 flex flex-col min-h-[400px] shadow-sm">
-            <div className="flex items-center justify-between mb-6">
-              <h3 className="font-black text-zinc-900 dark:text-white uppercase tracking-widest text-[10px]">{s.day}</h3>
+          <div key={s.day} className="bg-white dark:bg-zinc-900/40 backdrop-blur-3xl p-6 rounded-[2.5rem] border border-zinc-200 dark:border-white/[0.05] flex flex-col min-h-[500px] shadow-xl group">
+            <div className="flex items-center justify-between mb-8">
+              <div className="flex items-center gap-2">
+                 <div className="w-1.5 h-6 bg-zinc-900 dark:bg-white rounded-full" />
+                 <h3 className="font-black text-zinc-900 dark:text-white uppercase tracking-widest text-xs">{s.day}</h3>
+              </div>
               <button 
-                onClick={() => addTask(s.day)}
-                className="w-6 h-6 rounded-lg bg-zinc-100 dark:bg-zinc-800 text-zinc-400 dark:text-zinc-500 hover:bg-zinc-900 dark:hover:bg-white hover:text-white dark:hover:text-black transition-all flex items-center justify-center"
+                onClick={() => setShowAddModal(s.day)}
+                className="w-8 h-8 rounded-xl bg-zinc-100 dark:bg-zinc-800 text-zinc-400 dark:text-zinc-500 hover:bg-zinc-900 dark:hover:bg-white hover:text-white dark:hover:text-black transition-all flex items-center justify-center border border-zinc-200 dark:border-zinc-800"
               >
                 <Plus className="w-4 h-4" />
               </button>
             </div>
-            <div className="space-y-3 flex-1">
-              {s.tasks.map((t: string, i: number) => (
-                <div key={i} className="group p-4 bg-zinc-50 dark:bg-black rounded-2xl border border-zinc-200 dark:border-zinc-800 text-[11px] font-bold text-zinc-600 dark:text-zinc-300 relative flex items-center gap-3 shadow-sm">
-                  {getIcon(t)}
-                  {t}
+
+            <div className="space-y-4 flex-1">
+              {s.tasks.map((t: any, i: number) => (
+                <div 
+                  key={i} 
+                  className={cn(
+                    "group p-5 bg-white dark:bg-black rounded-3xl border transition-all relative",
+                    t.completed 
+                      ? "border-emerald-500/20 opacity-60 bg-emerald-500/[0.02]" 
+                      : "border-zinc-200 dark:border-zinc-800 hover:border-zinc-400 dark:hover:border-zinc-700 shadow-sm"
+                  )}
+                >
+                  <div className="flex items-start gap-4">
+                     <button 
+                       onClick={() => toggleTask(s.day, i)}
+                       className={cn(
+                         "mt-1 w-5 h-5 rounded-full border-2 transition-all flex items-center justify-center shrink-0",
+                         t.completed ? "bg-emerald-500 border-emerald-500" : "border-zinc-300 dark:border-zinc-700 hover:border-zinc-400"
+                       )}
+                     >
+                       {t.completed && <Check className="w-3 h-3 text-white" />}
+                     </button>
+                     <div className="flex-1 min-w-0">
+                        <div className={cn(
+                          "px-2 py-0.5 rounded-lg text-[8px] font-black uppercase tracking-widest inline-block text-white mb-2 shadow-lg shadow-black/5",
+                          categoryColors[t.category as keyof typeof categoryColors]
+                        )}>
+                          {t.category}
+                        </div>
+                        <p className={cn(
+                          "text-[11px] font-black leading-tight",
+                          t.completed ? "text-zinc-400 line-through" : "text-zinc-900 dark:text-white"
+                        )}>{t.text}</p>
+                     </div>
+                  </div>
+
                   <button 
                     onClick={() => removeTask(s.day, i)}
-                    className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 p-1 text-zinc-400 dark:text-zinc-600 hover:text-red-500 transition-all"
+                    className="absolute top-4 right-4 opacity-0 group-hover:opacity-100 p-1.5 text-zinc-300 dark:text-zinc-700 hover:text-red-500 transition-all"
                   >
-                    <X className="w-3 h-3" />
+                    <X className="w-3.5 h-3.5" />
                   </button>
                 </div>
               ))}
+              
               {s.tasks.length === 0 && (
-                <div className="h-full flex flex-col items-center justify-center border-2 border-dashed border-zinc-200 dark:border-zinc-800 rounded-2xl py-8 text-center">
-                  <p className="text-[10px] font-bold text-zinc-300 dark:text-zinc-700 uppercase">Rest Day</p>
+                <div className="h-full flex flex-col items-center justify-center py-20 text-center border-2 border-dashed border-zinc-100 dark:border-zinc-800 rounded-[2rem]">
+                  <p className="text-[10px] font-black text-zinc-300 dark:text-zinc-800 uppercase tracking-widest">Deep Focus Day</p>
                 </div>
               )}
             </div>
           </div>
         ))}
       </div>
+
+      {/* Add Task Modal */}
+      <AnimatePresence>
+        {showAddModal && (
+          <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/80 backdrop-blur-md">
+            <motion.div 
+              initial={{ opacity: 0, scale: 0.9, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.9, y: 20 }}
+              className="bg-white dark:bg-zinc-950 p-10 rounded-[3rem] border border-zinc-200 dark:border-white/10 w-full max-w-lg shadow-2xl relative overflow-hidden"
+            >
+              <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-blue-500 via-emerald-500 to-purple-500" />
+              <h3 className="text-2xl font-black text-zinc-900 dark:text-white mb-2 uppercase tracking-tighter">New Learning Task</h3>
+              <p className="text-zinc-500 text-xs font-medium mb-8">Scheduling task for <span className="text-zinc-900 dark:text-white font-black">{showAddModal}</span></p>
+              
+              <div className="space-y-6">
+                <div>
+                  <label className="block text-[10px] font-black text-zinc-400 dark:text-zinc-500 uppercase tracking-widest mb-3 ml-1">Task Description</label>
+                  <input 
+                    autoFocus
+                    value={newTask.text}
+                    onChange={(e) => setNewTask({...newTask, text: e.target.value})}
+                    onKeyDown={(e) => e.key === 'Enter' && addTask()}
+                    className="w-full bg-zinc-50 dark:bg-black border border-zinc-200 dark:border-zinc-800 rounded-2xl py-5 px-8 text-zinc-900 dark:text-white font-bold outline-none focus:ring-2 focus:ring-zinc-900/10 dark:focus:ring-white/10 text-sm"
+                    placeholder="e.g. Complete Automotive Lab Report"
+                  />
+                </div>
+                <div>
+                  <label className="block text-[10px] font-black text-zinc-400 dark:text-zinc-500 uppercase tracking-widest mb-3 ml-1">Category</label>
+                  <div className="grid grid-cols-2 gap-3">
+                    {['Theory', 'Practice', 'Revision', 'Portfolio'].map((cat) => (
+                      <button 
+                        key={cat}
+                        onClick={() => setNewTask({...newTask, category: cat as any})}
+                        className={cn(
+                          "py-4 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all border",
+                          newTask.category === cat 
+                            ? "bg-zinc-900 dark:bg-white text-white dark:text-black border-transparent shadow-lg" 
+                            : "bg-white dark:bg-zinc-950 text-zinc-500 border-zinc-200 dark:border-zinc-800 hover:border-zinc-400 dark:hover:border-zinc-600"
+                        )}
+                      >
+                        {cat}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              </div>
+
+              <div className="flex gap-4 mt-12">
+                <button 
+                  onClick={() => setShowAddModal(null)}
+                  className="flex-1 py-5 bg-zinc-100 dark:bg-zinc-800 text-zinc-500 dark:text-zinc-400 rounded-[1.5rem] font-black uppercase tracking-widest text-[10px] hover:bg-zinc-200 dark:hover:bg-zinc-700 transition-all"
+                >
+                  Discard
+                </button>
+                <button 
+                  onClick={addTask}
+                  className="flex-1 py-5 bg-zinc-900 dark:bg-white text-white dark:text-black rounded-[1.5rem] font-black uppercase tracking-widest text-[10px] hover:scale-[1.02] active:scale-95 transition-all shadow-xl shadow-black/20 dark:shadow-white/10"
+                >
+                  Save Task
+                </button>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
     </div>
   );
 };
