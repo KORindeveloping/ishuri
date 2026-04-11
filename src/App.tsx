@@ -3138,7 +3138,7 @@ export default function App() {
         case 'flashcards': return <FlashcardsView />;
         case 'planner': return <PlannerView user={user} />;
         case 'portfolio': return <PortfolioView user={user} showToast={showToast} />;
-        case 'papers': return <PastPapers onStartQuiz={handleStartCustomQuiz} />;
+        case 'papers': return <PastPapers user={user} onStartQuiz={handleStartCustomQuiz} />;
         case 'settings': return (
           <SettingsView 
             user={user} 
