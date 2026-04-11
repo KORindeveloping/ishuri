@@ -26,6 +26,18 @@ export const PastPapers = ({ user, onStartQuiz }: { user: User, onStartQuiz?: (q
     return FileText;
   };
 
+  const getCardColor = (id: string) => {
+    const colors = [
+      'bg-blue-500', 'bg-purple-500', 'bg-emerald-500', 'bg-rose-500', 
+      'bg-amber-500', 'bg-sky-500', 'bg-indigo-500', 'bg-teal-500'
+    ];
+    let hash = 0;
+    for (let i = 0; i < id.length; i++) {
+        hash = id.charCodeAt(i) + ((hash << 5) - hash);
+    }
+    return colors[Math.abs(hash) % colors.length];
+  };
+
   const [showGenerator, setShowGenerator] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
   const [selectedPaper, setSelectedPaper] = useState<PaperMetadata | null>(null);
@@ -185,11 +197,19 @@ export const PastPapers = ({ user, onStartQuiz }: { user: User, onStartQuiz?: (q
             >
               <div className="absolute top-0 right-0 w-24 h-24 bg-black/5 dark:bg-white/5 blur-3xl rounded-full -mr-12 -mt-12" />
               
+              {/* Background Identifier (e.g., Activity 1, 2) */}
+              <div className="absolute top-10 right-10 pointer-events-none opacity-[0.03] dark:opacity-[0.05] flex items-center justify-center">
+                 <span className="text-9xl font-black">{paper.id.split('-').pop()}</span>
+              </div>
+
               <div className="flex items-start justify-between mb-8">
-                <div className="w-14 h-14 rounded-2xl bg-zinc-100 dark:bg-black/40 flex items-center justify-center border border-zinc-200 dark:border-white/[0.05] group-hover:bg-zinc-900 dark:group-hover:bg-white group-hover:text-white dark:group-hover:text-black transition-all duration-500">
+                <div className={cn(
+                  "w-14 h-14 rounded-2xl flex items-center justify-center border border-white/20 shadow-lg text-white transition-all duration-500",
+                  getCardColor(paper.id)
+                )}>
                   {React.createElement(getSubjectIcon(paper.subject, paper.isNursery), { className: "w-7 h-7" })}
                 </div>
-                <div className="text-right">
+                <div className="text-right z-10">
                   <p className="text-[10px] font-black text-zinc-400 dark:text-zinc-600 uppercase tracking-widest mb-1">{paper.year}</p>
                   <div className="px-2 py-0.5 bg-zinc-100 dark:bg-zinc-800 text-[8px] font-black text-zinc-500 uppercase tracking-widest rounded-lg">Official</div>
                 </div>
