@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { 
   FileText, Download, ExternalLink, Tag, Zap, X, CheckCircle2, Camera, Loader2, Search, Video, Award, FolderOpen,
-  Calculator, FlaskConical, Globe, Languages, TrendingUp, Atom, Microscope, Palette, BookOpen
+  Calculator, FlaskConical, Globe, Languages, TrendingUp, Atom, Microscope, Palette, BookOpen, Printer
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Trade, Assessment, PortfolioItem } from '../types'; // Import PortfolioItem
@@ -110,6 +110,16 @@ export const PastPapers = ({ user, onStartQuiz }: { user: User, onStartQuiz?: (q
 
   const handleViewOnline = (paper: PaperMetadata) => {
     setSelectedPaper(paper);
+  };
+
+  const handlePrint = (fileName: string) => {
+    const paperUrl = `/past-papers/${fileName}`;
+    const printWindow = window.open(paperUrl, '_blank');
+    if (printWindow) {
+      printWindow.onload = () => {
+        printWindow.print();
+      };
+    }
   };
 
   const handleGenerate = () => {
@@ -279,6 +289,12 @@ export const PastPapers = ({ user, onStartQuiz }: { user: User, onStartQuiz?: (q
                  </div>
               </div>
               <footer className="p-8 border-t border-zinc-200 dark:border-zinc-800 flex justify-end gap-4">
+                 <button
+                    onClick={() => handlePrint(selectedPaper.fileName)}
+                    className="px-8 py-4 bg-zinc-100 dark:bg-zinc-800 text-zinc-900 dark:text-white rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-zinc-200 dark:hover:bg-zinc-700 transition-all flex items-center gap-2"
+                  >
+                    <Printer className="w-4 h-4" /> Print Paper
+                  </button>
                  <a
                     href={`/past-papers/${selectedPaper.fileName}`}
                     download={selectedPaper.fileName}
