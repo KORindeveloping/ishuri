@@ -855,6 +855,7 @@ const FlashcardsView = () => {
   const [index, setIndex] = useState(0);
   const [flipped, setFlipped] = useState(false);
   const [showAddModal, setShowAddModal] = useState(false);
+  const [viewMode, setViewMode] = useState<'review' | 'library'>('review');
   const [newCard, setNewCard] = useState({ q: '', a: '' });
 
   useEffect(() => {
@@ -911,19 +912,54 @@ const FlashcardsView = () => {
           <p className="text-zinc-500 font-medium">Master key concepts through spaced repetition.</p>
         </div>
         <div className="flex gap-4">
-          <div className="px-4 py-2 bg-zinc-50 dark:bg-zinc-900 rounded-xl border border-zinc-200 dark:border-zinc-800 text-[10px] font-black uppercase text-zinc-400 dark:text-zinc-500 flex items-center gap-2">
-            <Clock className="w-3 h-3" /> Due Today: {dueCards.length}
+          <div className="bg-zinc-100 dark:bg-zinc-900 p-1.5 rounded-2xl flex border border-zinc-200 dark:border-zinc-800">
+            <button 
+              onClick={() => setViewMode('review')}
+              className={cn("px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all", viewMode === 'review' ? "bg-white dark:bg-zinc-800 text-zinc-900 dark:text-white shadow-lg" : "text-zinc-500")}
+            >
+              Review
+            </button>
+            <button 
+              onClick={() => setViewMode('library')}
+              className={cn("px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all", viewMode === 'library' ? "bg-white dark:bg-zinc-800 text-zinc-900 dark:text-white shadow-lg" : "text-zinc-500")}
+            >
+              Library
+            </button>
           </div>
           <button 
             onClick={() => setShowAddModal(true)}
-            className="px-6 py-3 bg-zinc-900 dark:bg-white text-white dark:text-black font-black uppercase tracking-widest text-xs rounded-2xl flex items-center gap-2 hover:bg-zinc-800 dark:hover:bg-zinc-200 transition-all shadow-xl shadow-black/10 dark:shadow-white/10"
+            className="px-6 py-3 bg-zinc-900 dark:bg-white text-white dark:text-black font-black uppercase tracking-widest text-xs rounded-2xl flex items-center gap-2"
           >
-            <Plus className="w-4 h-4" /> Add New Card
+            <Plus className="w-4 h-4" /> New Card
           </button>
         </div>
       </header>
 
-      {dueCards.length === 0 ? (
+      {viewMode === 'library' ? (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 w-full max-w-6xl mt-8">
+           {cards.map((card: any, i: number) => (
+             <div key={i} className="bg-white dark:bg-zinc-900 p-6 rounded-[2rem] border border-zinc-200 dark:border-zinc-800 flex flex-col justify-between group h-48 shadow-sm">
+                <div>
+                  <div className="flex items-center justify-between mb-4">
+                    <span className={cn(
+                      "px-2 py-0.5 rounded text-[8px] font-black uppercase tracking-widest",
+                      card.interval > 4 ? "bg-emerald-100 text-emerald-600" : "bg-amber-100 text-amber-600"
+                    )}>
+                      {card.interval > 4 ? 'Mastered' : 'Learning'}
+                    </span>
+                    <button onClick={(e) => deleteCard(e, i)} className="opacity-0 group-hover:opacity-100 p-1.5 text-zinc-300 hover:text-red-500 transition-all">
+                      <Trash2 className="w-3 h-3" />
+                    </button>
+                  </div>
+                  <h3 className="text-sm font-black text-zinc-900 dark:text-white line-clamp-2">{card.q}</h3>
+                </div>
+                <div className="pt-4 border-t border-zinc-50 dark:border-zinc-800">
+                  <p className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest">Answer: <span className="text-zinc-900 dark:text-white">{card.a}</span></p>
+                </div>
+             </div>
+           ))}
+        </div>
+      ) : dueCards.length === 0 ? (
         <div className="text-center py-24 border-2 border-dashed border-zinc-200 dark:border-zinc-800 rounded-3xl w-full max-w-lg mt-12">
           <div className="w-16 h-16 bg-zinc-100 dark:bg-zinc-900 rounded-2xl flex items-center justify-center mx-auto mb-6">
             <CheckCircle2 className="w-8 h-8 text-zinc-900 dark:text-white" />
@@ -1044,7 +1080,10 @@ const FlashcardsView = () => {
   );
 };
 
-const PlannerView = ({ user }: { user: User }) => {
+const PlannerView = ({ user, showToast }: { 
+  user: User,
+  showToast: (m: string, t?: 'success' | 'error' | 'info') => void
+}) => {
   const [schedule, setSchedule] = useState(() => {
     const saved = localStorage.getItem(`tvet_planner_${user.id}`);
     const defaultTasks = {
@@ -1091,6 +1130,39 @@ const PlannerView = ({ user }: { user: User }) => {
     Portfolio: 'bg-purple-500'
   };
 
+  const generateAIPlan = () => {
+    const isNursery = user.educationLevel === 'Pre Primary';
+    const trade = user.trade || 'General';
+    
+    const tradeTasksMap: Record<string, string[]> = {
+      'Automotive': ["Engine Diagnostics Lab", "Brake System Maintenance", "Shop Safety Audit"],
+      'Hospitality': ["Front Desk Simulator", "Kitchen Safety Check", "Menu Planning"],
+      'General': ["Review Past Papers", "Group Study Session", "Subject Module 1 Review"]
+    };
+    
+    const tasksForTrade = tradeTasksMap[trade] || tradeTasksMap.General;
+
+    const newSchedule = schedule.map((s: any) => {
+      let dailyTasks = [];
+      if (isNursery) {
+         dailyTasks = [
+           { text: `Drawing ${s.day} Theme`, category: 'Practice' },
+           { text: 'Counting and Games', category: 'Revision' }
+         ];
+      } else {
+         dailyTasks = [
+           { text: `${trade} Module Review`, category: 'Theory' },
+           { text: tasksForTrade[Math.floor(Math.random() * tasksForTrade.length)], category: 'Practice' },
+           { text: 'Mock MCQ Practice', category: 'Revision' }
+         ];
+      }
+      return { ...s, tasks: dailyTasks.slice(0, 3) };
+    });
+
+    setSchedule(newSchedule);
+    showToast("AI has generated your optimal study plan!", "success");
+  };
+
   return (
     <div className="space-y-8 pb-12">
       <header className="flex flex-col md:flex-row md:items-end justify-between gap-8">
@@ -1104,14 +1176,22 @@ const PlannerView = ({ user }: { user: User }) => {
           <h1 className="text-4xl font-black text-zinc-900 dark:text-white tracking-tighter uppercase mb-2">Weekly Learning Planner</h1>
           <p className="text-zinc-500 font-medium">Strategize your {user.trade || 'academic'} journey with precision.</p>
         </div>
-        <button 
-          onClick={() => {
-            if (window.confirm('Clear all tasks?')) setSchedule(schedule.map((s: any) => ({ ...s, tasks: [] })));
-          }}
-          className="px-6 py-3 bg-zinc-100 dark:bg-zinc-800 text-zinc-500 dark:text-zinc-400 rounded-2xl text-[10px] font-black uppercase tracking-widest hover:text-red-500 transition-all border border-zinc-200 dark:border-zinc-700"
-        >
-          Reset Weekly Board
-        </button>
+        <div className="flex items-center gap-3">
+           <button 
+             onClick={generateAIPlan}
+             className="px-6 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-2xl text-[10px] font-black uppercase tracking-widest hover:scale-105 transition-all shadow-xl shadow-blue-500/20 flex items-center gap-2"
+           >
+             <Zap className="w-4 h-4 fill-current" /> ✨ Ask AI For Best Plan
+           </button>
+           <button 
+             onClick={() => {
+               if (window.confirm('Clear all tasks?')) setSchedule(schedule.map((s: any) => ({ ...s, tasks: [] })));
+             }}
+             className="px-6 py-3 bg-zinc-100 dark:bg-zinc-800 text-zinc-500 dark:text-zinc-400 rounded-2xl text-[10px] font-black uppercase tracking-widest hover:text-red-500 transition-all border border-zinc-200 dark:border-zinc-700"
+           >
+             Reset Board
+           </button>
+        </div>
       </header>
 
       <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
@@ -3304,7 +3384,7 @@ export default function App() {
         case 'history': return <QuizHistoryView history={history} onReviewQuiz={handleReviewHistoryQuiz} showToast={showToast} />;
         case 'analytics': return <AnalyticsView history={history} user={user} onStartQuiz={handleStartCustomQuiz} showToast={showToast} />;
         case 'flashcards': return <FlashcardsView />;
-        case 'planner': return <PlannerView user={user} />;
+        case 'planner': return <PlannerView user={user} showToast={showToast} />;
         case 'portfolio': return <PortfolioView user={user} showToast={showToast} />;
         case 'papers': return <PastPapers user={user} onStartQuiz={handleStartCustomQuiz} />;
         case 'settings': return (
