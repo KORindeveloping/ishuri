@@ -80,6 +80,8 @@ import { jsPDF } from 'jspdf';
 import 'jspdf-autotable';
 import { AICopilot } from './components/AICopilot';
 
+import { CourseLessonsAI } from './components/CourseLessonsAI';
+
 
 // --- Components ---
 
@@ -244,8 +246,10 @@ const DashboardView = ({ user, onStartQuiz, onLogout, history, onNavigate, showT
   const [newGoal, setNewGoal] = useState('');
   const [customTopic, setCustomTopic] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
+  const [showCourseAI, setShowCourseAI] = useState(false);
 
   const tradeCompetency = user.competencies?.[0];
+
   const skills = tradeCompetency?.skills || [];
 
   const onboardingSubjects = (user.subjects || '').split(',').map(s => s.trim()).filter(Boolean);
@@ -494,25 +498,34 @@ const DashboardView = ({ user, onStartQuiz, onLogout, history, onNavigate, showT
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {subjects.slice(0, 4).map((subject, idx) => (
-                <div key={idx} className="p-6 bg-zinc-50 dark:bg-black rounded-3xl border border-zinc-200 dark:border-zinc-800 hover:border-zinc-900 dark:hover:border-white transition-all group">
+                <div 
+                  key={idx} 
+                  onClick={() => setShowCourseAI(true)}
+                  className="p-6 bg-zinc-50 dark:bg-black rounded-3xl border border-zinc-200 dark:border-zinc-800 hover:border-zinc-900 dark:hover:border-white transition-all group cursor-pointer"
+                >
                   <div className="flex items-center justify-between mb-4">
                     <div className="w-10 h-10 rounded-xl bg-white dark:bg-zinc-900 flex items-center justify-center border border-zinc-200 dark:border-zinc-800 group-hover:bg-zinc-900 dark:group-hover:bg-white group-hover:text-white dark:group-hover:text-black transition-colors">
                       <GraduationCap className="w-5 h-5" />
                     </div>
                     <span className="text-[10px] font-black text-zinc-400 dark:text-zinc-600 uppercase tracking-widest">Module {idx + 1}</span>
                   </div>
-                  <h3 className="font-black text-zinc-900 dark:text-white text-lg tracking-tight mb-2 line-clamp-1">{subject.name}</h3>
+                  <h3 className="font-black text-zinc-900 dark:text-white text-lg tracking-tight mb-2 line-clamp-1 uppercase">{subject.name}</h3>
                   <p className="text-xs text-zinc-500 dark:text-zinc-500 mb-6">Learn the core concepts of {subject.name.split(' ')[0]} and prepare for your competency test.</p>
-                  <button 
-                    onClick={() => startPracticeQuiz(subject.name)}
-                    className="w-full py-3 bg-zinc-100 dark:bg-zinc-900 text-zinc-900 dark:text-white rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-zinc-900 dark:hover:bg-white hover:text-white dark:hover:text-black transition-all"
+                  <div 
+                    className="w-full py-3 bg-zinc-100 dark:bg-zinc-900 text-zinc-900 dark:text-white rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-zinc-900 dark:hover:bg-white hover:text-white dark:hover:text-black transition-all text-center"
                   >
-                    Start Lesson Quiz
-                  </button>
+                    Start AI Lesson Planning
+                  </div>
                 </div>
               ))}
             </div>
           </section>
+
+          <AnimatePresence>
+            {showCourseAI && (
+              <CourseLessonsAI user={user} onClose={() => setShowCourseAI(false)} />
+            )}
+          </AnimatePresence>
 
           {/* Practice Quizzes */}
           <section className="bg-white dark:bg-zinc-900 p-8 rounded-[2rem] border border-zinc-200 dark:border-zinc-800 shadow-sm">
