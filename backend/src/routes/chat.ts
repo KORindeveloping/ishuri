@@ -17,16 +17,15 @@ router.post('/', requireAuth, async (req: AuthRequest, res: Response) => {
 
   try {
     const user = await prisma.user.findUnique({ 
-      where: { id: userId },
-      include: { competencies: true } 
+      where: { id: userId }
     });
 
-    const competenciesString = user?.competencies?.map((c: any) => c.trade).join(', ') || '';
+    const subjectsString = user?.subjects || '';
 
     const reply = await chatTutor(message, {
       trade: user?.trade || 'General',
       level: user?.educationLevel || 'General',
-      competencies: competenciesString
+      competencies: subjectsString
     });
 
     res.status(200).json({ reply });
