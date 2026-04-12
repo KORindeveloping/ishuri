@@ -339,7 +339,7 @@ const DashboardView = ({ user, onStartQuiz, onLogout, history, onNavigate, showT
           </div>
           <h1 className="text-5xl md:text-7xl font-black text-zinc-900 dark:text-white tracking-tighter mb-4 leading-[0.9]">
             Welcome back,<br />
-            <span className="text-zinc-400 dark:text-zinc-700">{user.name.split(' ')[0]}.</span>
+            <span className="text-zinc-400 dark:text-zinc-700">{user?.name?.split(' ')[0] || 'Student'}.</span>
           </h1>
           <p className="text-zinc-500 dark:text-zinc-500 text-sm font-bold uppercase tracking-[0.2em]">{new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}</p>
         </div>
