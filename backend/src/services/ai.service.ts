@@ -199,7 +199,7 @@ export async function chatTutor(message: string, context: { trade?: string, leve
     const genAI = new GoogleGenerativeAI(geminiKey);
     try {
       const model = genAI.getGenerativeModel({ 
-        model: 'gemini-2.0-flash',
+        model: 'gemini-1.5-flash',
         systemInstruction: systemPrompt
       });
 
@@ -216,17 +216,22 @@ export async function chatTutor(message: string, context: { trade?: string, leve
       return response.text();
     } catch (e: any) {
       console.error(`[AI-Chat] Gemini primary failed: ${e.message}`);
-      lastError = `Gemini Primary: ${e.message}`;
+      lastError = `Gemini: ${e.message}`;
       
-      // If it's a safety error or something else, try a simpler approach without startChat
-      try {
-        const model = genAI.getGenerativeModel({ model: 'gemini-2.0-flash' });
-        const result = await model.generateContent(`${systemPrompt}\n\nStudent Message: ${message}`);
-        const response = await result.response;
-        return response.text();
-      } catch (e2: any) {
-        console.error(`[AI-Chat] Gemini ultimate fallback failed: ${e2.message}`);
-        lastError += ` | Fallback: ${e2.message}`;
+      // If it's a quota error, DO NOT retry to save user's remaining quota
+      if (e.message.includes('429') || e.message.toLowerCase().includes('quota')) {
+        lastError = '429 Quota Exceeded';
+      } else {
+        // Only try fallback for other types of errors
+        try {
+          const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
+          const result = await model.generateContent(`${systemPrompt}\n\nStudent Message: ${message}`);
+          const response = await result.response;
+          return response.text();
+        } catch (e2: any) {
+          console.error(`[AI-Chat] Gemini fallback failed: ${e2.message}`);
+          lastError += ` | Fallback: ${e2.message}`;
+        }
       }
     }
   }
