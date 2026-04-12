@@ -52,7 +52,8 @@ import {
   RotateCcw,
   Info,
   FileUp,
-  ArrowRight
+  ArrowRight,
+  Sparkles
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
@@ -314,7 +315,7 @@ const DashboardView = ({ user, onStartQuiz, onLogout, history, onNavigate, showT
                <div className="h-6 overflow-hidden">
                  <motion.div
                    animate={{ y: [0, -24, -48, -72] }}
-                   transition={{ repeat: Infinity, duration: 4, ease: "steps(3)" }}
+                   transition={{ repeat: Infinity, duration: 4, ease: "linear" }}
                    className="text-[10px] font-black text-zinc-400 flex flex-col items-center gap-1 leading-6 uppercase tracking-[0.2em]"
                  >
                    <span className="h-6">Analyzing Competency Profile...</span>
@@ -857,7 +858,7 @@ const AnalyticsView = ({ history, user, onStartQuiz, showToast }: {
                <div className="h-6 overflow-hidden">
                  <motion.div
                    animate={{ y: [0, -24, -48, -72] }}
-                   transition={{ repeat: Infinity, duration: 4, ease: "steps(3)" }}
+                   transition={{ repeat: Infinity, duration: 4, ease: "linear" }}
                    className="text-[10px] font-black text-zinc-400 flex flex-col items-center gap-1 leading-6 uppercase tracking-[0.2em]"
                  >
                    <span className="h-6">Analyzing Competency Profile...</span>
@@ -1633,7 +1634,7 @@ const UploadAssessmentModal = ({ isOpen, onClose, onAdd, user }: {
     onAdd({
       ...exam,
       id: `custom-exam-${Date.now()}`
-    });
+    } as Assessment);
     setExam({ title: '', trade: user.trade || '', timeLimit: 30, questions: [] });
   };
 
