@@ -192,6 +192,8 @@ export async function chatTutor(message: string, context: { trade?: string, leve
   If relevant, tie their question back to their listed competencies: ${context.competencies || 'N/A'}.
   Always maintain a professional yet supportive educational tone.`;
 
+  let lastError = '';
+
   // Prefer Gemini for chat
   if (geminiKey && !geminiKey.includes('your_gemini_api_key_here')) {
     const genAI = new GoogleGenerativeAI(geminiKey);
@@ -213,7 +215,9 @@ export async function chatTutor(message: string, context: { trade?: string, leve
       const response = await result.response;
       return response.text();
     } catch (e: any) {
-      console.error(`[AI-Chat] Gemini failed: ${e.message}`);
+      console.error(`[AI-Chat] Gemini primary failed: ${e.message}`);
+      lastError = `Gemini Primary: ${e.message}`;
+      
       // If it's a safety error or something else, try a simpler approach without startChat
       try {
         const model = genAI.getGenerativeModel({ model: 'gemini-2.0-flash' });
@@ -222,6 +226,7 @@ export async function chatTutor(message: string, context: { trade?: string, leve
         return response.text();
       } catch (e2: any) {
         console.error(`[AI-Chat] Gemini ultimate fallback failed: ${e2.message}`);
+        lastError += ` | Fallback: ${e2.message}`;
       }
     }
   }
@@ -241,13 +246,18 @@ export async function chatTutor(message: string, context: { trade?: string, leve
       return (response.content[0] as any).text;
     } catch (e: any) {
       console.error(`[AI-Chat] Claude failed: ${e.message}`);
+      lastError += ` | Claude: ${e.message}`;
     }
   }
+
+  const debugInfo = lastError ? `\n\n**Debug Error:** ${lastError}` : '';
 
   return `Hello there! I'm currently in **Simulated Tutor Mode** 🛠️.
   
 I can see you're studying **${context.trade || 'your trade'}** at the **${context.level || 'current'}** level. 
 
-To give you real AI responses, please ensure a valid \`GEMINI_API_KEY\` is set in the backend \`.env\` file. Once connected, I'll be able to help you with specific technical questions, exam prep, and competency mastery!`;
+To give you real AI responses, please ensure a valid \`GEMINI_API_KEY\` is set in the backend environment. ${debugInfo} 
+
+Once connected, I'll be able to help you with specific technical questions, exam prep, and competency mastery!`;
 }
 
