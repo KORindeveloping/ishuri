@@ -50,7 +50,9 @@ import {
   Mail,
   History as HistoryIcon,
   RotateCcw,
-  Info
+  Info,
+  FileUp,
+  ArrowRight
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
@@ -75,6 +77,7 @@ import { PastPapers } from './components/PastPapers';
 import { api } from './lib/api';
 import { jsPDF } from 'jspdf';
 import 'jspdf-autotable';
+import { AICopilot } from './components/AICopilot';
 
 
 // --- Components ---
@@ -238,6 +241,7 @@ const DashboardView = ({ user, onStartQuiz, onLogout, history, onNavigate, showT
 
   const [isAddingGoal, setIsAddingGoal] = useState(false);
   const [newGoal, setNewGoal] = useState('');
+  const [customTopic, setCustomTopic] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
 
   const tradeCompetency = user.competencies?.[0];
@@ -293,7 +297,37 @@ const DashboardView = ({ user, onStartQuiz, onLogout, history, onNavigate, showT
   const [newGoalDate, setNewGoalDate] = useState('');
 
   return (
-    <div className="space-y-12 pb-24 font-sans">
+    <div className="space-y-12 pb-24 font-sans relative">
+      <AnimatePresence>
+        {generatingQuiz && (
+          <div className="fixed inset-0 z-[200] flex items-center justify-center p-4 bg-black/80 backdrop-blur-xl">
+             <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.9 }} className="flex flex-col items-center text-center max-w-sm w-full">
+               <div className="w-32 h-32 relative mb-8">
+                  <div className="absolute inset-0 border-4 border-indigo-500/10 rounded-full" />
+                  <div className="absolute inset-0 border-4 border-indigo-500 border-t-transparent rounded-full animate-[spin_2s_linear_infinite]" />
+                  <div className="absolute inset-2 border-4 border-purple-500/50 border-b-transparent rounded-full animate-[spin_3s_linear_infinite_reverse]" />
+                  <div className="absolute inset-0 flex items-center justify-center">
+                    <Sparkles className="w-10 h-10 text-indigo-400 animate-pulse" />
+                  </div>
+               </div>
+               <h3 className="text-2xl font-black text-white uppercase tracking-widest mb-4">AI Engine Active</h3>
+               <div className="h-6 overflow-hidden">
+                 <motion.div
+                   animate={{ y: [0, -24, -48, -72] }}
+                   transition={{ repeat: Infinity, duration: 4, ease: "steps(3)" }}
+                   className="text-[10px] font-black text-zinc-400 flex flex-col items-center gap-1 leading-6 uppercase tracking-[0.2em]"
+                 >
+                   <span className="h-6">Analyzing Competency Profile...</span>
+                   <span className="h-6">Cross-referencing Syllabus...</span>
+                   <span className="h-6">Crafting Technical Questions...</span>
+                   <span className="h-6">Calibrating Difficulty...</span>
+                 </motion.div>
+               </div>
+             </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
       <header className="relative overflow-hidden bg-zinc-100 dark:bg-zinc-950 rounded-[3.5rem] p-12 md:p-16 border border-zinc-200 dark:border-white/[0.05] shadow-2xl flex flex-col md:flex-row md:items-end justify-between gap-10">
         <div className="absolute top-0 right-0 w-1/2 h-full bg-gradient-to-l from-black/[0.02] dark:from-white/[0.02] to-transparent pointer-events-none" />
         <div className="relative z-10">
@@ -490,6 +524,31 @@ const DashboardView = ({ user, onStartQuiz, onLogout, history, onNavigate, showT
                 <p className="text-[10px] font-black text-zinc-500 dark:text-zinc-400 uppercase tracking-widest">AI Engine Ready</p>
               </div>
             </div>
+            
+            <div className="mb-6 relative group">
+              <div className="absolute inset-0 bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 opacity-20 group-hover:opacity-30 rounded-2xl transition-opacity blur-md" />
+              <div className="relative flex items-center bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-2xl p-1 shadow-sm">
+                <div className="pl-4">
+                  <Sparkles className="w-5 h-5 text-indigo-500" />
+                </div>
+                <input
+                  type="text"
+                  value={customTopic}
+                  onChange={(e) => setCustomTopic(e.target.value)}
+                  onKeyDown={(e) => e.key === 'Enter' && customTopic && startPracticeQuiz(customTopic)}
+                  placeholder="Ask AI to generate a quiz on any topic (e.g. Engine Diagnostics)..."
+                  className="w-full bg-transparent border-none py-4 px-4 text-sm font-bold text-zinc-900 dark:text-white outline-none focus:ring-0 placeholder:text-zinc-400 dark:placeholder:text-zinc-600"
+                />
+                <button
+                  onClick={() => customTopic && startPracticeQuiz(customTopic)}
+                  disabled={!customTopic || generatingQuiz !== null}
+                  className="px-6 py-3 bg-indigo-500 hover:bg-indigo-600 disabled:bg-zinc-200 disabled:text-zinc-400 dark:disabled:bg-zinc-800 dark:disabled:text-zinc-600 text-white rounded-xl text-xs font-black uppercase tracking-widest transition-all mr-1"
+                >
+                  Generate
+                </button>
+              </div>
+            </div>
+
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
               {subjects.map((subject) => (
                 <button 
@@ -694,19 +753,30 @@ const DashboardView = ({ user, onStartQuiz, onLogout, history, onNavigate, showT
                 <p className="text-xs font-bold text-zinc-400 dark:text-zinc-500 mt-1">Mastery: 42%</p>
               </div>
 
-              <div className="p-6 bg-zinc-900 dark:bg-white text-white dark:text-black rounded-3xl shadow-xl shadow-black/10 dark:shadow-white/5">
-                <div className="flex items-center gap-2 mb-2">
-                  <Target className="w-4 h-4" />
-                  <p className="text-[10px] font-black uppercase tracking-widest">Recommended Focus</p>
+              <div className="p-6 bg-zinc-950 dark:bg-zinc-900 text-white rounded-3xl shadow-xl shadow-indigo-500/10 border border-indigo-500/20 relative overflow-hidden group">
+                <div className="absolute inset-0 bg-gradient-to-br from-indigo-500/10 to-purple-500/10" />
+                <div className="relative z-10">
+                  <div className="flex items-center gap-2 mb-4">
+                    <Sparkles className="w-4 h-4 text-indigo-400 group-hover:animate-spin" />
+                    <p className="text-[10px] font-black text-indigo-300 uppercase tracking-widest">AI Insights</p>
+                  </div>
+                  {subjects.length > 0 ? (
+                    <motion.div 
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      transition={{ duration: 1 }}
+                      className="font-mono text-emerald-400 text-xs"
+                    >
+                      <p className="mb-2">{`> ANALYZING_MASTERY_DATA... [OK]`}</p>
+                      <p className="mb-2">{`> IDENTIFIED_GAP: ${subjects.sort((a,b) => a.progress - b.progress)[0].name}`}</p>
+                      <p className="text-zinc-300 font-sans mt-4 text-[11px] leading-relaxed font-bold">
+                        Recommendation: Immediate focus required here. Your current mastery is at {subjects.sort((a,b) => a.progress - b.progress)[0].progress}%.
+                      </p>
+                    </motion.div>
+                  ) : (
+                    <p className="text-sm font-black leading-tight text-white">Complete more quizzes for AI recommendations</p>
+                  )}
                 </div>
-                {subjects.length > 0 ? (
-                  <>
-                    <p className="text-sm font-black leading-tight">Mastering {subjects.sort((a,b) => a.progress - b.progress)[0].name}</p>
-                    <p className="text-[10px] font-bold text-zinc-400 dark:text-zinc-500 mt-1">Based on your {subjects.sort((a,b) => a.progress - b.progress)[0].progress}% mastery, this needs immediate attention.</p>
-                  </>
-                ) : (
-                  <p className="text-sm font-black leading-tight">Complete more quizzes for AI recommendations</p>
-                )}
               </div>
             </div>
           </section>
@@ -770,7 +840,37 @@ const AnalyticsView = ({ history, user, onStartQuiz, showToast }: {
     : 0;
 
   return (
-    <div className="space-y-8 pb-12">
+    <div className="space-y-8 pb-12 relative">
+      <AnimatePresence>
+        {generatingQuiz && (
+          <div className="fixed inset-0 z-[200] flex items-center justify-center p-4 bg-black/80 backdrop-blur-xl">
+             <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.9 }} className="flex flex-col items-center text-center max-w-sm w-full">
+               <div className="w-32 h-32 relative mb-8">
+                  <div className="absolute inset-0 border-4 border-indigo-500/10 rounded-full" />
+                  <div className="absolute inset-0 border-4 border-indigo-500 border-t-transparent rounded-full animate-[spin_2s_linear_infinite]" />
+                  <div className="absolute inset-2 border-4 border-purple-500/50 border-b-transparent rounded-full animate-[spin_3s_linear_infinite_reverse]" />
+                  <div className="absolute inset-0 flex items-center justify-center">
+                    <Sparkles className="w-10 h-10 text-indigo-400 animate-pulse" />
+                  </div>
+               </div>
+               <h3 className="text-2xl font-black text-white uppercase tracking-widest mb-4">AI Engine Active</h3>
+               <div className="h-6 overflow-hidden">
+                 <motion.div
+                   animate={{ y: [0, -24, -48, -72] }}
+                   transition={{ repeat: Infinity, duration: 4, ease: "steps(3)" }}
+                   className="text-[10px] font-black text-zinc-400 flex flex-col items-center gap-1 leading-6 uppercase tracking-[0.2em]"
+                 >
+                   <span className="h-6">Analyzing Competency Profile...</span>
+                   <span className="h-6">Cross-referencing Syllabus...</span>
+                   <span className="h-6">Crafting Technical Questions...</span>
+                   <span className="h-6">Calibrating Difficulty...</span>
+                 </motion.div>
+               </div>
+             </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
       <header>
         <h1 className="text-3xl font-black text-zinc-900 dark:text-white tracking-tight uppercase">Learning Analytics</h1>
         <p className="text-zinc-500 font-medium">Deep dive into your mastery and exam readiness.</p>
@@ -1179,9 +1279,12 @@ const PlannerView = ({ user, showToast }: {
         <div className="flex items-center gap-3">
            <button 
              onClick={generateAIPlan}
-             className="px-6 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-2xl text-[10px] font-black uppercase tracking-widest hover:scale-105 transition-all shadow-xl shadow-blue-500/20 flex items-center gap-2"
+             className="relative px-6 py-3 bg-zinc-900 dark:bg-zinc-950 overflow-hidden text-white rounded-2xl text-[10px] font-black uppercase tracking-widest hover:scale-105 transition-all shadow-xl shadow-indigo-500/20 flex items-center gap-2 group border border-indigo-500/30"
            >
-             <Zap className="w-4 h-4 fill-current" /> ✨ Ask AI For Best Plan
+             <div className="absolute inset-0 bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 opacity-20 group-hover:opacity-40 transition-opacity" />
+             <div className="relative z-10 flex items-center gap-2 text-white">
+                <Sparkles className="w-4 h-4 text-indigo-400 group-hover:animate-pulse" /> Ask AI For Best Plan
+             </div>
            </button>
            <button 
              onClick={() => {
@@ -1505,6 +1608,152 @@ const QuizHistoryView = ({ history, onReviewQuiz, showToast }: {
   );
 };
 
+const UploadAssessmentModal = ({ isOpen, onClose, onAdd, user }: { 
+  isOpen: boolean, 
+  onClose: () => void, 
+  onAdd: (exam: Assessment) => void,
+  user: User
+}) => {
+  const [exam, setExam] = useState({
+    title: '',
+    trade: user.trade || '',
+    timeLimit: 30,
+    questions: [] as any[]
+  });
+  const [newQ, setNewQ] = useState({ text: '', type: 'MCQ' as const, points: 10, options: ['', '', '', ''], correctAnswer: '' });
+
+  const addQuestion = () => {
+    if (!newQ.text || !newQ.correctAnswer) return;
+    setExam({ ...exam, questions: [...exam.questions, { ...newQ, id: `q-${Date.now()}` }] });
+    setNewQ({ text: '', type: 'MCQ', points: 10, options: ['', '', '', ''], correctAnswer: '' });
+  };
+
+  const handleSave = () => {
+    if (!exam.title || exam.questions.length === 0) return;
+    onAdd({
+      ...exam,
+      id: `custom-exam-${Date.now()}`
+    });
+    setExam({ title: '', trade: user.trade || '', timeLimit: 30, questions: [] });
+  };
+
+  return (
+    <AnimatePresence>
+      {isOpen && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/80 backdrop-blur-md overflow-y-auto">
+          <motion.div 
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.95 }}
+            className="bg-white dark:bg-zinc-950 p-10 rounded-[3rem] border border-zinc-200 dark:border-white/10 w-full max-w-2xl shadow-2xl my-8 relative"
+          >
+            <button onClick={onClose} className="absolute top-8 right-8 p-2 text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-200"><X className="w-6 h-6" /></button>
+            <h3 className="text-3xl font-black text-zinc-900 dark:text-white mb-2 uppercase tracking-tighter">Contribute Assessment</h3>
+            <p className="text-zinc-500 text-xs font-medium mb-12">Submit professional certification materials to the community hub.</p>
+            
+            <div className="space-y-8 max-h-[60vh] overflow-y-auto pr-4 custom-scrollbar">
+              <section className="grid grid-cols-2 gap-6">
+                <div>
+                  <label className="block text-[10px] font-black text-zinc-400 uppercase tracking-widest mb-3">Exam Title</label>
+                  <input 
+                    value={exam.title}
+                    onChange={(e) => setExam({...exam, title: e.target.value})}
+                    className="w-full bg-zinc-50 dark:bg-black border border-zinc-200 dark:border-zinc-800 rounded-2xl py-4 px-6 text-sm font-bold"
+                    placeholder="e.g. Engine Theory Final"
+                  />
+                </div>
+                <div>
+                  <label className="block text-[10px] font-black text-zinc-400 uppercase tracking-widest mb-3">Trade Category</label>
+                  <input 
+                    value={exam.trade}
+                    onChange={(e) => setExam({...exam, trade: e.target.value})}
+                    className="w-full bg-zinc-50 dark:bg-black border border-zinc-200 dark:border-zinc-800 rounded-2xl py-4 px-6 text-sm font-bold"
+                    placeholder="Automotive, ICT, etc."
+                  />
+                </div>
+              </section>
+
+              <section className="p-8 bg-zinc-50 dark:bg-zinc-900/50 rounded-[2rem] border border-zinc-100 dark:border-zinc-800">
+                <h4 className="text-[10px] font-black uppercase tracking-widest text-zinc-400 mb-6">Question Builder ({exam.questions.length} Added)</h4>
+                <div className="space-y-6">
+                  <textarea 
+                    value={newQ.text}
+                    onChange={(e) => setNewQ({...newQ, text: e.target.value})}
+                    placeholder="Enter question text..."
+                    className="w-full bg-white dark:bg-black border border-zinc-200 dark:border-zinc-800 rounded-2xl py-4 px-6 text-sm font-bold min-h-[100px]"
+                  />
+                  
+                  <div className="grid grid-cols-2 gap-4">
+                    {newQ.options.map((opt, i) => (
+                      <input 
+                        key={i}
+                        value={opt}
+                        onChange={(e) => {
+                          const updated = [...newQ.options];
+                          updated[i] = e.target.value;
+                          setNewQ({...newQ, options: updated});
+                        }}
+                        placeholder={`Option ${String.fromCharCode(65 + i)}`}
+                        className="bg-white dark:bg-black border border-zinc-200 dark:border-zinc-800 rounded-xl py-3 px-5 text-xs font-bold"
+                      />
+                    ))}
+                  </div>
+
+                  <div>
+                     <label className="block text-[8px] font-black text-zinc-400 uppercase tracking-widest mb-2">Correct Answer</label>
+                     <select 
+                       value={newQ.correctAnswer}
+                       onChange={(e) => setNewQ({...newQ, correctAnswer: e.target.value})}
+                       className="w-full bg-white dark:bg-black border border-zinc-200 dark:border-zinc-800 rounded-xl py-3 px-5 text-xs font-bold"
+                     >
+                       <option value="">Select Correct Option</option>
+                       {newQ.options.map((opt, i) => opt && <option key={i} value={opt}>{opt}</option>)}
+                     </select>
+                  </div>
+
+                  <button 
+                    onClick={addQuestion}
+                    className="w-full py-4 bg-zinc-100 dark:bg-zinc-800 text-zinc-900 dark:text-white rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-zinc-200 transition-all"
+                  >
+                    Add Question to Exam
+                  </button>
+                </div>
+              </section>
+
+              {exam.questions.length > 0 && (
+                 <div className="space-y-3">
+                   {exam.questions.map((q, i) => (
+                     <div key={i} className="flex items-center justify-between p-4 bg-zinc-50 dark:bg-zinc-900 rounded-xl border border-zinc-200 dark:border-zinc-800">
+                        <span className="text-xs font-bold text-zinc-900 dark:text-white truncate max-w-[80%]">Q{i+1}: {q.text}</span>
+                        <CheckCircle2 className="w-4 h-4 text-emerald-500" />
+                     </div>
+                   ))}
+                 </div>
+              )}
+            </div>
+
+            <div className="flex gap-4 mt-12 bg-white dark:bg-zinc-950 pt-6">
+              <button 
+                onClick={onClose}
+                className="flex-1 py-5 bg-zinc-100 dark:bg-zinc-800 text-zinc-500 rounded-[1.5rem] font-black uppercase tracking-widest text-[10px] hover:bg-zinc-200 transition-all"
+              >
+                Discard
+              </button>
+              <button 
+                disabled={!exam.title || exam.questions.length === 0}
+                onClick={handleSave}
+                className="flex-1 py-5 bg-zinc-900 dark:bg-white text-white dark:text-black rounded-[1.5rem] font-black uppercase tracking-widest text-[10px] hover:scale-[1.02] active:scale-95 transition-all shadow-xl disabled:opacity-50 disabled:scale-100"
+              >
+                Publish Exam
+              </button>
+            </div>
+          </motion.div>
+        </div>
+      )}
+    </AnimatePresence>
+  );
+};
+
 const checkAnswer = (userAnswer: string | undefined, correctAnswer: string | string[] | undefined): boolean => {
   if (!userAnswer || !correctAnswer) return false;
   const normalizedUser = userAnswer.toLowerCase().trim();
@@ -1522,17 +1771,30 @@ const AssessmentView = ({
   customQuiz, 
   onClearCustomQuiz,
   onComplete,
-  reviewHistoryItem
+  reviewHistoryItem,
+  user,
+  showToast
 }: { 
   assessments: Assessment[], 
   customQuiz?: Assessment | null, 
   onClearCustomQuiz?: () => void,
   onComplete?: (historyItem: QuizHistoryItem) => void,
-  reviewHistoryItem?: QuizHistoryItem | null
+  reviewHistoryItem?: QuizHistoryItem | null,
+  user: User,
+  showToast: (m: string, t?: 'success' | 'error' | 'info') => void
 }) => {
+  const [localAssessments, setLocalAssessments] = useState<Assessment[]>(() => {
+    const saved = localStorage.getItem(`tvet_user_assessments_${user.id}`);
+    return saved ? [...assessments, ...JSON.parse(saved)] : assessments;
+  });
+
   const [activeExam, setActiveExam] = useState<Assessment | null>(reviewHistoryItem?.quiz || customQuiz || null);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [tradeFilter, setTradeFilter] = useState<'All' | 'Mine' | 'General'>(user.trade ? 'Mine' : 'All');
+  const [showUploadModal, setShowUploadModal] = useState(false);
   const [showChecklist, setShowChecklist] = useState(false);
   const [practicalScore, setPracticalScore] = useState<number | null>(null);
+  
   const [answers, setAnswers] = useState<Record<string, string>>(reviewHistoryItem?.userAnswers || {});
   const [submitted, setSubmitted] = useState(!!reviewHistoryItem);
   const [timeLeft, setTimeLeft] = useState((reviewHistoryItem?.quiz.timeLimit || customQuiz?.timeLimit || 60) * 60);
@@ -1550,6 +1812,28 @@ const AssessmentView = ({
       setTimeLeft(customQuiz.timeLimit * 60);
     }
   }, [customQuiz, reviewHistoryItem]);
+
+  const filteredAssessments = localAssessments.filter(exam => {
+    const matchesSearch = exam.title.toLowerCase().includes(searchQuery.toLowerCase()) || 
+                         exam.trade.toLowerCase().includes(searchQuery.toLowerCase());
+    
+    if (tradeFilter === 'Mine') {
+      return matchesSearch && (exam.trade === user.trade || exam.trade === 'General');
+    }
+    if (tradeFilter === 'General') {
+      return matchesSearch && exam.trade === 'General';
+    }
+    return matchesSearch;
+  });
+
+  const handleAddAssessment = (newExam: Assessment) => {
+    const updated = [...localAssessments, newExam];
+    setLocalAssessments(updated);
+    const userAdded = updated.filter(a => !assessments.find(oa => oa.id === a.id));
+    localStorage.setItem(`tvet_user_assessments_${user.id}`, JSON.stringify(userAdded));
+    setShowUploadModal(false);
+    showToast("Assessment added to your library!", "success");
+  };
 
   useEffect(() => {
     if (!activeExam || submitted || timeLeft <= 0) return;
@@ -1659,63 +1943,125 @@ const AssessmentView = ({
   if (!activeExam) {
     return (
       <div className="space-y-8 pb-12">
-        <header className="flex flex-col sm:flex-row sm:items-center justify-between gap-6">
+        <header className="flex flex-col md:flex-row md:items-end justify-between gap-8">
           <div>
-            <h1 className="text-3xl font-black text-zinc-900 dark:text-white tracking-tight uppercase">Assessment Library</h1>
-            <p className="text-zinc-500 font-medium">Choose a practice exam or certification simulation.</p>
+            <div className="flex items-center gap-2 mb-3">
+               <div className="px-3 py-1 bg-zinc-900 dark:bg-white text-white dark:text-black text-[10px] font-black uppercase tracking-widest rounded-lg">
+                 Certification Hub
+               </div>
+               <p className="text-[10px] font-black text-zinc-400 uppercase tracking-widest">v2.0 Verified</p>
+            </div>
+            <h1 className="text-4xl font-black text-zinc-900 dark:text-white tracking-tighter uppercase mb-2">Assessment Library</h1>
+            <p className="text-zinc-500 font-medium">Certification simulations and practice modules.</p>
           </div>
-          <div className="flex items-center gap-3 bg-zinc-50 dark:bg-zinc-900 px-5 py-3 rounded-2xl border border-zinc-200 dark:border-zinc-800 focus-within:border-zinc-400 dark:focus-within:border-zinc-600 transition-all">
-            <Search className="w-5 h-5 text-zinc-500" />
-            <input type="text" placeholder="Search assessments..." className="bg-transparent border-none text-sm focus:ring-0 text-zinc-900 dark:text-white w-48 font-bold" />
+          <div className="flex flex-col sm:flex-row gap-4">
+            <div className="flex items-center gap-3 bg-white dark:bg-zinc-950 px-6 py-3 rounded-[1.25rem] border border-zinc-200 dark:border-zinc-800 shadow-sm focus-within:border-zinc-400 dark:focus-within:border-zinc-600 transition-all">
+              <Search className="w-4 h-4 text-zinc-400" />
+              <input 
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                type="text" 
+                placeholder="Search assessments..." 
+                className="bg-transparent border-none text-xs focus:ring-0 text-zinc-900 dark:text-white w-48 font-bold placeholder:text-zinc-300 dark:placeholder:text-zinc-800" 
+              />
+            </div>
+            <button 
+              onClick={() => setShowUploadModal(true)}
+              className="px-6 py-4 bg-zinc-900 dark:bg-white text-white dark:text-black rounded-[1.25rem] text-[10px] font-black uppercase tracking-widest hover:scale-[1.02] active:scale-95 transition-all shadow-xl shadow-black/10 dark:shadow-white/10 flex items-center gap-2"
+            >
+              <FileUp className="w-4 h-4" /> Contribute Assessment
+            </button>
           </div>
         </header>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {assessments.map((exam) => (
+        <div className="flex items-center gap-2 mb-8 bg-zinc-50 dark:bg-zinc-900/50 p-1.5 rounded-2xl w-fit border border-zinc-200 dark:border-zinc-800">
+          {(['Mine', 'All', 'General'] as const).map(tab => (
+            <button 
+              key={tab}
+              onClick={() => setTradeFilter(tab)}
+              className={cn(
+                "px-6 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all",
+                tradeFilter === tab 
+                  ? "bg-white dark:bg-zinc-800 text-zinc-900 dark:text-white shadow-xl border border-zinc-100 dark:border-zinc-700" 
+                  : "text-zinc-500 hover:text-zinc-700 dark:hover:text-zinc-300"
+              )}
+            >
+              {tab === 'Mine' ? (user.trade || 'My Trade') : tab}
+            </button>
+          ))}
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+          {filteredAssessments.map((exam) => (
             <motion.div
               key={exam.id}
-              whileHover={{ y: -5 }}
-              className="bg-zinc-50 dark:bg-zinc-900 rounded-[2.5rem] border border-zinc-200 dark:border-zinc-800 p-8 flex flex-col group hover:border-zinc-300 dark:hover:border-zinc-700 transition-all cursor-pointer overflow-hidden relative"
+              whileHover={{ y: -8 }}
+              className="bg-white dark:bg-zinc-900/40 backdrop-blur-3xl p-8 rounded-[3.5rem] border border-zinc-200 dark:border-white/[0.05] flex flex-col group hover:border-zinc-400 dark:hover:border-white/10 transition-all cursor-pointer relative overflow-hidden shadow-2xl"
               onClick={() => setActiveExam(exam)}
             >
-              <div className="absolute top-0 right-0 w-32 h-32 bg-black/5 dark:bg-white/5 blur-3xl -mr-16 -mt-16 rounded-full" />
-              <div className="flex items-center justify-between mb-8">
-                <div className="w-14 h-14 rounded-[1.25rem] bg-zinc-100 dark:bg-zinc-800 flex items-center justify-center border border-zinc-200 dark:border-zinc-700 group-hover:bg-zinc-900 dark:group-hover:bg-white group-hover:text-white dark:group-hover:text-black transition-all">
-                  <BookOpen className="w-7 h-7" />
+              <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-blue-500/10 to-purple-500/10 blur-3xl -mr-16 -mt-16 rounded-full group-hover:from-blue-500/20 transition-all" />
+              
+              <div className="flex items-center justify-between mb-10">
+                <div className="w-16 h-16 rounded-[1.75rem] bg-zinc-50 dark:bg-zinc-950 flex items-center justify-center border border-zinc-100 dark:border-zinc-800 group-hover:bg-zinc-900 dark:group-hover:bg-white group-hover:text-white dark:group-hover:text-black transition-all shadow-sm">
+                  <Award className={cn("w-8 h-8", exam.trade === user.trade ? "text-emerald-500" : "text-zinc-400")} />
                 </div>
-                <div className="flex flex-col items-end gap-2">
-                  <div className="px-3 py-1 rounded-full bg-zinc-200/50 dark:bg-black/40 text-[9px] font-black text-zinc-500 uppercase tracking-widest border border-zinc-300 dark:border-zinc-800">
-                    {exam.timeLimit} Min
+                <div className="flex flex-col items-end gap-3">
+                  <div className="px-3 py-1 bg-zinc-900 dark:bg-white text-white dark:text-black text-[9px] font-black uppercase tracking-tighter rounded-lg shadow-lg">
+                    {exam.timeLimit} Min Session
                   </div>
                   <button 
                     onClick={(e) => exportAssessmentAsPDF(e, exam)}
-                    className="p-2 bg-zinc-100 dark:bg-zinc-800 text-zinc-400 rounded-xl hover:bg-zinc-900 dark:hover:bg-white hover:text-white dark:hover:text-black transition-all"
+                    className="p-2.5 bg-zinc-50 dark:bg-zinc-800 text-zinc-400 rounded-xl hover:bg-zinc-900 dark:hover:bg-white hover:text-white dark:hover:text-black transition-all border border-zinc-200 dark:border-zinc-700"
                   >
                     <Download className="w-4 h-4" />
                   </button>
                 </div>
               </div>
-              <h3 className="text-xl font-black text-zinc-900 dark:text-white mb-2 leading-tight">{exam.title}</h3>
-              <p className="text-xs text-zinc-500 font-medium mb-8 uppercase tracking-widest">{exam.trade} Certification</p>
+
+              <div className="flex-1">
+                <div className="flex items-center gap-2 mb-3">
+                   <div className="w-1 h-3 bg-zinc-200 dark:bg-zinc-700 rounded-full" />
+                   <span className="text-[10px] font-black uppercase tracking-widest text-zinc-400">{exam.trade} Certification</span>
+                </div>
+                <h3 className="text-2xl font-black text-zinc-900 dark:text-white mb-3 tracking-tighter leading-tight">{exam.title}</h3>
+                <p className="text-xs text-zinc-500 font-medium mb-12 line-clamp-2">{exam.questions.length} Professional Modules • Theoretical & Practical Evaluation</p>
+              </div>
               
-              <div className="mt-auto flex items-center justify-between">
-                <div className="flex -space-x-2">
-                   {[1,2,3].map(i => (
-                     <div key={i} className="w-8 h-8 rounded-full bg-zinc-100 dark:bg-zinc-800 border-2 border-white dark:border-zinc-900 flex items-center justify-center text-[10px] font-black text-zinc-900 dark:text-white overflow-hidden">
-                       <img src={`https://i.pravatar.cc/100?img=${i+10}`} alt="user" />
+              <div className="pt-8 border-t border-zinc-50 dark:border-zinc-800/50 flex items-center justify-between">
+                <div className="flex -space-x-3">
+                   {[1,2,3,4].map(i => (
+                     <div key={i} className="w-8 h-8 rounded-full bg-zinc-100 dark:bg-zinc-800 border-[3px] border-white dark:border-zinc-900 flex items-center justify-center overflow-hidden shadow-sm">
+                       <img src={`https://i.pravatar.cc/100?img=${i+20}`} alt="user" className="grayscale group-hover:grayscale-0 transition-all" />
                      </div>
                    ))}
-                   <div className="w-8 h-8 rounded-full bg-zinc-100 dark:bg-zinc-800 border-2 border-white dark:border-zinc-900 flex items-center justify-center text-[10px] font-black text-zinc-500">
-                     +12
+                   <div className="w-8 h-8 rounded-full bg-zinc-50 dark:bg-zinc-950 border-[3px] border-white dark:border-zinc-900 flex items-center justify-center text-[10px] font-black text-zinc-300 dark:text-zinc-700">
+                     +
                    </div>
                 </div>
-                <div className="flex items-center gap-2 text-zinc-900 dark:text-white font-black text-[10px] uppercase tracking-widest">
-                  Start Exam <ChevronRight className="w-4 h-4" />
+                <div className="flex items-center gap-3 text-zinc-900 dark:text-white font-black text-[10px] uppercase tracking-widest group-hover:translate-x-1 transition-transform">
+                  Begin Entry <ArrowRight className="w-4 h-4 ml-1" />
                 </div>
               </div>
             </motion.div>
           ))}
+          
+          {filteredAssessments.length === 0 && (
+             <div className="col-span-full py-24 text-center bg-zinc-50 dark:bg-zinc-900/20 rounded-[3rem] border-2 border-dashed border-zinc-200 dark:border-zinc-800">
+                <div className="w-16 h-16 bg-zinc-100 dark:bg-zinc-900 rounded-3xl flex items-center justify-center mx-auto mb-6">
+                  <Search className="w-6 h-6 text-zinc-300 dark:text-zinc-700" />
+                </div>
+                <h3 className="text-xl font-black text-zinc-900 dark:text-white mb-2 uppercase tracking-tighter">No assessments found</h3>
+                <p className="text-zinc-500 text-xs font-medium">Try broadening your search or switching trade filters.</p>
+             </div>
+          )}
         </div>
+
+        <UploadAssessmentModal 
+          isOpen={showUploadModal} 
+          onClose={() => setShowUploadModal(false)}
+          onAdd={handleAddAssessment}
+          user={user}
+        />
       </div>
     );
   }
@@ -3379,6 +3725,8 @@ export default function App() {
             }}
             onComplete={handleQuizComplete}
             reviewHistoryItem={reviewHistoryItem}
+            user={user}
+            showToast={showToast}
           />
         );
         case 'history': return <QuizHistoryView history={history} onReviewQuiz={handleReviewHistoryQuiz} showToast={showToast} />;
@@ -3416,6 +3764,8 @@ export default function App() {
 
   return (
     <div className="min-h-screen bg-white dark:bg-[#050505] font-sans text-zinc-900 dark:text-white flex transition-colors duration-500">
+      <AICopilot user={user} />
+      
       {showOnboarding && (
         <OnboardingPrompt 
           user={user} 

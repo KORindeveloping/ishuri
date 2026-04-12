@@ -10,6 +10,7 @@ import quizRoutes from './routes/quizzes';
 import historyRoutes from './routes/history';
 import portfolioRoutes from './routes/portfolio';
 import goalsRoutes from './routes/goals';
+import chatRoutes from './routes/chat';
 
 const app = express();
 const httpServer = createServer(app);
@@ -34,6 +35,7 @@ app.use('/api/quizzes', quizRoutes);
 app.use('/api/history', historyRoutes);
 app.use('/api/portfolio', portfolioRoutes);
 app.use('/api/goals', goalsRoutes);
+app.use('/api/chat', chatRoutes);
 
 // Global Error Handler
 app.use((err: any, req: express.Request, res: express.Response, next: express.NextFunction) => {

@@ -224,5 +224,19 @@ export const api = {
       throw new Error(errorData.error || 'Upload failed');
     }
     return res.json();
+  },
+
+  // --- AI Chat ---
+  sendChatMessage: async (message: string) => {
+    const res = await fetch(`${API_URL}/chat`, {
+      method: 'POST',
+      headers: getHeaders(),
+      body: JSON.stringify({ message })
+    });
+    if (!res.ok) {
+      const errorData = await res.json().catch(() => ({}));
+      throw new Error(errorData.error || 'Chat failed');
+    }
+    return res.json();
   }
 };

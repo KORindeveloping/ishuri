@@ -156,3 +156,42 @@ export async function detectStudyLevel(fileBuffer: Buffer, mimeType: string): Pr
     return "Detection Failed";
   }
 }
+
+export async function chatTutor(message: string, context: { trade?: string, level?: string, competencies?: string }) {
+  if (!geminiKey && !anthropicKey) {
+    return "Hello! I am your AI Tutor. Since I'm running in offline/mock mode, I can just cheer you on. Keep up the great work in your studies!";
+  }
+
+  const systemPrompt = `You are a friendly, highly intelligent AI TVET Tutor. 
+  Your job is to help a student who is studying ${context.trade || 'general topics'} at the ${context.level || 'General'} level.
+  Keep your answers relatively concise, encouraging, and use formatting like bolding or bullet points where appropriate.
+  If relevant, tie their question back to their listed competencies: ${context.competencies || 'N/A'}.`;
+
+  // Prefer Gemini for chat as it's often faster for conversational stuff
+  if (geminiKey) {
+    try {
+      const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash', systemInstruction: systemPrompt });
+      const result = await model.generateContent(message);
+      return result.response.text();
+    } catch (e: any) {
+      console.error(`[AI-Chat] Gemini failed: ${e.message}`);
+    }
+  }
+
+  if (anthropicKey && !anthropicKey.includes('xxx')) {
+    try {
+      const response = await anthropic.messages.create({
+        model: 'claude-3-5-sonnet-20240620',
+        max_tokens: 1000,
+        messages: [{ role: 'user', content: message }],
+        system: systemPrompt,
+      });
+      return (response.content[0] as any).text;
+    } catch (e: any) {
+      console.error(`[AI-Chat] Claude failed: ${e.message}`);
+    }
+  }
+
+  return "I'm having trouble connecting to my knowledge base right now. Please try asking again later!";
+}
+
