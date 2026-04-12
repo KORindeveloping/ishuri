@@ -192,6 +192,10 @@ export async function chatTutor(message: string, context: { trade?: string, leve
     }
   }
 
-  return "I'm having trouble connecting to my knowledge base right now. Please try asking again later!";
+  return `Hello there! I'm currently running in **Offline Developer Mode** 🛠️.
+  
+I can see you're studying **${context.trade || 'your trade'}** at the **${context.level || 'current'}** level. 
+
+Since I don't have an active API key connected right now, I can't generate live AI responses. However, I'm fully built and ready to go once you add a valid \`GEMINI_API_KEY\` to the backend! Keep up the great work!`;
 }
 
