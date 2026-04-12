@@ -194,8 +194,8 @@ export async function chatTutor(message: string, context: { trade?: string, leve
 
   // Prefer Gemini for chat
   if (geminiKey && !geminiKey.includes('your_gemini_api_key_here')) {
+    const genAI = new GoogleGenerativeAI(geminiKey);
     try {
-      const genAI = new GoogleGenerativeAI(geminiKey);
       const model = genAI.getGenerativeModel({ 
         model: 'gemini-2.0-flash',
         systemInstruction: systemPrompt
@@ -218,7 +218,8 @@ export async function chatTutor(message: string, context: { trade?: string, leve
       try {
         const model = genAI.getGenerativeModel({ model: 'gemini-2.0-flash' });
         const result = await model.generateContent(`${systemPrompt}\n\nStudent Message: ${message}`);
-        return result.response.text();
+        const response = await result.response;
+        return response.text();
       } catch (e2: any) {
         console.error(`[AI-Chat] Gemini ultimate fallback failed: ${e2.message}`);
       }
@@ -226,6 +227,7 @@ export async function chatTutor(message: string, context: { trade?: string, leve
   }
 
   if (anthropicKey && !anthropicKey.includes('xxx')) {
+    const anthropic = new Anthropic({ apiKey: anthropicKey });
     try {
       const response = await anthropic.messages.create({
         model: 'claude-3-5-sonnet-20240620',
