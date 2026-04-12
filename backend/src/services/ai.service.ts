@@ -3,13 +3,14 @@ import { GoogleGenerativeAI } from '@google/generative-ai';
 import dotenv from 'dotenv';
 dotenv.config();
 
-const anthropicKey = process.env.ANTHROPIC_API_KEY || '';
-const geminiKey = process.env.GEMINI_API_KEY || '';
-
-const anthropic = new Anthropic({ apiKey: anthropicKey });
-const genAI = new GoogleGenerativeAI(geminiKey);
+const getGeminiKey = () => process.env.GEMINI_API_KEY || '';
+const getAnthropicKey = () => process.env.ANTHROPIC_API_KEY || '';
 
 export async function generateQuiz(subject: string, trade: string, level?: string, combination?: string, teachings?: string) {
+  const geminiKey = getGeminiKey();
+  const anthropicKey = getAnthropicKey();
+  const genAI = new GoogleGenerativeAI(geminiKey);
+  const anthropic = new Anthropic({ apiKey: anthropicKey });
   // Enhanced "Robust" TVET Prompt with Bloom's Taxonomy and Trade-Specific Terminology
   const systemPrompt = `You are an expert ${level || 'TVET'} Curriculum Developer and Subject Matter Expert in ${trade}. 
   Your goal is to generate high-quality, competency-based assessment questions for the ${trade} trade${combination ? ` with a focus on ${combination}` : ''}.
@@ -151,11 +152,13 @@ export async function generateQuiz(subject: string, trade: string, level?: strin
 }
 
 export async function detectStudyLevel(fileBuffer: Buffer, mimeType: string): Promise<string> {
+  const geminiKey = getGeminiKey();
   if (!geminiKey || geminiKey.includes('your_gemini_api_key_here')) {
     return "Level detection unavailable (no AI key)";
   }
 
   try {
+    const genAI = new GoogleGenerativeAI(geminiKey);
     const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
     const result = await model.generateContent([
       "Analyze this certificate or educational document and identify the specific level of study (e.g., Primary, Senior 1-3, TVET Level 3-5, University, etc.). Return ONLY the level name.",
@@ -175,6 +178,10 @@ export async function detectStudyLevel(fileBuffer: Buffer, mimeType: string): Pr
 }
 
 export async function chatTutor(message: string, context: { trade?: string, level?: string, competencies?: string }, history: { role: 'user' | 'model', parts: { text: string }[] }[] = []) {
+  const geminiKey = getGeminiKey();
+  const anthropicKey = getAnthropicKey();
+  console.log(`[AI-Chat] Debug - geminiKey status: ${!!geminiKey}, includes placeholder: ${geminiKey.includes('your_gemini_api_key_here')}`);
+  
   if (!geminiKey && !anthropicKey) {
     return "Hello! I am your AI Tutor. Since I'm running in offline/mock mode, I can just cheer you on. Keep up the great work in your studies!";
   }
@@ -188,6 +195,7 @@ export async function chatTutor(message: string, context: { trade?: string, leve
   // Prefer Gemini for chat
   if (geminiKey && !geminiKey.includes('your_gemini_api_key_here')) {
     try {
+      const genAI = new GoogleGenerativeAI(geminiKey);
       const model = genAI.getGenerativeModel({ 
         model: 'gemini-1.5-flash',
         systemInstruction: systemPrompt
