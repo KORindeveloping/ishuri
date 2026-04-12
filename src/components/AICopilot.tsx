@@ -10,7 +10,7 @@ export const AICopilot = ({ user }: { user: User }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState<{ id: string, text: string, sender: 'user' | 'ai' }[]>([{
     id: 'ai-initial',
-    text: `Hello ${user.name.split(' ')[0]}! I'm your AI TVET Tutor. How can I help you master **${user.trade || 'your skills'}** today?`,
+    text: `Hello ${user?.name?.split(' ')?.[0] || 'Student'}! I'm your AI TVET Tutor. How can I help you master **${user?.trade || 'your skills'}** today?`,
     sender: 'ai'
   }]);
   const [input, setInput] = useState('');
