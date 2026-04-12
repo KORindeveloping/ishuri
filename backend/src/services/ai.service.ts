@@ -84,7 +84,7 @@ export async function generateQuiz(subject: string, trade: string, level?: strin
   if (geminiKey && !geminiKey.includes('your_gemini_api_key_here')) {
     try {
       const model = genAI.getGenerativeModel({ 
-        model: 'gemini-1.5-flash',
+        model: 'gemini-2.0-flash',
         systemInstruction: systemPrompt
       });
       const result = await model.generateContent(userPrompt);
@@ -98,7 +98,7 @@ export async function generateQuiz(subject: string, trade: string, level?: strin
       console.error(`[AI] Gemini fallback failed: ${e.message}`);
       // Try even simpler if systemInstruction fails
       try {
-        const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
+        const model = genAI.getGenerativeModel({ model: 'gemini-2.0-flash' });
         const result = await model.generateContent(`${systemPrompt}\n\n${userPrompt}`);
         const text = result.response.text();
         const jsonMatch = text.match(/\{[\s\S]*\}/);
@@ -159,7 +159,7 @@ export async function detectStudyLevel(fileBuffer: Buffer, mimeType: string): Pr
 
   try {
     const genAI = new GoogleGenerativeAI(geminiKey);
-    const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
+    const model = genAI.getGenerativeModel({ model: 'gemini-2.0-flash' });
     const result = await model.generateContent([
       "Analyze this certificate or educational document and identify the specific level of study (e.g., Primary, Senior 1-3, TVET Level 3-5, University, etc.). Return ONLY the level name.",
       {
@@ -197,7 +197,7 @@ export async function chatTutor(message: string, context: { trade?: string, leve
     try {
       const genAI = new GoogleGenerativeAI(geminiKey);
       const model = genAI.getGenerativeModel({ 
-        model: 'gemini-1.5-flash',
+        model: 'gemini-2.0-flash',
         systemInstruction: systemPrompt
       });
 
@@ -216,7 +216,7 @@ export async function chatTutor(message: string, context: { trade?: string, leve
       console.error(`[AI-Chat] Gemini failed: ${e.message}`);
       // If it's a safety error or something else, try a simpler approach without startChat
       try {
-        const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
+        const model = genAI.getGenerativeModel({ model: 'gemini-2.0-flash' });
         const result = await model.generateContent(`${systemPrompt}\n\nStudent Message: ${message}`);
         return result.response.text();
       } catch (e2: any) {
