@@ -37,9 +37,11 @@ export const AICopilot = ({ user }: { user: User }) => {
     setIsLoading(true);
 
     // Format history for Gemini: { role: 'user' | 'model', parts: [{ text: string }] }
-    // We skip the very first AI message if it's just a greeting to keep it clean, 
-    // but here we include it for context.
-    const history = messages.map(msg => ({
+    // Gemini REQUIRES the first message in history to be from the 'user'.
+    // Since our first message is usually an AI greeting, we filter out any AI messages
+    // that appear before the first user message.
+    const firstUserIndex = messages.findIndex(m => m.sender === 'user');
+    const history = (firstUserIndex === -1 ? [] : messages.slice(firstUserIndex)).map(msg => ({
       role: msg.sender === 'user' ? 'user' as const : 'model' as const,
       parts: [{ text: msg.text }]
     }));

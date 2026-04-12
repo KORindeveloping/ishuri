@@ -250,6 +250,12 @@ export async function chatTutor(message: string, context: { trade?: string, leve
     }
   }
 
+  if (lastError.includes('429') || lastError.toLowerCase().includes('quota')) {
+    return `Hello! I'm currently on a short break because my **API Quota has been reached** 📊. 
+
+This usually happens on the free tier when there are too many requests in a short time. Please **try again in about 30-60 seconds**, and I should be back to help you with your studies!`;
+  }
+
   const debugInfo = lastError ? `\n\n**Debug Error:** ${lastError}` : '';
 
   return `Hello there! I'm currently in **Simulated Tutor Mode** 🛠️.
