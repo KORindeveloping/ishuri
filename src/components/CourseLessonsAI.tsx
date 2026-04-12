@@ -37,7 +37,30 @@ export const CourseLessonsAI = ({ user, onClose, initialCourse }: { user: User; 
   const [isInteracting, setIsInteracting] = useState(false);
 
   const [messages, setMessages] = useState<{ id: string, text: string, sender: 'user' | 'ai', options?: string[] }[]>([
-...
+    {
+      id: 'ai-initial',
+      text: initialCourse 
+        ? `Hello ${user?.name?.split(' ')?.[0] || 'Student'}! I see you want to study **${initialCourse}**. Based on your level (${user.educationLevel || 'General'}), let me prepare a lesson plan for you. Shall we begin?`
+        : `Hello ${user?.name?.split(' ')?.[0] || 'Student'}! I'm your Course Consultant. Which course or subject would you like to study today? Based on your level (${user.educationLevel || 'General'}), I can help you find the best path.`,
+      sender: 'ai',
+      options: initialCourse ? ['Yes, generate roadmap', 'Suggest another course'] : (user.subjects || '').split(',').map(s => s.trim()).filter(Boolean).slice(0, 4)
+    }
+  ]);
+  const [input, setInput] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
+  const [lessonPlan, setLessonPlan] = useState<LessonPlan | null>(null);
+  const [syllabus, setSyllabus] = useState<string | null>(null);
+  const [isGeneratingSyllabus, setIsGeneratingSyllabus] = useState(false);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  const scrollToBottom = () => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  };
+
+  useEffect(() => {
+    scrollToBottom();
+  }, [messages, isLoading]);
+
   const handleInteraction = async (mode: InteractionMode, chapter: string) => {
     setActiveMode(mode);
     setSelectedChapter(chapter);
@@ -87,29 +110,6 @@ export const CourseLessonsAI = ({ user, onClose, initialCourse }: { user: User; 
       setIsInteracting(false);
     }
   };
-    {
-      id: 'ai-initial',
-      text: initialCourse 
-        ? `Hello ${user?.name?.split(' ')?.[0] || 'Student'}! I see you want to study **${initialCourse}**. Based on your level (${user.educationLevel || 'General'}), let me prepare a lesson plan for you. Shall we begin?`
-        : `Hello ${user?.name?.split(' ')?.[0] || 'Student'}! I'm your Course Consultant. Which course or subject would you like to study today? Based on your level (${user.educationLevel || 'General'}), I can help you find the best path.`,
-      sender: 'ai',
-      options: initialCourse ? ['Yes, generate roadmap', 'Suggest another course'] : (user.subjects || '').split(',').map(s => s.trim()).filter(Boolean).slice(0, 4)
-    }
-  ]);
-  const [input, setInput] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
-  const [lessonPlan, setLessonPlan] = useState<LessonPlan | null>(null);
-  const [syllabus, setSyllabus] = useState<string | null>(null);
-  const [isGeneratingSyllabus, setIsGeneratingSyllabus] = useState(false);
-  const messagesEndRef = useRef<HTMLDivElement>(null);
-
-  const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  };
-
-  useEffect(() => {
-    scrollToBottom();
-  }, [messages, isLoading]);
 
   const handleSend = async (overrideText?: string) => {
     const messageText = overrideText || input;
