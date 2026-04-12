@@ -28,8 +28,65 @@ interface LessonPlan {
   recommendation: string;
 }
 
+type InteractionMode = 'EXPLORE' | 'EXPLAIN' | 'QUIZ' | 'TUTOR';
+
 export const CourseLessonsAI = ({ user, onClose, initialCourse }: { user: User; onClose: () => void; initialCourse?: string | null }) => {
+  const [activeMode, setActiveMode] = useState<InteractionMode>('EXPLORE');
+  const [selectedChapter, setSelectedChapter] = useState<string | null>(null);
+  const [interactionContent, setInteractionModeContent] = useState<string | null>(null);
+  const [isInteracting, setIsInteracting] = useState(false);
+
   const [messages, setMessages] = useState<{ id: string, text: string, sender: 'user' | 'ai', options?: string[] }[]>([
+...
+  const handleInteraction = async (mode: InteractionMode, chapter: string) => {
+    setActiveMode(mode);
+    setSelectedChapter(chapter);
+    setIsInteracting(true);
+    setInteractionModeContent(null);
+
+    let systemPrompt = "";
+    let userMsg = `Chapter Topic: ${chapter}`;
+
+    if (mode === 'EXPLAIN') {
+      systemPrompt = `You are a friendly study assistant helping a student understand a specific topic from their syllabus.
+      You will be given the raw syllabus text for ONE topic. Your only job is to rewrite it in plain, simple language that a 13-year-old could understand — no jargon unless you immediately define it.
+      Rules:
+      - Use ONE clear analogy or real-world example to anchor the concept.
+      - Keep your response under 120 words.
+      - Do NOT add information beyond what is in the provided text.
+      - Do NOT mention exams, grades, or study tips.
+      - End with one sentence that summarises the core idea in the simplest possible terms.`;
+    } else if (mode === 'QUIZ') {
+      systemPrompt = `You are an exam question generator. You will be given syllabus text for ONE topic.
+      Generate exactly 4 questions from this text only. Use this mix:
+      - 2 multiple-choice questions (4 options each, one correct, label them A B C D)
+      - 2 fill-in-the-blank questions (replace the key term with a blank line ___)
+      Rules:
+      - Every question must be answerable using only the provided text — no outside knowledge.
+      - Questions must test understanding, not just memory.
+      - After all 4 questions, output a separator line (---) then provide the answer key.
+      - Do NOT explain the answers — just list the correct letter or missing word.
+      - Difficulty level: challenging but fair for a high school student.`;
+    } else if (mode === 'TUTOR') {
+      systemPrompt = `You are a focused study tutor. A student is studying ONE specific topic and wants to go deeper.
+      The topic is: ${chapter}
+      Your rules:
+      - Answer ONLY questions related to ${chapter}. If the student asks about anything else, politely redirect: "I'm locked in on [topic] for now — ask me anything about that."
+      - Prioritise explanations grounded in technical accuracy.
+      - Adjust your language to the student's level. If they seem confused, use a simpler analogy. If they are advanced, go deeper.
+      - Never do their homework or write essays for them. Guide with questions when appropriate.
+      - Keep responses concise (under 150 words) unless the student explicitly asks for more detail.`;
+    }
+
+    try {
+      const response = await api.sendChatMessage(`${systemPrompt}\n\n${userMsg}`, []);
+      setInteractionModeContent(response.reply);
+    } catch (error) {
+      setInteractionModeContent("Sorry, I encountered an error setting up this study session.");
+    } finally {
+      setIsInteracting(false);
+    }
+  };
     {
       id: 'ai-initial',
       text: initialCourse 
@@ -154,7 +211,19 @@ export const CourseLessonsAI = ({ user, onClose, initialCourse }: { user: User; 
       {/* Top Navbar */}
       <header className="h-20 border-b border-zinc-200 dark:border-zinc-800 flex items-center justify-between px-8 bg-white dark:bg-black z-10 shrink-0">
         <div className="flex items-center gap-6">
-          <button onClick={onClose} className="p-3 hover:bg-zinc-100 dark:hover:bg-zinc-900 rounded-2xl transition-all group">
+          <button 
+            onClick={() => {
+              if (selectedChapter) {
+                setSelectedChapter(null);
+                setActiveMode('EXPLORE');
+              } else if (syllabus) {
+                setSyllabus(null);
+              } else {
+                onClose();
+              }
+            }} 
+            className="p-3 hover:bg-zinc-100 dark:hover:bg-zinc-900 rounded-2xl transition-all group"
+          >
             <ArrowLeft className="w-6 h-6 text-zinc-500 group-hover:text-zinc-900 dark:group-hover:text-white" />
           </button>
           <div className="flex items-center gap-4">
@@ -162,8 +231,12 @@ export const CourseLessonsAI = ({ user, onClose, initialCourse }: { user: User; 
               <GraduationCap className="w-6 h-6 text-white dark:text-black" />
             </div>
             <div>
-              <h2 className="text-xl font-black text-zinc-900 dark:text-white uppercase tracking-tight">AI Academic Planner</h2>
-              <p className="text-[10px] font-black text-zinc-500 uppercase tracking-widest">Full-Window Immersive View</p>
+              <h2 className="text-xl font-black text-zinc-900 dark:text-white uppercase tracking-tight">
+                {selectedChapter ? `Study Hub: ${selectedChapter}` : syllabus ? 'Course Syllabus' : 'AI Academic Planner'}
+              </h2>
+              <p className="text-[10px] font-black text-zinc-500 uppercase tracking-widest">
+                {selectedChapter ? 'Locked in on Topic' : 'Full-Window Immersive View'}
+              </p>
             </div>
           </div>
         </div>
@@ -182,7 +255,62 @@ export const CourseLessonsAI = ({ user, onClose, initialCourse }: { user: User; 
       {/* Main Content Area */}
       <main className="flex-1 flex overflow-hidden relative">
         <AnimatePresence mode="wait">
-          {!syllabus ? (
+          {selectedChapter ? (
+            <motion.div 
+              key="study-hub"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
+              className="flex-1 flex flex-col bg-zinc-50 dark:bg-[#020202] overflow-hidden"
+            >
+              <div className="flex-1 overflow-y-auto p-12 scrollbar-hide">
+                <div className="max-w-4xl mx-auto">
+                  <div className="grid grid-cols-3 gap-6 mb-12">
+                    {[
+                      { id: 'EXPLAIN', label: 'Explain Simply', icon: BookOpen, desc: '13-year-old level' },
+                      { id: 'QUIZ', label: 'Test Knowledge', icon: Target, desc: '4-question challenge' },
+                      { id: 'TUTOR', label: 'Deep Dive', icon: Sparkles, desc: 'Topic-focused tutor' }
+                    ].map((mode) => (
+                      <button
+                        key={mode.id}
+                        onClick={() => handleInteraction(mode.id as InteractionMode, selectedChapter)}
+                        className={cn(
+                          "p-8 rounded-[2.5rem] border-2 transition-all flex flex-col items-center text-center gap-4 group shadow-sm",
+                          activeMode === mode.id 
+                            ? "bg-zinc-900 dark:bg-white border-zinc-900 dark:border-white text-white dark:text-black shadow-2xl" 
+                            : "bg-white dark:bg-zinc-900 border-zinc-200 dark:border-zinc-800 text-zinc-500 hover:border-zinc-900 dark:hover:border-white"
+                        )}
+                      >
+                        <mode.icon className={cn("w-10 h-10 transition-transform group-hover:scale-110", activeMode === mode.id ? "text-indigo-400 dark:text-indigo-600" : "text-zinc-400")} />
+                        <div>
+                          <p className="text-sm font-black uppercase tracking-tight">{mode.label}</p>
+                          <p className="text-[10px] font-bold uppercase tracking-widest opacity-60">{mode.desc}</p>
+                        </div>
+                      </button>
+                    ))}
+                  </div>
+
+                  <div className="bg-white dark:bg-zinc-900 p-12 md:p-16 rounded-[3.5rem] border border-zinc-200 dark:border-zinc-800 shadow-2xl relative min-h-[400px]">
+                    {isInteracting ? (
+                      <div className="absolute inset-0 flex flex-col items-center justify-center gap-6">
+                        <Loader2 className="w-12 h-12 text-zinc-900 dark:text-white animate-spin" />
+                        <p className="text-[10px] font-black uppercase tracking-[0.4em] text-zinc-500 animate-pulse">Consulting Study Assistant...</p>
+                      </div>
+                    ) : interactionContent ? (
+                      <div className="prose prose-xl dark:prose-invert max-w-none">
+                        <ReactMarkdown>{interactionContent}</ReactMarkdown>
+                      </div>
+                    ) : (
+                      <div className="flex flex-col items-center justify-center text-center gap-6 py-20 opacity-30">
+                        <Bot className="w-20 h-20" />
+                        <p className="text-xl font-black uppercase tracking-tighter">Choose a study path above to begin</p>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </motion.div>
+          ) : !syllabus ? (
             <motion.div 
               key="planner"
               initial={{ opacity: 0 }}
@@ -293,6 +421,7 @@ export const CourseLessonsAI = ({ user, onClose, initialCourse }: { user: User; 
                             initial={{ opacity: 0, y: 10 }}
                             animate={{ opacity: 1, y: 0 }}
                             transition={{ delay: i * 0.1 }}
+                            onClick={() => handleInteraction('EXPLAIN', chapter)}
                             className="p-6 bg-white dark:bg-zinc-900 rounded-[2.5rem] border border-zinc-200 dark:border-zinc-800 flex items-center justify-between group cursor-pointer hover:border-zinc-900 dark:hover:border-white transition-all shadow-sm hover:shadow-2xl"
                           >
                             <div className="flex items-center gap-5">
