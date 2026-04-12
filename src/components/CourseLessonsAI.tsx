@@ -28,13 +28,15 @@ interface LessonPlan {
   recommendation: string;
 }
 
-export const CourseLessonsAI = ({ user, onClose }: { user: User; onClose: () => void }) => {
+export const CourseLessonsAI = ({ user, onClose, initialCourse }: { user: User; onClose: () => void; initialCourse?: string | null }) => {
   const [messages, setMessages] = useState<{ id: string, text: string, sender: 'user' | 'ai', options?: string[] }[]>([
     {
       id: 'ai-initial',
-      text: `Hello ${user?.name?.split(' ')?.[0] || 'Student'}! I'm your Course Consultant. Which course or subject would you like to study today? Based on your level (${user.educationLevel || 'General'}), I can help you find the best path.`,
+      text: initialCourse 
+        ? `Hello ${user?.name?.split(' ')?.[0] || 'Student'}! I see you want to study **${initialCourse}**. Based on your level (${user.educationLevel || 'General'}), let me prepare a lesson plan for you. Shall we begin?`
+        : `Hello ${user?.name?.split(' ')?.[0] || 'Student'}! I'm your Course Consultant. Which course or subject would you like to study today? Based on your level (${user.educationLevel || 'General'}), I can help you find the best path.`,
       sender: 'ai',
-      options: (user.subjects || '').split(',').map(s => s.trim()).filter(Boolean).slice(0, 4)
+      options: initialCourse ? ['Yes, generate roadmap', 'Suggest another course'] : (user.subjects || '').split(',').map(s => s.trim()).filter(Boolean).slice(0, 4)
     }
   ]);
   const [input, setInput] = useState('');

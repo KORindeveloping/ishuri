@@ -190,16 +190,16 @@ const RAGBadge = ({ status, progress }: { status: CompetencyStatus, progress: nu
 
 // --- Views ---
 
-const DashboardView = ({ user, onStartQuiz, onLogout, history, onNavigate, showToast }: { 
-  user: User, 
-  onStartQuiz: (quiz: Assessment) => void, 
+const DashboardView = ({ user, onStartQuiz, onLogout, history, onNavigate, showToast, onCourseAI }: {
+  user: User,
+  onStartQuiz: (quiz: Assessment) => void,
   onLogout: () => void,
   history: QuizHistoryItem[],
   onNavigate: (tab: string) => void,
-  showToast: (m: string, t?: 'success' | 'error' | 'info') => void
+  showToast: (m: string, t?: 'success' | 'error' | 'info') => void,
+  onCourseAI: (course: string) => void
 }) => {
   const [tasks, setTasks] = useState<{ id: any, text: string, completed: boolean }[]>([]);
-
   useEffect(() => {
     const fetchGoals = async () => {
       try {
@@ -246,7 +246,6 @@ const DashboardView = ({ user, onStartQuiz, onLogout, history, onNavigate, showT
   const [newGoal, setNewGoal] = useState('');
   const [customTopic, setCustomTopic] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
-  const [showCourseAI, setShowCourseAI] = useState(false);
 
   const tradeCompetency = user.competencies?.[0];
 
@@ -500,7 +499,7 @@ const DashboardView = ({ user, onStartQuiz, onLogout, history, onNavigate, showT
               {subjects.slice(0, 4).map((subject, idx) => (
                 <div 
                   key={idx} 
-                  onClick={() => setShowCourseAI(true)}
+                  onClick={() => onCourseAI(subject.name)}
                   className="p-6 bg-zinc-50 dark:bg-black rounded-3xl border border-zinc-200 dark:border-zinc-800 hover:border-zinc-900 dark:hover:border-white transition-all group cursor-pointer"
                 >
                   <div className="flex items-center justify-between mb-4">
@@ -520,12 +519,6 @@ const DashboardView = ({ user, onStartQuiz, onLogout, history, onNavigate, showT
               ))}
             </div>
           </section>
-
-          <AnimatePresence>
-            {showCourseAI && (
-              <CourseLessonsAI user={user} onClose={() => setShowCourseAI(false)} />
-            )}
-          </AnimatePresence>
 
           {/* Practice Quizzes */}
           <section className="bg-white dark:bg-zinc-900 p-8 rounded-[2rem] border border-zinc-200 dark:border-zinc-800 shadow-sm">
@@ -3517,6 +3510,13 @@ export default function App() {
   const [reviewHistoryItem, setReviewHistoryItem] = useState<QuizHistoryItem | null>(null);
   const [showNotifications, setShowNotifications] = useState(false);
   const [showOnboarding, setShowOnboarding] = useState(false);
+  const [showCourseAI, setShowCourseAI] = useState(false);
+  const [selectedCourse, setSelectedCourse] = useState<string | null>(null);
+
+  const handleOpenCourseAI = (courseName: string) => {
+    setSelectedCourse(courseName);
+    setShowCourseAI(true);
+  };
 
   // --- UI System State ---
   const [toast, setToast] = useState<{ message: string, type: 'success' | 'error' | 'info' } | null>(null);
@@ -3728,7 +3728,7 @@ export default function App() {
 
     const view = (() => {
       switch (activeTab) {
-        case 'dashboard': return <DashboardView user={user} onStartQuiz={handleStartCustomQuiz} onLogout={handleLogout} history={history} onNavigate={handleTabChange} showToast={showToast} />;
+        case 'dashboard': return <DashboardView user={user} onStartQuiz={handleStartCustomQuiz} onLogout={handleLogout} history={history} onNavigate={handleTabChange} showToast={showToast} onCourseAI={handleOpenCourseAI} />;
         case 'assessments': return (
           <AssessmentView 
             assessments={MOCK_ASSESSMENTS} 
@@ -3780,6 +3780,12 @@ export default function App() {
     <div className="min-h-screen bg-white dark:bg-[#050505] font-sans text-zinc-900 dark:text-white flex transition-colors duration-500">
       <AICopilot user={user} />
       
+      <AnimatePresence>
+        {showCourseAI && (
+          <CourseLessonsAI user={user} onClose={() => setShowCourseAI(false)} initialCourse={selectedCourse} />
+        )}
+      </AnimatePresence>
+
       {showOnboarding && (
         <OnboardingPrompt 
           user={user} 
