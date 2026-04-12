@@ -114,19 +114,31 @@ export const CourseLessonsAI = ({ user, onClose, initialCourse }: { user: User; 
     if (!lessonPlan) return;
     setIsGeneratingSyllabus(true);
     
+    const isChild = user.educationLevel === 'Pre Primary' || user.educationLevel?.includes('Primary');
+
     try {
-      const prompt = `Generate a detailed, professional, and comprehensive syllabus for the course: "${lessonPlan.courseName}".
-      The student is at the ${user.educationLevel || 'General'} level in the ${user.trade || 'General'} trade.
+      const prompt = `Generate a ${isChild ? 'fun, playful, and very simple child-friendly' : 'detailed, professional, and comprehensive'} syllabus for the course: "${lessonPlan.courseName}".
+      The student is at the ${user.educationLevel || 'General'} level.
       
+      ${isChild ? `
+      TONE & STYLE FOR CHILDREN:
+      - Use very simple words.
+      - Use lots of fun emojis.
+      - Instead of "Learning Objectives", use "What We Will Discover! 🌟".
+      - Instead of "Detailed Breakdown", use "Our Fun Adventures! 🚀".
+      - Focus on games, stories, and simple activities.
+      - Keep it colorful and encouraging.
+      ` : 'Use professional academic formatting with headings, bullet points, and technical terminology.'}
+
       Focus on these chapters: ${lessonPlan.chapters.join(', ')}.
       
-      Structure the syllabus as follows:
-      1. Course Overview & Learning Objectives
-      2. Detailed Breakdown for EACH Chapter (Learning outcomes + Key topics)
-      3. Practical Requirements (Tools/Resources needed)
-      4. Assessment Strategy
+      Structure:
+      1. Course Overview
+      2. Chapter-by-Chapter Breakdown
+      3. What you need to bring (Tools/Toys)
+      4. How we check what you've learned
       
-      Use professional formatting with headings, bullet points, and bold text. Make it very detailed and educational.`;
+      Return the content in beautiful Markdown.`;
 
       const response = await api.sendChatMessage(prompt, []);
       setSyllabus(response.reply);
