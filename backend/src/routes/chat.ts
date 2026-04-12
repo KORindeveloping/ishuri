@@ -8,7 +8,7 @@ const prisma = new PrismaClient();
 
 // Handle AI Chat
 router.post('/', requireAuth, async (req: AuthRequest, res: Response) => {
-  const { message } = req.body;
+  const { message, history } = req.body;
   const userId = req.user?.id;
 
   if (!message) {
@@ -26,7 +26,7 @@ router.post('/', requireAuth, async (req: AuthRequest, res: Response) => {
       trade: user?.trade || 'General',
       level: user?.educationLevel || 'General',
       competencies: subjectsString
-    });
+    }, history);
 
     res.status(200).json({ reply });
   } catch (error: any) {

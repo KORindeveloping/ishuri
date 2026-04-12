@@ -31,12 +31,21 @@ export const AICopilot = ({ user }: { user: User }) => {
     if (!input.trim()) return;
     
     const userMessage = { id: `user-${Date.now()}`, text: input, sender: 'user' as const };
-    setMessages(prev => [...prev, userMessage]);
+    const currentMessages = [...messages, userMessage];
+    setMessages(currentMessages);
     setInput('');
     setIsLoading(true);
 
+    // Format history for Gemini: { role: 'user' | 'model', parts: [{ text: string }] }
+    // We skip the very first AI message if it's just a greeting to keep it clean, 
+    // but here we include it for context.
+    const history = messages.map(msg => ({
+      role: msg.sender === 'user' ? 'user' as const : 'model' as const,
+      parts: [{ text: msg.text }]
+    }));
+
     try {
-      const response = await api.sendChatMessage(userMessage.text);
+      const response = await api.sendChatMessage(userMessage.text, history);
       setMessages(prev => [...prev, { id: `ai-${Date.now()}`, text: response.reply, sender: 'ai' }]);
     } catch (error) {
       setMessages(prev => [...prev, { id: `ai-err-${Date.now()}`, text: "Sorry, I'm having trouble connecting right now. Let's try again in a moment.", sender: 'ai' }]);

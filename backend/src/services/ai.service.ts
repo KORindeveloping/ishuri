@@ -80,10 +80,13 @@ export async function generateQuiz(subject: string, trade: string, level?: strin
   }
 
   // 2. Gemini Fallback
-  if (geminiKey) {
+  if (geminiKey && !geminiKey.includes('your_gemini_api_key_here')) {
     try {
-      const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
-      const result = await model.generateContent(`${systemPrompt}\n\n${userPrompt}`);
+      const model = genAI.getGenerativeModel({ 
+        model: 'gemini-1.5-flash',
+        systemInstruction: systemPrompt
+      });
+      const result = await model.generateContent(userPrompt);
       const text = result.response.text();
       const jsonMatch = text.match(/\{[\s\S]*\}/);
       const quiz = JSON.parse(jsonMatch ? jsonMatch[0] : text);
@@ -92,6 +95,17 @@ export async function generateQuiz(subject: string, trade: string, level?: strin
       return quiz;
     } catch (e: any) {
       console.error(`[AI] Gemini fallback failed: ${e.message}`);
+      // Try even simpler if systemInstruction fails
+      try {
+        const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
+        const result = await model.generateContent(`${systemPrompt}\n\n${userPrompt}`);
+        const text = result.response.text();
+        const jsonMatch = text.match(/\{[\s\S]*\}/);
+        const quiz = JSON.parse(jsonMatch ? jsonMatch[0] : text);
+        return quiz;
+      } catch (e2: any) {
+        console.error(`[AI] Gemini ultimate quiz fallback failed: ${e2.message}`);
+      }
     }
   }
 
@@ -137,7 +151,9 @@ export async function generateQuiz(subject: string, trade: string, level?: strin
 }
 
 export async function detectStudyLevel(fileBuffer: Buffer, mimeType: string): Promise<string> {
-  if (!geminiKey) return "Level detection unavailable (no AI key)";
+  if (!geminiKey || geminiKey.includes('your_gemini_api_key_here')) {
+    return "Level detection unavailable (no AI key)";
+  }
 
   try {
     const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
@@ -150,31 +166,54 @@ export async function detectStudyLevel(fileBuffer: Buffer, mimeType: string): Pr
         }
       }
     ]);
-    return result.response.text().trim() || "Unknown Level";
+    const response = await result.response;
+    return response.text().trim() || "Unknown Level";
   } catch (e: any) {
     console.error(`[AI] Level detection failed: ${e.message}`);
     return "Detection Failed";
   }
 }
 
-export async function chatTutor(message: string, context: { trade?: string, level?: string, competencies?: string }) {
+export async function chatTutor(message: string, context: { trade?: string, level?: string, competencies?: string }, history: { role: 'user' | 'model', parts: { text: string }[] }[] = []) {
   if (!geminiKey && !anthropicKey) {
     return "Hello! I am your AI Tutor. Since I'm running in offline/mock mode, I can just cheer you on. Keep up the great work in your studies!";
   }
 
-  const systemPrompt = `You are a friendly, highly intelligent AI TVET Tutor. 
+  const systemPrompt = `You are a friendly, highly intelligent AI TVET Tutor for the TVET Mastery Pro platform. 
   Your job is to help a student who is studying ${context.trade || 'general topics'} at the ${context.level || 'General'} level.
   Keep your answers relatively concise, encouraging, and use formatting like bolding or bullet points where appropriate.
-  If relevant, tie their question back to their listed competencies: ${context.competencies || 'N/A'}.`;
+  If relevant, tie their question back to their listed competencies: ${context.competencies || 'N/A'}.
+  Always maintain a professional yet supportive educational tone.`;
 
-  // Prefer Gemini for chat as it's often faster for conversational stuff
-  if (geminiKey) {
+  // Prefer Gemini for chat
+  if (geminiKey && !geminiKey.includes('your_gemini_api_key_here')) {
     try {
-      const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash', systemInstruction: systemPrompt });
-      const result = await model.generateContent(message);
-      return result.response.text();
+      const model = genAI.getGenerativeModel({ 
+        model: 'gemini-1.5-flash',
+        systemInstruction: systemPrompt
+      });
+
+      // Use chat with history if provided
+      const chat = model.startChat({
+        history: history,
+        generationConfig: {
+          maxOutputTokens: 1000,
+        },
+      });
+
+      const result = await chat.sendMessage(message);
+      const response = await result.response;
+      return response.text();
     } catch (e: any) {
       console.error(`[AI-Chat] Gemini failed: ${e.message}`);
+      // If it's a safety error or something else, try a simpler approach without startChat
+      try {
+        const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
+        const result = await model.generateContent(`${systemPrompt}\n\nStudent Message: ${message}`);
+        return result.response.text();
+      } catch (e2: any) {
+        console.error(`[AI-Chat] Gemini ultimate fallback failed: ${e2.message}`);
+      }
     }
   }
 
@@ -183,7 +222,10 @@ export async function chatTutor(message: string, context: { trade?: string, leve
       const response = await anthropic.messages.create({
         model: 'claude-3-5-sonnet-20240620',
         max_tokens: 1000,
-        messages: [{ role: 'user', content: message }],
+        messages: [
+          ...history.map(h => ({ role: h.role === 'model' ? 'assistant' as const : 'user' as const, content: h.parts[0].text })),
+          { role: 'user' as const, content: message }
+        ],
         system: systemPrompt,
       });
       return (response.content[0] as any).text;
@@ -192,10 +234,10 @@ export async function chatTutor(message: string, context: { trade?: string, leve
     }
   }
 
-  return `Hello there! I'm currently running in **Offline Developer Mode** 🛠️.
+  return `Hello there! I'm currently in **Simulated Tutor Mode** 🛠️.
   
 I can see you're studying **${context.trade || 'your trade'}** at the **${context.level || 'current'}** level. 
 
-Since I don't have an active API key connected right now, I can't generate live AI responses. However, I'm fully built and ready to go once you add a valid \`GEMINI_API_KEY\` to the backend! Keep up the great work!`;
+To give you real AI responses, please ensure a valid \`GEMINI_API_KEY\` is set in the backend \`.env\` file. Once connected, I'll be able to help you with specific technical questions, exam prep, and competency mastery!`;
 }
 

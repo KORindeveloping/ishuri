@@ -227,11 +227,11 @@ export const api = {
   },
 
   // --- AI Chat ---
-  sendChatMessage: async (message: string) => {
+  sendChatMessage: async (message: string, history: any[] = []) => {
     const res = await fetch(`${API_URL}/chat`, {
       method: 'POST',
       headers: getHeaders(),
-      body: JSON.stringify({ message })
+      body: JSON.stringify({ message, history })
     });
     if (!res.ok) {
       const errorData = await res.json().catch(() => ({}));
