@@ -1,10 +1,30 @@
 import { Router, Request, Response } from 'express';
 import { PrismaClient } from '@prisma/client';
 import { requireAuth, AuthRequest } from '../middleware/auth';
-import { generateQuiz } from '../services/ai.service';
+import { generateQuiz, gradeQuiz } from '../services/ai.service';
 
 const router = Router();
 const prisma = new PrismaClient();
+
+// Grade a quiz via AI
+router.post('/grade', requireAuth, async (req: AuthRequest, res: Response) => {
+  const { quiz, userAnswers } = req.body;
+
+  if (!quiz || !userAnswers) {
+    return res.status(400).json({ error: 'Quiz and userAnswers required' });
+  }
+
+  try {
+    const result = await gradeQuiz(quiz, userAnswers);
+    res.status(200).json(result);
+  } catch (error: any) {
+    console.error('Quiz grading error:', error);
+    res.status(500).json({ 
+      error: 'AI grading failed', 
+      details: error.message 
+    });
+  }
+});
 
 // Generate a NEW practice quiz via AI
 router.post('/generate', requireAuth, async (req: AuthRequest, res: Response) => {

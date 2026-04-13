@@ -238,5 +238,18 @@ export const api = {
       throw new Error(errorData.error || 'Chat failed');
     }
     return res.json();
+  },
+
+  gradeQuiz: async (quiz: any, userAnswers: any) => {
+    const res = await fetch(`${API_URL}/quizzes/grade`, {
+      method: 'POST',
+      headers: getHeaders(),
+      body: JSON.stringify({ quiz, userAnswers })
+    });
+    if (!res.ok) {
+      const errorData = await res.json().catch(() => ({}));
+      throw new Error(errorData.error || 'Grading failed');
+    }
+    return res.json();
   }
 };

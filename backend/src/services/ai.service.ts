@@ -169,11 +169,86 @@ export async function detectStudyLevel(fileBuffer: Buffer, mimeType: string): Pr
         }
       }
     ]);
-    const response = await result.response;
+    const result = await result.response;
     return response.text().trim() || "Unknown Level";
   } catch (e: any) {
     console.error(`[AI] Level detection failed: ${e.message}`);
     return "Detection Failed";
+  }
+}
+
+export async function gradeQuiz(quiz: any, userAnswers: Record<string, string>) {
+  const geminiKey = getGeminiKey();
+  if (!geminiKey || geminiKey.includes('your_gemini_api_key_here')) {
+    // Fallback basic grading if no AI
+    let totalScore = 0;
+    let maxScore = 0;
+    const questionFeedback: any = {};
+    
+    quiz.questions.forEach((q: any) => {
+      maxScore += q.points;
+      const ua = userAnswers[q.id]?.toLowerCase().trim();
+      const ca = q.correctAnswer?.toLowerCase().trim();
+      const isCorrect = ua === ca;
+      if (isCorrect) totalScore += q.points;
+      questionFeedback[q.id] = {
+        isCorrect,
+        feedback: isCorrect ? "Correct!" : `Incorrect. The expected answer was: ${q.correctAnswer}`,
+        earnedPoints: isCorrect ? q.points : 0
+      };
+    });
+
+    return {
+      totalScore,
+      maxScore,
+      globalFeedback: "Automated grading completed. Good effort!",
+      questionFeedback
+    };
+  }
+
+  const prompt = `You are an expert TVET Instructor. Grade the following quiz results.
+  
+  QUIZ: ${quiz.title}
+  QUESTIONS AND ANSWERS:
+  ${quiz.questions.map((q: any) => `
+    ID: ${q.id}
+    Type: ${q.type}
+    Question: ${q.text}
+    Ideal Answer: ${q.correctAnswer}
+    Points: ${q.points}
+    User Answer: ${userAnswers[q.id] || "NO ANSWER PROVIDED"}
+  `).join('\n')}
+
+  GRADING RULES:
+  1. For MCQ: Must match exactly (case-insensitive).
+  2. For ShortAnswer: Grade based on technical accuracy and conceptual understanding. Be fair but firm.
+  3. Provide a brief (1 sentence) critique for EACH question.
+  4. Provide a global summary (2-3 sentences) of the student's performance and areas for improvement.
+  
+  RETURN JSON ONLY:
+  {
+    "totalScore": number,
+    "maxScore": number,
+    "globalFeedback": "string",
+    "questionFeedback": {
+       "question_id": {
+         "isCorrect": boolean,
+         "feedback": "1 sentence critique",
+         "earnedPoints": number
+       }
+    }
+  }`;
+
+  try {
+    const genAI = new GoogleGenerativeAI(geminiKey);
+    const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash-lite' });
+    const result = await model.generateContent(prompt);
+    const text = result.response.text();
+    const jsonMatch = text.match(/\{[\s\S]*\}/);
+    return JSON.parse(jsonMatch ? jsonMatch[0] : text);
+  } catch (e: any) {
+    console.error(`[AI] Quiz grading failed: ${e.message}`);
+    throw e;
   }
 }
 

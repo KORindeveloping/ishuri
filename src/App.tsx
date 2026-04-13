@@ -247,11 +247,9 @@ const DashboardView = ({ user, onStartQuiz, onLogout, history, onNavigate, showT
   const [customTopic, setCustomTopic] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
 
-  const tradeCompetency = user.competencies?.[0];
-
+  const tradeCompetency = user?.competencies?.[0];
   const skills = tradeCompetency?.skills || [];
-
-  const onboardingSubjects = (user.subjects || '').split(',').map(s => s.trim()).filter(Boolean);
+  const onboardingSubjects = (user?.subjects || '').split(',').map(s => s.trim()).filter(Boolean);
 
   const subjects = (skills.length > 0 
     ? skills.map(skill => ({
@@ -813,9 +811,9 @@ const AnalyticsView = ({ history, user, onStartQuiz, showToast }: {
     }
   };
 
-  const tradeCompetency = user.competencies?.[0];
+  const tradeCompetency = user?.competencies?.[0];
   const skills = tradeCompetency?.skills || [];
-  const onboardingSubjects = (user.subjects || '').split(',').map(s => s.trim()).filter(Boolean);
+  const onboardingSubjects = (user?.subjects || '').split(',').map(s => s.trim()).filter(Boolean);
 
   const subjects = skills.length > 0 
     ? skills.map(skill => ({ name: skill.name, progress: skill.progress }))
@@ -1875,11 +1873,39 @@ const AssessmentView = ({
     if (onClearCustomQuiz) onClearCustomQuiz();
   };
 
-  const handleSubmit = () => {
-    if (!activeExam) return;
+  const [isGrading, setIsGrading] = useState(false);
 
-    let totalPoints = 0;
-    let earnedPoints = 0;
+  const handleSubmit = async () => {
+    if (!activeExam) return;
+    setIsGrading(true);
+
+    try {
+      // Call AI Grading API
+      const result = await api.gradeQuiz(activeExam, answers);
+      
+      setSubmitted(true);
+
+      const historyItem: QuizHistoryItem = {
+        id: `history-${Date.now()}`,
+        quizId: activeExam.id,
+        title: activeExam.title,
+        trade: activeExam.trade,
+        score: result.totalScore,
+        totalPoints: result.maxScore,
+        dateCompleted: new Date().toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }),
+        userAnswers: answers,
+        quiz: activeExam,
+        aiFeedback: result.globalFeedback,
+        questionFeedback: result.questionFeedback
+      };
+
+      if (onComplete) onComplete(historyItem);
+      showToast("Quiz graded by AI!", "success");
+    } catch (e) {
+      console.error('AI Grading failed, falling back to basic matching:', e);
+      // Fallback to basic grading if AI fails
+      let totalPoints = 0;
+      let earnedPoints = 0;
 
       activeExam.questions.forEach(q => {
         totalPoints += q.points;
@@ -1898,21 +1924,24 @@ const AssessmentView = ({
         }
       });
 
-    setSubmitted(true);
+      setSubmitted(true);
 
-    const historyItem: QuizHistoryItem = {
-      id: `history-${Date.now()}`,
-      quizId: activeExam.id,
-      title: activeExam.title,
-      trade: activeExam.trade,
-      score: earnedPoints,
-      totalPoints: totalPoints,
-      dateCompleted: new Date().toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }),
-      userAnswers: answers,
-      quiz: activeExam
-    };
+      const historyItem: QuizHistoryItem = {
+        id: `history-${Date.now()}`,
+        quizId: activeExam.id,
+        title: activeExam.title,
+        trade: activeExam.trade,
+        score: earnedPoints,
+        totalPoints: totalPoints,
+        dateCompleted: new Date().toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }),
+        userAnswers: answers,
+        quiz: activeExam
+      };
 
-    if (onComplete) onComplete(historyItem);
+      if (onComplete) onComplete(historyItem);
+    } finally {
+      setIsGrading(false);
+    }
   };
 
   const exportAssessmentAsPDF = (e: React.MouseEvent, exam: Assessment) => {
@@ -2134,6 +2163,43 @@ const AssessmentView = ({
 
           <main className="flex-1 overflow-y-auto p-5 sm:p-6 md:p-8 bg-black">
             <div className="max-w-3xl mx-auto space-y-8">
+              <AnimatePresence>
+                {isGrading && (
+                  <motion.div 
+                    initial={{ opacity: 0 }} 
+                    animate={{ opacity: 1 }} 
+                    exit={{ opacity: 0 }}
+                    className="fixed inset-0 z-[100] flex items-center justify-center bg-black/90 backdrop-blur-xl"
+                  >
+                    <div className="text-center">
+                      <div className="w-24 h-24 mb-8 mx-auto relative">
+                        <div className="absolute inset-0 border-4 border-white/10 rounded-full" />
+                        <div className="absolute inset-0 border-4 border-white border-t-transparent rounded-full animate-spin" />
+                        <Sparkles className="absolute inset-0 m-auto w-8 h-8 text-white animate-pulse" />
+                      </div>
+                      <h3 className="text-2xl font-black text-white uppercase tracking-widest mb-2">Grading Engine Active</h3>
+                      <p className="text-zinc-500 text-xs font-bold uppercase tracking-[0.3em]">AI is analyzing your technical accuracy...</p>
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+
+              {submitted && reviewHistoryItem?.aiFeedback && (
+                <motion.div 
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="p-8 bg-gradient-to-br from-indigo-500/20 to-purple-500/20 rounded-[2.5rem] border border-white/10 shadow-2xl relative overflow-hidden"
+                >
+                  <div className="absolute top-0 right-0 p-8">
+                    <Sparkles className="w-8 h-8 text-indigo-400 opacity-50" />
+                  </div>
+                  <h3 className="text-sm font-black text-indigo-400 uppercase tracking-[0.3em] mb-4">AI Performance Summary</h3>
+                  <p className="text-lg font-medium text-white leading-relaxed italic">
+                    "{reviewHistoryItem.aiFeedback}"
+                  </p>
+                </motion.div>
+              )}
+
               {activeExam.questions.map((q, i) => (
                 <div key={q.id} className={cn(
                   "p-5 sm:p-6 md:p-8 rounded-2xl border transition-all duration-500",
@@ -2237,18 +2303,46 @@ const AssessmentView = ({
                     </div>
                   )}
 
-                  {submitted && q.type !== 'Practical' && (
-                    <div className="mt-6 flex items-center gap-2">
-                       {checkAnswer(answers[q.id], q.correctAnswer) ? (
-                         <>
-                           <CheckCircle2 className="w-5 h-5 text-green-500" />
-                           <span className="text-sm font-bold text-green-500 uppercase tracking-widest">Correct Answer</span>
-                         </>
-                       ) : (
-                         <>
-                           <AlertCircle className="w-5 h-5 text-red-500" />
-                           <span className="text-sm font-bold text-red-500 uppercase tracking-widest">Incorrect</span>
-                         </>
+                  {submitted && (
+                    <div className="mt-8 space-y-4">
+                       <div className="flex items-center gap-3">
+                         {(reviewHistoryItem?.questionFeedback?.[q.id]?.isCorrect ?? checkAnswer(answers[q.id], q.correctAnswer)) ? (
+                           <div className="flex items-center gap-2 px-3 py-1 bg-green-500/10 border border-green-500/20 rounded-lg">
+                             <CheckCircle2 className="w-4 h-4 text-green-500" />
+                             <span className="text-[10px] font-black text-green-500 uppercase tracking-widest">Correct Answer</span>
+                           </div>
+                         ) : (
+                           <div className="flex items-center gap-2 px-3 py-1 bg-red-500/10 border border-red-500/20 rounded-lg">
+                             <AlertCircle className="w-4 h-4 text-red-500" />
+                             <span className="text-[10px] font-black text-red-500 uppercase tracking-widest">Incorrect</span>
+                           </div>
+                         )}
+                         {reviewHistoryItem?.questionFeedback?.[q.id] && (
+                           <div className="px-3 py-1 bg-white/5 border border-white/10 rounded-lg">
+                             <span className="text-[10px] font-black text-zinc-400 uppercase tracking-widest">
+                               Earned: {reviewHistoryItem.questionFeedback[q.id].earnedPoints}/{q.points} Pts
+                             </span>
+                           </div>
+                         )}
+                       </div>
+
+                       {(q.type === 'ShortAnswer' || !(reviewHistoryItem?.questionFeedback?.[q.id]?.isCorrect ?? checkAnswer(answers[q.id], q.correctAnswer))) && (
+                         <div className="p-4 bg-white/5 rounded-xl border border-white/10">
+                            <p className="text-[9px] font-black text-zinc-500 uppercase tracking-widest mb-2">Ideal Solution</p>
+                            <p className="text-sm text-zinc-300 font-medium">{q.correctAnswer}</p>
+                         </div>
+                       )}
+
+                       {reviewHistoryItem?.questionFeedback?.[q.id]?.feedback && (
+                         <div className="p-4 bg-indigo-500/5 rounded-xl border border-indigo-500/20">
+                            <div className="flex items-center gap-2 mb-2">
+                              <Sparkles className="w-3 h-3 text-indigo-400" />
+                              <p className="text-[9px] font-black text-indigo-400 uppercase tracking-widest">AI Critique</p>
+                            </div>
+                            <p className="text-sm text-zinc-300 font-medium leading-relaxed italic">
+                              {reviewHistoryItem.questionFeedback[q.id].feedback}
+                            </p>
+                         </div>
                        )}
                     </div>
                   )}
@@ -3504,12 +3598,19 @@ export default function App() {
   const [user, setUser] = useState<User>(() => {
     try {
       const saved = localStorage.getItem('tvet_user');
-      return saved ? JSON.parse(saved) : MOCK_USER;
+      const parsed = saved ? JSON.parse(saved) : MOCK_USER;
+      console.log('App initialized with user:', parsed);
+      return parsed || MOCK_USER;
     } catch (e) {
       console.error('Failed to parse tvet_user from localStorage', e);
       return MOCK_USER;
     }
   });
+  
+  useEffect(() => {
+    console.log('Current Auth State:', isAuthenticated);
+    console.log('Current User State:', user);
+  }, [isAuthenticated, user]);
   const [activeTab, setActiveTab] = useState('dashboard');
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [customQuiz, setCustomQuiz] = useState<Assessment | null>(null);

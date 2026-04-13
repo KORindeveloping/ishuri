@@ -84,4 +84,6 @@ export interface QuizHistoryItem {
   dateCompleted: string;
   userAnswers: Record<string, string>;
   quiz: Assessment;
+  aiFeedback?: string;
+  questionFeedback?: Record<string, { isCorrect: boolean, feedback: string, earnedPoints: number }>;
 }
