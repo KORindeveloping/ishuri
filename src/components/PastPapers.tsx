@@ -150,7 +150,7 @@ export const PastPapers = ({ user, onStartQuiz }: { user: User, onStartQuiz?: (q
 
   return (
     <div className="space-y-8 pb-24">
-      <header className="flex flex-col lg:flex-row lg:items-end justify-between gap-8">
+      <header className="flex flex-col lg:flex-row lg:items-end justify-between gap-5 sm:p-6 md:p-8">
         <div>
           <div className="flex items-center gap-3 mb-4">
              <div className="px-3 py-1 bg-zinc-900 dark:bg-white text-white dark:text-black text-[10px] font-black uppercase tracking-widest rounded-lg">
@@ -203,7 +203,7 @@ export const PastPapers = ({ user, onStartQuiz }: { user: User, onStartQuiz?: (q
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.95 }}
               transition={{ delay: idx * 0.05 }}
-              className="bg-white dark:bg-zinc-900/40 backdrop-blur-3xl p-8 rounded-[2.5rem] border border-zinc-200 dark:border-white/[0.05] hover:border-zinc-300 dark:hover:border-white/[0.1] transition-all group relative overflow-hidden shadow-sm"
+              className="bg-white dark:bg-zinc-900/40 backdrop-blur-3xl p-5 sm:p-6 md:p-8 rounded-[2.5rem] border border-zinc-200 dark:border-white/[0.05] hover:border-zinc-300 dark:hover:border-white/[0.1] transition-all group relative overflow-hidden shadow-sm"
             >
               <div className="absolute top-0 right-0 w-24 h-24 bg-black/5 dark:bg-white/5 blur-3xl rounded-full -mr-12 -mt-12" />
               
@@ -258,14 +258,14 @@ export const PastPapers = ({ user, onStartQuiz }: { user: User, onStartQuiz?: (q
 
       <AnimatePresence>
         {selectedPaper && (
-          <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 md:p-12 bg-black/90 backdrop-blur-md">
+          <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 md:p-6 md:p-12 bg-black/90 backdrop-blur-md">
             <motion.div 
               initial={{ opacity: 0, scale: 0.9 }}
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.9 }}
               className="w-full h-full max-w-6xl bg-white dark:bg-zinc-900 rounded-[3rem] overflow-hidden flex flex-col relative"
             >
-              <header className="p-8 border-b border-zinc-200 dark:border-zinc-800 flex items-center justify-between">
+              <header className="p-5 sm:p-6 md:p-8 border-b border-zinc-200 dark:border-zinc-800 flex items-center justify-between">
                 <div>
                   <h3 className="text-2xl font-black text-zinc-900 dark:text-white uppercase tracking-tight">{selectedPaper.title}</h3>
                   <p className="text-xs text-zinc-500 font-medium">{selectedPaper.year} • {selectedPaper.level} Examination</p>
@@ -288,7 +288,7 @@ export const PastPapers = ({ user, onStartQuiz }: { user: User, onStartQuiz?: (q
                     <p className="text-9xl font-black uppercase text-zinc-500 tracking-widest">TVET MASTERY PRO</p>
                  </div>
               </div>
-              <footer className="p-8 border-t border-zinc-200 dark:border-zinc-800 flex justify-end gap-4">
+              <footer className="p-5 sm:p-6 md:p-8 border-t border-zinc-200 dark:border-zinc-800 flex justify-end gap-4">
                  <button
                     onClick={() => handlePrint(selectedPaper.fileName)}
                     className="px-8 py-4 bg-zinc-100 dark:bg-zinc-800 text-zinc-900 dark:text-white rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-zinc-200 dark:hover:bg-zinc-700 transition-all flex items-center gap-2"
@@ -327,7 +327,7 @@ export const PastPapers = ({ user, onStartQuiz }: { user: User, onStartQuiz?: (q
                 </button>
               </div>
 
-              <div className="p-8 space-y-6">
+              <div className="p-5 sm:p-6 md:p-8 space-y-6">
                 {isGenerating ? (
                   <div className="py-12 flex flex-col items-center justify-center text-center space-y-4">
                     <div className="w-16 h-16 border-4 border-zinc-900 dark:border-white border-t-transparent rounded-full animate-spin" />

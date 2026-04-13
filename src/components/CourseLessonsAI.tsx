@@ -263,7 +263,7 @@ export const CourseLessonsAI = ({ user, onClose, initialCourse }: { user: User; 
               exit={{ opacity: 0, y: -20 }}
               className="flex-1 flex flex-col bg-zinc-50 dark:bg-[#020202] overflow-hidden"
             >
-              <div className="flex-1 overflow-y-auto p-12 scrollbar-hide">
+              <div className="flex-1 overflow-y-auto p-6 md:p-12 scrollbar-hide">
                 <div className="max-w-4xl mx-auto">
                   <div className="grid grid-cols-3 gap-6 mb-12">
                     {[
@@ -275,7 +275,7 @@ export const CourseLessonsAI = ({ user, onClose, initialCourse }: { user: User; 
                         key={mode.id}
                         onClick={() => handleInteraction(mode.id as InteractionMode, selectedChapter)}
                         className={cn(
-                          "p-8 rounded-[2.5rem] border-2 transition-all flex flex-col items-center text-center gap-4 group shadow-sm",
+                          "p-5 sm:p-6 md:p-8 rounded-[2.5rem] border-2 transition-all flex flex-col items-center text-center gap-4 group shadow-sm",
                           activeMode === mode.id 
                             ? "bg-zinc-900 dark:bg-white border-zinc-900 dark:border-white text-white dark:text-black shadow-2xl" 
                             : "bg-white dark:bg-zinc-900 border-zinc-200 dark:border-zinc-800 text-zinc-500 hover:border-zinc-900 dark:hover:border-white"
@@ -290,7 +290,7 @@ export const CourseLessonsAI = ({ user, onClose, initialCourse }: { user: User; 
                     ))}
                   </div>
 
-                  <div className="bg-white dark:bg-zinc-900 p-12 md:p-16 rounded-[3.5rem] border border-zinc-200 dark:border-zinc-800 shadow-2xl relative min-h-[400px]">
+                  <div className="bg-white dark:bg-zinc-900 p-6 sm:p-8 md:p-6 md:p-12 lg:p-16 rounded-[3.5rem] border border-zinc-200 dark:border-zinc-800 shadow-2xl relative min-h-[400px]">
                     {isInteracting ? (
                       <div className="absolute inset-0 flex flex-col items-center justify-center gap-6">
                         <Loader2 className="w-12 h-12 text-zinc-900 dark:text-white animate-spin" />
@@ -320,7 +320,7 @@ export const CourseLessonsAI = ({ user, onClose, initialCourse }: { user: User; 
             >
               {/* Chat Side */}
               <div className="flex-1 flex flex-col min-w-0 bg-white dark:bg-black">
-                <div className="flex-1 overflow-y-auto p-8 space-y-8 scrollbar-hide">
+                <div className="flex-1 overflow-y-auto p-5 sm:p-6 md:p-8 space-y-8 scrollbar-hide">
                   <div className="max-w-4xl mx-auto space-y-8">
                     {messages.map((msg) => (
                       <motion.div 
@@ -365,7 +365,7 @@ export const CourseLessonsAI = ({ user, onClose, initialCourse }: { user: User; 
                   </div>
                 </div>
 
-                <footer className="p-8 bg-white dark:bg-black border-t border-zinc-200 dark:border-zinc-800">
+                <footer className="p-5 sm:p-6 md:p-8 bg-white dark:bg-black border-t border-zinc-200 dark:border-zinc-800">
                   <div className="max-w-4xl mx-auto flex gap-4">
                     <input 
                       type="text"
@@ -435,7 +435,7 @@ export const CourseLessonsAI = ({ user, onClose, initialCourse }: { user: User; 
                         ))}
                       </div>
 
-                      <div className="p-8 bg-zinc-900 dark:bg-white rounded-[3rem] shadow-2xl relative overflow-hidden group">
+                      <div className="p-5 sm:p-6 md:p-8 bg-zinc-900 dark:bg-white rounded-[3rem] shadow-2xl relative overflow-hidden group">
                         <div className="absolute top-0 right-0 w-32 h-32 bg-white/5 dark:bg-black/5 blur-3xl rounded-full -mt-16 -mr-16 transition-all group-hover:scale-150" />
                         <div className="flex items-center gap-3 mb-4 relative z-10">
                           <Sparkles className="w-5 h-5 text-indigo-400 group-hover:animate-pulse" />
@@ -493,7 +493,7 @@ export const CourseLessonsAI = ({ user, onClose, initialCourse }: { user: User; 
               animate={{ opacity: 1, scale: 1 }}
               className="flex-1 flex flex-col bg-zinc-50 dark:bg-[#020202] overflow-hidden"
             >
-              <div className="flex-1 overflow-y-auto p-12 scrollbar-hide">
+              <div className="flex-1 overflow-y-auto p-6 md:p-12 scrollbar-hide">
                 <div className="max-w-4xl mx-auto">
                   <header className="mb-16 flex items-center justify-between">
                     <div>
@@ -501,7 +501,7 @@ export const CourseLessonsAI = ({ user, onClose, initialCourse }: { user: User; 
                         <FileText className="w-6 h-6 text-zinc-400" />
                         <span className="text-[10px] font-black text-zinc-500 uppercase tracking-[0.4em]">Academic Syllabus</span>
                       </div>
-                      <h1 className="text-5xl font-black text-zinc-900 dark:text-white tracking-tighter leading-[0.9]">{lessonPlan?.courseName}</h1>
+                      <h1 className="text-4xl md:text-5xl font-black text-zinc-900 dark:text-white tracking-tighter leading-[0.9]">{lessonPlan?.courseName}</h1>
                     </div>
                     <div className="flex items-center gap-4">
                       <button 
@@ -519,7 +519,7 @@ export const CourseLessonsAI = ({ user, onClose, initialCourse }: { user: User; 
                     </div>
                   </header>
 
-                  <div className="bg-white dark:bg-zinc-900 p-12 md:p-16 rounded-[3.5rem] border border-zinc-200 dark:border-zinc-800 shadow-2xl relative overflow-hidden">
+                  <div className="bg-white dark:bg-zinc-900 p-6 sm:p-8 md:p-6 md:p-12 lg:p-16 rounded-[3.5rem] border border-zinc-200 dark:border-zinc-800 shadow-2xl relative overflow-hidden">
                     <div className="absolute top-0 right-0 w-64 h-64 bg-zinc-900/[0.02] dark:bg-white/[0.02] blur-3xl rounded-full -mt-32 -mr-32" />
                     <div className="prose prose-xl dark:prose-invert max-w-none prose-headings:font-black prose-headings:uppercase prose-headings:tracking-tighter prose-p:font-medium prose-p:text-zinc-600 dark:prose-p:text-zinc-400 prose-li:text-zinc-600 dark:prose-li:text-zinc-400 prose-strong:text-zinc-900 dark:prose-strong:text-white">
                       <ReactMarkdown>{syllabus}</ReactMarkdown>

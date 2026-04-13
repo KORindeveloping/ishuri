@@ -124,7 +124,7 @@ const Modal = ({ title, children, onClose, onConfirm, confirmText = "Confirm", c
       initial={{ opacity: 0, scale: 0.9, y: 20 }}
       animate={{ opacity: 1, scale: 1, y: 0 }}
       exit={{ opacity: 0, scale: 0.9 }}
-      className="w-full max-w-md bg-white dark:bg-zinc-900 rounded-[2.5rem] border border-zinc-200 dark:border-zinc-800 p-8 shadow-2xl relative overflow-hidden"
+      className="w-full max-w-md bg-white dark:bg-zinc-900 rounded-[2.5rem] border border-zinc-200 dark:border-zinc-800 p-5 sm:p-6 md:p-8 shadow-2xl relative overflow-hidden"
     >
       <div className="absolute top-0 right-0 w-32 h-32 bg-black/5 dark:bg-white/5 blur-3xl rounded-full -mr-16 -mt-16" />
       <header className="flex items-center justify-between mb-6 relative z-10">
@@ -332,7 +332,7 @@ const DashboardView = ({ user, onStartQuiz, onLogout, history, onNavigate, showT
         )}
       </AnimatePresence>
 
-      <header className="relative overflow-hidden bg-zinc-100 dark:bg-zinc-950 rounded-[3.5rem] p-12 md:p-16 border border-zinc-200 dark:border-white/[0.05] shadow-2xl flex flex-col md:flex-row md:items-end justify-between gap-10">
+      <header className="relative overflow-hidden bg-zinc-100 dark:bg-zinc-950 rounded-[3.5rem] p-6 sm:p-8 md:p-6 md:p-12 lg:p-16 border border-zinc-200 dark:border-white/[0.05] shadow-2xl flex flex-col md:flex-row md:items-end justify-between gap-10">
         <div className="absolute top-0 right-0 w-1/2 h-full bg-gradient-to-l from-black/[0.02] dark:from-white/[0.02] to-transparent pointer-events-none" />
         <div className="relative z-10">
           <div className="flex items-center gap-4 mb-8">
@@ -341,7 +341,7 @@ const DashboardView = ({ user, onStartQuiz, onLogout, history, onNavigate, showT
               <Zap className="w-3.5 h-3.5 fill-current text-zinc-900 dark:text-white" /> Exam Prep Mode
             </div>
           </div>
-          <h1 className="text-5xl md:text-7xl font-black text-zinc-900 dark:text-white tracking-tighter mb-4 leading-[0.9]">
+          <h1 className="text-4xl sm:text-5xl md:text-7xl font-black text-zinc-900 dark:text-white tracking-tighter mb-4 leading-[0.9]">
             Welcome back,<br />
             <span className="text-zinc-400 dark:text-zinc-700">{user?.name?.split(' ')[0] || 'Student'}.</span>
           </h1>
@@ -366,7 +366,7 @@ const DashboardView = ({ user, onStartQuiz, onLogout, history, onNavigate, showT
       </header>
 
       {/* Stats Row */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
         {stats.map((stat, i) => (
           <motion.div 
             initial={{ opacity: 0, y: 30 }}
@@ -375,7 +375,7 @@ const DashboardView = ({ user, onStartQuiz, onLogout, history, onNavigate, showT
             whileHover={{ y: -8, scale: 1.02 }}
             key={stat.label} 
             className={cn(
-              "p-8 bg-white dark:bg-zinc-900/40 backdrop-blur-3xl rounded-[3rem] border border-zinc-200 dark:border-white/[0.03] hover:border-zinc-300 dark:hover:border-white/[0.1] transition-all group relative overflow-hidden shadow-sm",
+              "p-5 sm:p-6 md:p-8 bg-white dark:bg-zinc-900/40 backdrop-blur-3xl rounded-[3rem] border border-zinc-200 dark:border-white/[0.03] hover:border-zinc-300 dark:hover:border-white/[0.1] transition-all group relative overflow-hidden shadow-sm",
               `dashboard-card-${i}`
             )}
           >
@@ -397,11 +397,11 @@ const DashboardView = ({ user, onStartQuiz, onLogout, history, onNavigate, showT
         ))}
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-5 sm:p-6 md:p-8">
         {/* Left Column */}
         <div className="lg:col-span-2 space-y-8">
           {/* Subject Progress */}
-          <section className="bg-white dark:bg-zinc-900 p-8 rounded-[2rem] border border-zinc-200 dark:border-zinc-800 shadow-sm">
+          <section className="bg-white dark:bg-zinc-900 p-5 sm:p-6 md:p-8 rounded-[2rem] border border-zinc-200 dark:border-zinc-800 shadow-sm">
             <div className="flex items-center justify-between mb-8">
               <h2 className="text-xl font-black text-zinc-900 dark:text-white flex items-center gap-3 uppercase tracking-tight">
                 <BarChart3 className="w-6 h-6 text-zinc-400 dark:text-zinc-500" /> Subject Progress
@@ -454,7 +454,7 @@ const DashboardView = ({ user, onStartQuiz, onLogout, history, onNavigate, showT
           </section>
 
           {/* Upcoming Exams */}
-          <section className="bg-white dark:bg-zinc-900 p-8 rounded-[2rem] border border-zinc-200 dark:border-zinc-800 shadow-sm">
+          <section className="bg-white dark:bg-zinc-900 p-5 sm:p-6 md:p-8 rounded-[2rem] border border-zinc-200 dark:border-zinc-800 shadow-sm">
             <div className="flex items-center justify-between mb-8">
               <h2 className="text-xl font-black text-zinc-900 dark:text-white flex items-center gap-3 uppercase tracking-tight">
                 <AlertTriangle className="w-6 h-6 text-zinc-400 dark:text-zinc-500" /> Upcoming Exams
@@ -489,7 +489,7 @@ const DashboardView = ({ user, onStartQuiz, onLogout, history, onNavigate, showT
           </section>
 
           {/* Course Lessons */}
-          <section className="bg-white dark:bg-zinc-900 p-8 rounded-[2rem] border border-zinc-200 dark:border-zinc-800 shadow-sm">
+          <section className="bg-white dark:bg-zinc-900 p-5 sm:p-6 md:p-8 rounded-[2rem] border border-zinc-200 dark:border-zinc-800 shadow-sm">
             <div className="flex items-center justify-between mb-8">
               <h2 className="text-xl font-black text-zinc-900 dark:text-white flex items-center gap-3 uppercase tracking-tight">
                 <BookOpen className="w-6 h-6 text-zinc-400 dark:text-zinc-500" /> Course Lessons
@@ -521,7 +521,7 @@ const DashboardView = ({ user, onStartQuiz, onLogout, history, onNavigate, showT
           </section>
 
           {/* Practice Quizzes */}
-          <section className="bg-white dark:bg-zinc-900 p-8 rounded-[2rem] border border-zinc-200 dark:border-zinc-800 shadow-sm">
+          <section className="bg-white dark:bg-zinc-900 p-5 sm:p-6 md:p-8 rounded-[2rem] border border-zinc-200 dark:border-zinc-800 shadow-sm">
             <div className="flex items-center justify-between mb-8">
               <h2 className="text-xl font-black text-zinc-900 dark:text-white flex items-center gap-3 uppercase tracking-tight">
                 <Zap className="w-6 h-6 text-zinc-400 dark:text-zinc-500" /> Practice Quizzes
@@ -556,7 +556,7 @@ const DashboardView = ({ user, onStartQuiz, onLogout, history, onNavigate, showT
               </div>
             </div>
 
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
               {subjects.map((subject) => (
                 <button 
                   key={subject.name}
@@ -593,7 +593,7 @@ const DashboardView = ({ user, onStartQuiz, onLogout, history, onNavigate, showT
         {/* Right Column */}
         <div className="space-y-8">
           {/* Today's Tasks */}
-          <section className="bg-white dark:bg-zinc-900 p-8 rounded-[2rem] border border-zinc-200 dark:border-zinc-800 shadow-sm">
+          <section className="bg-white dark:bg-zinc-900 p-5 sm:p-6 md:p-8 rounded-[2rem] border border-zinc-200 dark:border-zinc-800 shadow-sm">
             <h2 className="text-xl font-black text-zinc-900 dark:text-white flex items-center gap-3 uppercase tracking-tight mb-8">
               <CheckSquare className="w-6 h-6 text-zinc-400 dark:text-zinc-500" /> Today's Tasks
             </h2>
@@ -641,7 +641,7 @@ const DashboardView = ({ user, onStartQuiz, onLogout, history, onNavigate, showT
                   initial={{ opacity: 0, scale: 0.9 }}
                   animate={{ opacity: 1, scale: 1 }}
                   exit={{ opacity: 0, scale: 0.9 }}
-                  className="bg-white dark:bg-zinc-900 p-8 rounded-[2.5rem] border border-zinc-200 dark:border-zinc-800 w-full max-w-md shadow-2xl"
+                  className="bg-white dark:bg-zinc-900 p-5 sm:p-6 md:p-8 rounded-[2.5rem] border border-zinc-200 dark:border-zinc-800 w-full max-w-md shadow-2xl"
                 >
                   <h3 className="text-xl font-black text-zinc-900 dark:text-white mb-6 uppercase tracking-tight">New Study Goal / Exam</h3>
                   <div className="space-y-6">
@@ -723,7 +723,7 @@ const DashboardView = ({ user, onStartQuiz, onLogout, history, onNavigate, showT
           </AnimatePresence>
 
           {/* Streak Tracker */}
-          <section className="bg-white dark:bg-zinc-900 p-8 rounded-[2rem] border border-zinc-200 dark:border-zinc-800 shadow-sm">
+          <section className="bg-white dark:bg-zinc-900 p-5 sm:p-6 md:p-8 rounded-[2rem] border border-zinc-200 dark:border-zinc-800 shadow-sm">
             <h2 className="text-xl font-black text-zinc-900 dark:text-white flex items-center gap-3 uppercase tracking-tight mb-8">
               <Flame className="w-6 h-6 text-zinc-400 dark:text-zinc-500" /> Consistency
             </h2>
@@ -883,8 +883,8 @@ const AnalyticsView = ({ history, user, onStartQuiz, showToast }: {
         <p className="text-zinc-500 font-medium">Deep dive into your mastery and exam readiness.</p>
       </header>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        <div className="lg:col-span-2 bg-white dark:bg-zinc-900 p-8 rounded-[2.5rem] border border-zinc-200 dark:border-zinc-800 shadow-sm">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-5 sm:p-6 md:p-8">
+        <div className="lg:col-span-2 bg-white dark:bg-zinc-900 p-5 sm:p-6 md:p-8 rounded-[2.5rem] border border-zinc-200 dark:border-zinc-800 shadow-sm">
           <h2 className="text-xl font-black text-zinc-900 dark:text-white mb-8 uppercase tracking-tight">Skill Mastery Breakdown</h2>
           <div className="h-80 w-full">
             <ResponsiveContainer width="100%" height="100%">
@@ -902,7 +902,7 @@ const AnalyticsView = ({ history, user, onStartQuiz, showToast }: {
           </div>
         </div>
 
-        <div className="bg-white dark:bg-zinc-900 p-8 rounded-[2.5rem] border border-zinc-200 dark:border-zinc-800 shadow-sm flex flex-col items-center justify-center text-center">
+        <div className="bg-white dark:bg-zinc-900 p-5 sm:p-6 md:p-8 rounded-[2.5rem] border border-zinc-200 dark:border-zinc-800 shadow-sm flex flex-col items-center justify-center text-center">
           <div className="w-32 h-32 rounded-full border-8 border-zinc-50 dark:border-white/10 flex items-center justify-center relative mb-6">
             <div className="absolute inset-0 border-8 border-zinc-900 dark:border-white border-t-transparent rounded-full animate-[spin_3s_linear_infinite]" />
             <span className="text-3xl font-black text-zinc-900 dark:text-white">{avgMastery}%</span>
@@ -914,13 +914,13 @@ const AnalyticsView = ({ history, user, onStartQuiz, showToast }: {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-5 sm:p-6 md:p-8">
         {subjects.map((subject) => (
           <div 
             key={subject.name}
             onClick={() => !generatingQuiz && startPracticeQuiz(subject.name)}
             className={cn(
-              "p-8 bg-white dark:bg-zinc-900 rounded-[2.5rem] border border-zinc-200 dark:border-zinc-800 hover:border-zinc-300 dark:hover:border-zinc-700 transition-all shadow-sm cursor-pointer group flex items-center justify-between",
+              "p-5 sm:p-6 md:p-8 bg-white dark:bg-zinc-900 rounded-[2.5rem] border border-zinc-200 dark:border-zinc-800 hover:border-zinc-300 dark:hover:border-zinc-700 transition-all shadow-sm cursor-pointer group flex items-center justify-between",
               generatingQuiz === subject.name && "opacity-60 cursor-wait"
             )}
           >
@@ -1086,18 +1086,18 @@ const FlashcardsView = () => {
             transition={{ duration: 0.6, type: 'spring', stiffness: 260, damping: 20 }}
             className="w-full h-full relative preserve-3d"
           >
-            <div className="absolute inset-0 bg-white dark:bg-zinc-900 border-2 border-zinc-200 dark:border-zinc-800 rounded-[3rem] p-12 flex flex-col items-center justify-center text-center backface-hidden shadow-2xl">
+            <div className="absolute inset-0 bg-white dark:bg-zinc-900 border-2 border-zinc-200 dark:border-zinc-800 rounded-[3rem] p-6 md:p-12 flex flex-col items-center justify-center text-center backface-hidden shadow-2xl">
               <p className="text-[10px] font-black text-zinc-400 dark:text-zinc-500 uppercase tracking-widest mb-8">Question {index + 1}/{dueCards.length}</p>
               <h2 className="text-2xl font-black text-zinc-900 dark:text-white leading-tight">{dueCards[index].q}</h2>
               <p className="text-xs text-zinc-400 dark:text-zinc-600 mt-12 font-bold uppercase tracking-widest">Tap to reveal answer</p>
               <button 
                 onClick={(e) => deleteCard(e, index)}
-                className="absolute top-8 right-8 p-2 bg-zinc-100 dark:bg-zinc-800 text-zinc-400 dark:text-zinc-600 hover:text-red-500 rounded-xl transition-colors"
+                className="absolute top-5 sm:p-6 md:p-8 right-8 p-2 bg-zinc-100 dark:bg-zinc-800 text-zinc-400 dark:text-zinc-600 hover:text-red-500 rounded-xl transition-colors"
               >
                 <Trash2 className="w-4 h-4" />
               </button>
             </div>
-            <div className="absolute inset-0 bg-zinc-900 dark:bg-white border-2 border-zinc-900 dark:border-white rounded-[3rem] p-12 flex flex-col items-center justify-center text-center backface-hidden rotate-y-180 shadow-2xl">
+            <div className="absolute inset-0 bg-zinc-900 dark:bg-white border-2 border-zinc-900 dark:border-white rounded-[3rem] p-6 md:p-12 flex flex-col items-center justify-center text-center backface-hidden rotate-y-180 shadow-2xl">
               <p className="text-[10px] font-black text-zinc-500 dark:text-zinc-400 uppercase tracking-widest mb-8">Answer</p>
               <h2 className="text-2xl font-black text-white dark:text-black leading-tight">{dueCards[index].a}</h2>
               <div className="mt-12 flex gap-4 w-full">
@@ -1141,7 +1141,7 @@ const FlashcardsView = () => {
               initial={{ opacity: 0, scale: 0.9 }}
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.9 }}
-              className="bg-white dark:bg-zinc-900 p-8 rounded-[2.5rem] border border-zinc-200 dark:border-zinc-800 w-full max-w-md shadow-2xl"
+              className="bg-white dark:bg-zinc-900 p-5 sm:p-6 md:p-8 rounded-[2.5rem] border border-zinc-200 dark:border-zinc-800 w-full max-w-md shadow-2xl"
             >
               <h3 className="text-xl font-black text-zinc-900 dark:text-white mb-6 uppercase tracking-tight">New Flashcard</h3>
               <div className="space-y-4">
@@ -1272,7 +1272,7 @@ const PlannerView = ({ user, showToast }: {
 
   return (
     <div className="space-y-8 pb-12">
-      <header className="flex flex-col md:flex-row md:items-end justify-between gap-8">
+      <header className="flex flex-col md:flex-row md:items-end justify-between gap-5 sm:p-6 md:p-8">
         <div>
           <div className="flex items-center gap-2 mb-3">
              <div className="px-3 py-1 bg-zinc-900 dark:bg-white text-white dark:text-black text-[10px] font-black uppercase tracking-widest rounded-lg">
@@ -1546,7 +1546,7 @@ const QuizHistoryView = ({ history, onReviewQuiz, showToast }: {
               animate={{ opacity: 1, y: 0 }}
               onClick={() => toggleSelect(item.id)}
               className={cn(
-                "p-8 rounded-[2rem] border transition-all group relative overflow-hidden cursor-pointer",
+                "p-5 sm:p-6 md:p-8 rounded-[2rem] border transition-all group relative overflow-hidden cursor-pointer",
                 selectedItems.includes(item.id) 
                   ? "bg-zinc-900 dark:bg-white text-white dark:text-black border-zinc-900 dark:border-white shadow-2xl shadow-black/10 dark:shadow-white/10" 
                   : "bg-white dark:bg-zinc-900 border-zinc-200 dark:border-zinc-800 hover:border-zinc-300 dark:hover:border-zinc-700 text-zinc-900 dark:text-white shadow-sm"
@@ -1654,7 +1654,7 @@ const UploadAssessmentModal = ({ isOpen, onClose, onAdd, user }: {
             exit={{ opacity: 0, scale: 0.95 }}
             className="bg-white dark:bg-zinc-950 p-10 rounded-[3rem] border border-zinc-200 dark:border-white/10 w-full max-w-2xl shadow-2xl my-8 relative"
           >
-            <button onClick={onClose} className="absolute top-8 right-8 p-2 text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-200"><X className="w-6 h-6" /></button>
+            <button onClick={onClose} className="absolute top-5 sm:p-6 md:p-8 right-8 p-2 text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-200"><X className="w-6 h-6" /></button>
             <h3 className="text-3xl font-black text-zinc-900 dark:text-white mb-2 uppercase tracking-tighter">Contribute Assessment</h3>
             <p className="text-zinc-500 text-xs font-medium mb-12">Submit professional certification materials to the community hub.</p>
             
@@ -1680,7 +1680,7 @@ const UploadAssessmentModal = ({ isOpen, onClose, onAdd, user }: {
                 </div>
               </section>
 
-              <section className="p-8 bg-zinc-50 dark:bg-zinc-900/50 rounded-[2rem] border border-zinc-100 dark:border-zinc-800">
+              <section className="p-5 sm:p-6 md:p-8 bg-zinc-50 dark:bg-zinc-900/50 rounded-[2rem] border border-zinc-100 dark:border-zinc-800">
                 <h4 className="text-[10px] font-black uppercase tracking-widest text-zinc-400 mb-6">Question Builder ({exam.questions.length} Added)</h4>
                 <div className="space-y-6">
                   <textarea 
@@ -1950,7 +1950,7 @@ const AssessmentView = ({
   if (!activeExam) {
     return (
       <div className="space-y-8 pb-12">
-        <header className="flex flex-col md:flex-row md:items-end justify-between gap-8">
+        <header className="flex flex-col md:flex-row md:items-end justify-between gap-5 sm:p-6 md:p-8">
           <div>
             <div className="flex items-center gap-2 mb-3">
                <div className="px-3 py-1 bg-zinc-900 dark:bg-white text-white dark:text-black text-[10px] font-black uppercase tracking-widest rounded-lg">
@@ -1998,12 +1998,12 @@ const AssessmentView = ({
           ))}
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5 sm:p-6 md:p-8">
           {filteredAssessments.map((exam) => (
             <motion.div
               key={exam.id}
               whileHover={{ y: -8 }}
-              className="bg-white dark:bg-zinc-900/40 backdrop-blur-3xl p-8 rounded-[3.5rem] border border-zinc-200 dark:border-white/[0.05] flex flex-col group hover:border-zinc-400 dark:hover:border-white/10 transition-all cursor-pointer relative overflow-hidden shadow-2xl"
+              className="bg-white dark:bg-zinc-900/40 backdrop-blur-3xl p-5 sm:p-6 md:p-8 rounded-[3.5rem] border border-zinc-200 dark:border-white/[0.05] flex flex-col group hover:border-zinc-400 dark:hover:border-white/10 transition-all cursor-pointer relative overflow-hidden shadow-2xl"
               onClick={() => setActiveExam(exam)}
             >
               <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-blue-500/10 to-purple-500/10 blur-3xl -mr-16 -mt-16 rounded-full group-hover:from-blue-500/20 transition-all" />
@@ -2127,11 +2127,11 @@ const AssessmentView = ({
             </div>
           </aside>
 
-          <main className="flex-1 overflow-y-auto p-8 bg-black">
+          <main className="flex-1 overflow-y-auto p-5 sm:p-6 md:p-8 bg-black">
             <div className="max-w-3xl mx-auto space-y-8">
               {activeExam.questions.map((q, i) => (
                 <div key={q.id} className={cn(
-                  "p-8 rounded-2xl border transition-all duration-500",
+                  "p-5 sm:p-6 md:p-8 rounded-2xl border transition-all duration-500",
                   submitted 
                     ? (q.type !== 'Practical' && checkAnswer(answers[q.id], q.correctAnswer))
                       ? "bg-green-500/10 border-green-500/50 shadow-[0_0_30px_rgba(34,197,94,0.1)]"
@@ -2364,7 +2364,7 @@ const PortfolioView = ({ user, showToast }: {
 
   return (
     <div className="space-y-8 pb-24">
-      <header className="flex flex-col lg:flex-row lg:items-end justify-between gap-8">
+      <header className="flex flex-col lg:flex-row lg:items-end justify-between gap-5 sm:p-6 md:p-8">
         <div>
           <div className="flex items-center gap-3 mb-4">
              <div className="px-3 py-1 bg-zinc-900 dark:bg-white text-white dark:text-black text-[10px] font-black uppercase tracking-widest rounded-lg">
@@ -2426,7 +2426,7 @@ const PortfolioView = ({ user, showToast }: {
          ))}
       </div>
 
-      <div className="flex flex-col lg:flex-row gap-8">
+      <div className="flex flex-col lg:flex-row gap-5 sm:p-6 md:p-8">
         <div className="flex-1 space-y-6">
           <div className="flex items-center justify-between">
              <div className="flex items-center gap-2">
@@ -2509,8 +2509,8 @@ const PortfolioView = ({ user, showToast }: {
         </div>
 
         {/* Benefits Sidebar */}
-        <div className="w-full lg:w-96 space-y-6">
-           <div className="p-8 bg-zinc-900 dark:bg-white rounded-[2.5rem] text-white dark:text-black shadow-2xl overflow-hidden relative">
+        <div className="w-full lg:w-full max-w-sm space-y-6">
+           <div className="p-5 sm:p-6 md:p-8 bg-zinc-900 dark:bg-white rounded-[2.5rem] text-white dark:text-black shadow-2xl overflow-hidden relative">
               <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 dark:bg-black/5 blur-3xl -mr-16 -mt-16" />
               <Zap className="w-8 h-8 mb-6" />
               <h3 className="text-2xl font-black uppercase tracking-tight mb-4">Portfolio Benefits</h3>
@@ -2533,7 +2533,7 @@ const PortfolioView = ({ user, showToast }: {
               </div>
            </div>
 
-           <div className="p-8 bg-zinc-100 dark:bg-zinc-900/40 border border-zinc-200 dark:border-zinc-800 rounded-[2.5rem]">
+           <div className="p-5 sm:p-6 md:p-8 bg-zinc-100 dark:bg-zinc-900/40 border border-zinc-200 dark:border-zinc-800 rounded-[2.5rem]">
               <h3 className="font-black text-zinc-900 dark:text-white uppercase tracking-tight mb-4 flex items-center gap-2">
                 <Share2 className="w-4 h-4" /> Stakeholder Sharing
               </h3>
@@ -2673,7 +2673,7 @@ const CertificateView = ({ user }: { user: User }) => {
 
         {/* Grade Band */}
         <div className="bg-[#0a0a1a] py-4 px-12 flex items-center justify-between border-t border-[#c8b97a]/20 relative z-10">
-          <div className="flex gap-8">
+          <div className="flex gap-5 sm:p-6 md:p-8">
             <div>
               <p className="text-[8px] uppercase tracking-widest opacity-50 mb-1">Cumulative GPA</p>
               <p className="text-sm font-bold text-white">{certificate.gradeBand.gpa}</p>
@@ -2801,10 +2801,10 @@ const SettingsView = ({
 
   return (
     <div className="max-w-4xl mx-auto space-y-12 pb-32 font-sans">
-      <header className="relative overflow-hidden bg-zinc-100 dark:bg-zinc-950 rounded-[3rem] p-12 border border-zinc-200 dark:border-white/[0.05] shadow-2xl">
+      <header className="relative overflow-hidden bg-zinc-100 dark:bg-zinc-950 rounded-[3rem] p-6 md:p-12 border border-zinc-200 dark:border-white/[0.05] shadow-2xl">
         <div className="absolute top-0 right-0 w-1/2 h-full bg-gradient-to-l from-black/[0.02] dark:from-white/[0.02] to-transparent pointer-events-none" />
         <div className="relative z-10">
-          <h1 className="text-5xl font-black text-zinc-900 dark:text-white tracking-tighter mb-2">SYSTEM<span className="text-zinc-400 dark:text-zinc-700">SETTINGS</span></h1>
+          <h1 className="text-4xl md:text-5xl font-black text-zinc-900 dark:text-white tracking-tighter mb-2">SYSTEM<span className="text-zinc-400 dark:text-zinc-700">SETTINGS</span></h1>
           <p className="text-zinc-500 font-bold uppercase tracking-[0.3em] text-[10px]">Intelligence Dashboard & Preference Control</p>
         </div>
       </header>
@@ -2859,7 +2859,7 @@ const SettingsView = ({
             </div>
           </div>
 
-          <div className="p-8 flex items-center justify-between group hover:bg-zinc-50 dark:hover:bg-white/[0.02] transition-colors">
+          <div className="p-5 sm:p-6 md:p-8 flex items-center justify-between group hover:bg-zinc-50 dark:hover:bg-white/[0.02] transition-colors">
             <div>
               <p className="text-[9px] font-black text-zinc-400 dark:text-zinc-600 uppercase tracking-widest mb-1">Display Name</p>
               <input 
@@ -2892,7 +2892,7 @@ const SettingsView = ({
           <Sun className="w-4 h-4" /> Visual Environment
         </div>
         <div className="bg-white dark:bg-zinc-900/40 backdrop-blur-3xl rounded-[2.5rem] border border-zinc-200 dark:border-white/[0.05] divide-y divide-zinc-200 dark:divide-white/[0.05] overflow-hidden shadow-2xl">
-          <div className="p-10 flex flex-col md:flex-row md:items-center justify-between gap-8">
+          <div className="p-10 flex flex-col md:flex-row md:items-center justify-between gap-5 sm:p-6 md:p-8">
             <div>
               <p className="text-[9px] font-black text-zinc-400 dark:text-zinc-600 uppercase tracking-widest mb-2">Interface Theme</p>
               <p className="text-zinc-900 dark:text-white font-black text-2xl uppercase tracking-tight">{theme}</p>
@@ -3017,24 +3017,24 @@ const SettingsView = ({
       </section>
 
       {/* Visual Density Footer */}
-      <div className="p-12 bg-zinc-900 dark:bg-white text-white dark:text-black rounded-[3rem] relative overflow-hidden shadow-2xl">
+      <div className="p-6 md:p-12 bg-zinc-900 dark:bg-white text-white dark:text-black rounded-[3rem] relative overflow-hidden shadow-2xl">
         <div className="absolute top-0 right-0 w-64 h-64 bg-zinc-800 dark:bg-zinc-100 blur-[80px] rounded-full -mr-32 -mt-32" />
-        <div className="relative z-10 grid grid-cols-2 md:grid-cols-4 gap-12">
+        <div className="relative z-10 grid grid-cols-2 md:grid-cols-4 gap-6 md:p-12">
           <div>
             <p className="text-[9px] font-black text-zinc-500 dark:text-zinc-400 uppercase tracking-widest mb-2">Quizzes Indexed</p>
-            <p className="text-5xl font-black tabular-nums">{history.length}</p>
+            <p className="text-4xl md:text-5xl font-black tabular-nums">{history.length}</p>
           </div>
           <div>
             <p className="text-[9px] font-black text-zinc-500 dark:text-zinc-400 uppercase tracking-widest mb-2">Mastery Index</p>
-            <p className="text-5xl font-black tabular-nums">{avgScore}%</p>
+            <p className="text-4xl md:text-5xl font-black tabular-nums">{avgScore}%</p>
           </div>
           <div>
             <p className="text-[9px] font-black text-zinc-500 dark:text-zinc-400 uppercase tracking-widest mb-2">Current Streak</p>
-            <p className="text-5xl font-black tabular-nums">{user.streak || 0}</p>
+            <p className="text-4xl md:text-5xl font-black tabular-nums">{user.streak || 0}</p>
           </div>
           <div>
             <p className="text-[9px] font-black text-zinc-500 dark:text-zinc-400 uppercase tracking-widest mb-2">Verification Rank</p>
-            <p className={cn("text-5xl font-black uppercase flex items-center gap-4", getVerificationRank(avgScore).color)}>
+            <p className={cn("text-4xl md:text-5xl font-black uppercase flex items-center gap-4", getVerificationRank(avgScore).color)}>
               {getVerificationRank(avgScore).rank}
               <span className="text-[10px] font-black bg-zinc-900/10 dark:bg-white/10 px-2 py-1 rounded-lg uppercase tracking-widest">v2.1</span>
             </p>
@@ -3891,7 +3891,7 @@ export default function App() {
             {isSidebarOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
           </button>
 
-          <div className="hidden md:flex items-center bg-zinc-100 dark:bg-zinc-900 rounded-2xl px-5 py-2.5 w-96 border border-zinc-200 dark:border-zinc-800 focus-within:ring-2 focus-within:ring-black/5 dark:focus-within:ring-white/10 transition-all">
+          <div className="hidden md:flex items-center bg-zinc-100 dark:bg-zinc-900 rounded-2xl px-5 py-2.5 w-full max-w-sm border border-zinc-200 dark:border-zinc-800 focus-within:ring-2 focus-within:ring-black/5 dark:focus-within:ring-white/10 transition-all">
             <Search className="w-4 h-4 text-zinc-400 dark:text-zinc-500 mr-3" />
             <input 
               type="text" 
@@ -3915,7 +3915,7 @@ export default function App() {
                   initial={{ opacity: 0, y: 10, scale: 0.95 }}
                   animate={{ opacity: 1, y: 0, scale: 1 }}
                   exit={{ opacity: 0, y: 10, scale: 0.95 }}
-                  className="absolute right-0 top-full mt-4 w-80 bg-white dark:bg-zinc-900 rounded-[2.5rem] border border-zinc-200 dark:border-zinc-800 shadow-2xl p-6 z-50 overflow-hidden"
+                  className="absolute right-0 top-full mt-4 w-[calc(100vw-2rem)] sm:w-80 bg-white dark:bg-zinc-900 rounded-[2.5rem] border border-zinc-200 dark:border-zinc-800 shadow-2xl p-6 z-50 overflow-hidden"
                 >
                   <h3 className="text-sm font-black text-zinc-900 dark:text-white uppercase tracking-widest mb-6 px-2">Recent Alerts</h3>
                   <div className="space-y-4">

@@ -66,7 +66,7 @@ export const AICopilot = ({ user }: { user: User }) => {
               animate={{ opacity: 1, y: 0, scale: 1 }}
               exit={{ opacity: 0, y: 20, scale: 0.95 }}
               transition={{ duration: 0.2, ease: "easeOut" }}
-              className="mb-4 w-[360px] md:w-[420px] h-[600px] max-h-[80vh] flex flex-col bg-white/80 dark:bg-zinc-950/80 backdrop-blur-3xl rounded-[2.5rem] border border-zinc-200/50 dark:border-white/10 shadow-[0_30px_100px_-15px_rgba(0,0,0,0.3)] overflow-hidden"
+              className="mb-4 w-[calc(100vw-2rem)] sm:w-[360px] md:w-[420px] h-[600px] max-h-[80vh] flex flex-col bg-white/80 dark:bg-zinc-950/80 backdrop-blur-3xl rounded-[2.5rem] border border-zinc-200/50 dark:border-white/10 shadow-[0_30px_100px_-15px_rgba(0,0,0,0.3)] overflow-hidden"
             >
               {/* Header */}
               <div className="p-6 pb-4 border-b border-zinc-200/50 dark:border-zinc-800/50 bg-gradient-to-r from-blue-500/5 via-indigo-500/5 to-purple-500/5 relative">
