@@ -1791,8 +1791,13 @@ const AssessmentView = ({
   showToast: (m: string, t?: 'success' | 'error' | 'info') => void
 }) => {
   const [localAssessments, setLocalAssessments] = useState<Assessment[]>(() => {
-    const saved = localStorage.getItem(`tvet_user_assessments_${user.id}`);
-    return saved ? [...assessments, ...JSON.parse(saved)] : assessments;
+    try {
+      const saved = localStorage.getItem(`tvet_user_assessments_${user.id}`);
+      return saved ? [...assessments, ...JSON.parse(saved)] : assessments;
+    } catch (e) {
+      console.error('Failed to parse tvet_user_assessments from localStorage', e);
+      return assessments;
+    }
   });
 
   const [activeExam, setActiveExam] = useState<Assessment | null>(reviewHistoryItem?.quiz || customQuiz || null);
@@ -3497,15 +3502,25 @@ const AuthView = ({ onLogin }: { onLogin: (userData: any, token?: string, isSign
 export default function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(() => localStorage.getItem('tvet_auth') === 'true');
   const [user, setUser] = useState<User>(() => {
-    const saved = localStorage.getItem('tvet_user');
-    return saved ? JSON.parse(saved) : MOCK_USER;
+    try {
+      const saved = localStorage.getItem('tvet_user');
+      return saved ? JSON.parse(saved) : MOCK_USER;
+    } catch (e) {
+      console.error('Failed to parse tvet_user from localStorage', e);
+      return MOCK_USER;
+    }
   });
   const [activeTab, setActiveTab] = useState('dashboard');
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [customQuiz, setCustomQuiz] = useState<Assessment | null>(null);
   const [history, setHistory] = useState<QuizHistoryItem[]>(() => {
-    const saved = localStorage.getItem('tvet_history');
-    return saved ? JSON.parse(saved) : [];
+    try {
+      const saved = localStorage.getItem('tvet_history');
+      return saved ? JSON.parse(saved) : [];
+    } catch (e) {
+      console.error('Failed to parse tvet_history from localStorage', e);
+      return [];
+    }
   });
   const [reviewHistoryItem, setReviewHistoryItem] = useState<QuizHistoryItem | null>(null);
   const [showNotifications, setShowNotifications] = useState(false);
@@ -3567,12 +3582,17 @@ export default function App() {
   }, [fontSize]);
 
   const [notifications, setNotifications] = useState(() => {
-    const saved = localStorage.getItem('tvet_notifications');
-    return saved ? JSON.parse(saved) : [
-      { id: 1, title: 'Exam Reminder', text: 'Final Theory Exam in 3 days!', type: 'critical', timestamp: new Date().toISOString() },
-      { id: 2, title: 'Achievement', text: 'You reached a 12-day study streak!', type: 'success', timestamp: new Date().toISOString() },
-      { id: 3, title: 'New Content', text: 'New past papers uploaded for Automotive.', type: 'info', timestamp: new Date().toISOString() },
-    ];
+    try {
+      const saved = localStorage.getItem('tvet_notifications');
+      return saved ? JSON.parse(saved) : [
+        { id: 1, title: 'Exam Reminder', text: 'Final Theory Exam in 3 days!', type: 'critical', timestamp: new Date().toISOString() },
+        { id: 2, title: 'Achievement', text: 'You reached a 12-day study streak!', type: 'success', timestamp: new Date().toISOString() },
+        { id: 3, title: 'New Content', text: 'New past papers uploaded for Automotive.', type: 'info', timestamp: new Date().toISOString() },
+      ];
+    } catch (e) {
+      console.error('Failed to parse tvet_notifications from localStorage', e);
+      return [];
+    }
   });
 
   useEffect(() => {

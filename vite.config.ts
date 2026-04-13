@@ -5,7 +5,6 @@ import {defineConfig, loadEnv} from 'vite';
 
 export default defineConfig(({mode}) => {
   const env = loadEnv(mode, '.', '');
-  // Use '/ishuri/' base only for GitHub Pages; Vercel serves from root '/'
   const isGitHubPages = process.env.DEPLOY_TARGET === 'gh-pages';
   return {
     base: isGitHubPages ? '/ishuri/' : '/',
