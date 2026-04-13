@@ -24,10 +24,19 @@ export default defineConfig(({mode}) => {
     build: {
       rollupOptions: {
         output: {
-          manualChunks: {
-            vendor: ['react', 'react-dom', 'framer-motion', 'recharts', 'lucide-react'],
-            pdf: ['jspdf', 'jspdf-autotable'],
-            ai: ['@google/generative-ai', '@google/genai']
+          manualChunks(id) {
+            if (id.includes('node_modules')) {
+              if (id.includes('recharts')) return 'vendor-recharts';
+              if (id.includes('framer-motion') || id.includes('motion')) return 'vendor-motion';
+              if (id.includes('lucide-react')) return 'vendor-icons';
+              if (id.includes('jspdf')) return 'vendor-pdf';
+              if (id.includes('@google/generative-ai') || id.includes('@google/genai')) return 'vendor-ai';
+              if (id.includes('react-dom')) return 'vendor-react-dom';
+              if (id.includes('react-markdown') || id.includes('remark') || id.includes('unified')) return 'vendor-markdown';
+              if (id.includes('hast') || id.includes('vfile') || id.includes('unist') || id.includes('micromark') || id.includes('mdast')) return 'vendor-markdown-deps';
+              if (id.includes('html2canvas')) return 'vendor-html2canvas';
+              return 'vendor-core';
+            }
           },
         },
       },
