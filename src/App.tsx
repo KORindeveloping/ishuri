@@ -40,6 +40,7 @@ import {
   ExternalLink,
   QrCode,
   GraduationCap,
+  Globe,
   ListChecks,
   Timer,
   Sun,
@@ -247,6 +248,17 @@ const DashboardView = ({ user, onStartQuiz, onLogout, history, onNavigate, showT
   const [customTopic, setCustomTopic] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
 
+  const [finalsDate, setFinalsDate] = useState(() => localStorage.getItem('finals_date') || '');
+  const [isSettingDate, setIsSettingDate] = useState(false);
+
+  const daysRemaining = finalsDate ? Math.max(0, Math.ceil((new Date(finalsDate).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24))) : null;
+
+  const handleSetFinalsDate = (date: string) => {
+    setFinalsDate(date);
+    localStorage.setItem('finals_date', date);
+    setIsSettingDate(false);
+  };
+
   const tradeCompetency = user?.competencies?.[0];
   const skills = tradeCompetency?.skills || [];
   const onboardingSubjects = (user?.subjects || '').split(',').map(s => s.trim()).filter(Boolean);
@@ -349,16 +361,36 @@ const DashboardView = ({ user, onStartQuiz, onLogout, history, onNavigate, showT
         <div className="flex items-center gap-10 relative z-10">
           <div className="text-right">
             <p className="text-[10px] font-black text-zinc-500 dark:text-zinc-600 uppercase tracking-[0.4em] mb-2">Finals Countdown</p>
-            <div className="flex items-baseline gap-2 justify-end">
-              <span className="text-6xl font-black text-zinc-900 dark:text-white tracking-tighter tabular-nums">14</span>
-              <span className="text-xs font-black text-zinc-400 dark:text-zinc-500 uppercase tracking-widest">Days</span>
+            <div className="flex items-baseline gap-2 justify-end cursor-pointer group" onClick={() => setIsSettingDate(true)}>
+              {isSettingDate ? (
+                <div className="flex flex-col items-end gap-2 animate-in slide-in-from-right-4 duration-300">
+                  <input 
+                    type="date" 
+                    autoFocus
+                    onChange={(e) => handleSetFinalsDate(e.target.value)}
+                    onBlur={() => setIsSettingDate(false)}
+                    className="bg-zinc-100 dark:bg-zinc-900 border border-zinc-200 dark:border-white/10 rounded-xl px-4 py-2 text-xs font-black text-zinc-900 dark:text-white outline-none focus:ring-2 focus:ring-indigo-500"
+                  />
+                  <p className="text-[9px] font-black text-zinc-400 uppercase tracking-widest">Set Finals Day</p>
+                </div>
+              ) : (
+                <>
+                  <span className="text-6xl font-black text-zinc-900 dark:text-white tracking-tighter tabular-nums group-hover:scale-110 transition-transform">
+                    {daysRemaining !== null ? daysRemaining : '--'}
+                  </span>
+                  <span className="text-xs font-black text-zinc-400 dark:text-zinc-500 uppercase tracking-widest">
+                    {daysRemaining === 1 ? 'Day' : 'Days'}
+                  </span>
+                </>
+              )}
             </div>
           </div>
           <motion.div 
             whileHover={{ scale: 1.05, rotate: 5 }}
-            className="w-20 h-20 rounded-[2.5rem] bg-zinc-900 dark:bg-white flex items-center justify-center shadow-[0_20px_50px_rgba(0,0,0,0.1)] dark:shadow-[0_20px_50px_rgba(255,255,255,0.15)]"
+            onClick={() => setIsSettingDate(true)}
+            className="w-20 h-20 rounded-[2.5rem] bg-zinc-900 dark:bg-white flex items-center justify-center shadow-[0_20px_50px_rgba(0,0,0,0.1)] dark:shadow-[0_20px_50px_rgba(255,255,255,0.15)] cursor-pointer group"
           >
-            <Calendar className="w-10 h-10 text-white dark:text-black" />
+            <Calendar className="w-10 h-10 text-white dark:text-black group-hover:animate-bounce" />
           </motion.div>
         </div>
       </header>
@@ -3497,20 +3529,20 @@ const AuthView = ({ onLogin }: { onLogin: (userData: any, token?: string, isSign
                   </div>
 
                   <div className="space-y-2">
-                    <label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest ml-2">Trade Specialization</label>
+                    <label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest ml-2">Country</label>
                     <div className="relative group">
-                      <GraduationCap className="absolute left-5 top-1/2 -translate-y-1/2 w-5 h-5 text-zinc-600 group-focus-within:text-white transition-colors" />
+                      <Globe className="absolute left-5 top-1/2 -translate-y-1/2 w-5 h-5 text-zinc-600 group-focus-within:text-white transition-colors" />
                       <select 
                         value={trade}
                         onChange={(e) => setTrade(e.target.value as Trade)}
                         className="w-full bg-black/40 border-white/[0.05] rounded-[1.25rem] py-4.5 pl-14 pr-5 text-white focus:ring-2 focus:ring-white/10 focus:border-white/20 transition-all outline-none appearance-none text-sm font-medium cursor-pointer"
                       >
-                        <option value="Sciences">Applied Sciences</option>
-                        <option value="Automotive">Automotive Engineering</option>
-                        <option value="IT">Information Technology</option>
-                        <option value="Electrical">Electrical Technology</option>
-                        <option value="Plumbing">Plumbing & Hydraulics</option>
-                        <option value="Welding">Advanced Welding</option>
+                        <option value="Rwanda">Rwanda</option>
+                        <option value="Uganda">Uganda</option>
+                        <option value="Kenya">Kenya</option>
+                        <option value="Tanzania">Tanzania</option>
+                        <option value="Burundi">Burundi</option>
+                        <option value="Nigeria">Nigeria</option>
                       </select>
                     </div>
                   </div>
@@ -3599,7 +3631,6 @@ export default function App() {
     try {
       const saved = localStorage.getItem('tvet_user');
       const parsed = saved ? JSON.parse(saved) : MOCK_USER;
-      console.log('App initialized with user:', parsed);
       return parsed || MOCK_USER;
     } catch (e) {
       console.error('Failed to parse tvet_user from localStorage', e);
@@ -3607,10 +3638,6 @@ export default function App() {
     }
   });
   
-  useEffect(() => {
-    console.log('Current Auth State:', isAuthenticated);
-    console.log('Current User State:', user);
-  }, [isAuthenticated, user]);
   const [activeTab, setActiveTab] = useState('dashboard');
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [customQuiz, setCustomQuiz] = useState<Assessment | null>(null);

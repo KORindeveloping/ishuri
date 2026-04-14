@@ -1,4 +1,4 @@
-export type Trade = 'Automotive' | 'Plumbing' | 'IT' | 'Electrical' | 'Welding' | 'Sciences' | 'General';
+export type Trade = 'Automotive' | 'Plumbing' | 'IT' | 'Electrical' | 'Welding' | 'Sciences' | 'General' | 'Rwanda' | 'Uganda' | 'Kenya' | 'Tanzania' | 'Burundi' | 'Nigeria';
 
 export type CompetencyStatus = 'Not Yet Competent' | 'Competent' | 'Advanced';
 
