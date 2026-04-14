@@ -15,7 +15,7 @@ async function testDirect() {
 
   try {
     const genAI = new GoogleGenerativeAI(key);
-    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+    const model = genAI.getGenerativeModel({ model: "gemini-pro" });
     
     console.log("Sending message to Gemini...");
     const result = await model.generateContent("Say 'Gemini is connected!' if you can hear me.");
