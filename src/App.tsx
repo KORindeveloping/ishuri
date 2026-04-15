@@ -1407,6 +1407,9 @@ const FlashcardsView = ({ user, showToast }: { user: User, showToast: (m: string
         )}
       </AnimatePresence>
     </div>
+  );
+};
+
 const PlannerView = ({ user, showToast }: { 
   user: User,
   showToast: (m: string, t?: 'success' | 'error' | 'info') => void
