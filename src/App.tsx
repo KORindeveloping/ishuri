@@ -443,42 +443,70 @@ const DashboardView = ({ user, onStartQuiz, onLogout, history, onNavigate, showT
                 Detailed Analytics
               </button>
             </div>
-            <div className="space-y-8">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {subjects.map((subject, idx) => (
-                <div 
+                <motion.div 
                   key={subject.name}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: idx * 0.1 }}
                   onClick={() => !generatingQuiz && startPracticeQuiz(subject.name)}
                   className={cn(
-                    "p-4 rounded-2xl border border-transparent hover:bg-zinc-50 dark:hover:bg-black/40 hover:border-zinc-200 dark:hover:border-zinc-800 transition-all cursor-pointer group/subject relative",
+                    "group relative bg-white dark:bg-zinc-900 rounded-[2.5rem] p-8 border border-zinc-200 dark:border-zinc-800 shadow-sm hover:shadow-2xl transition-all cursor-pointer overflow-hidden",
                     `dashboard-card-${(idx + 4) % 10}`,
                     generatingQuiz === subject.name && "opacity-60 cursor-wait"
                   )}
                 >
-                  <div className="flex items-center justify-between mb-3">
-                    <div className="flex items-center gap-3">
-                      <span className="text-sm font-black text-zinc-600 dark:text-zinc-300 uppercase tracking-wide group-hover/subject:text-zinc-900 dark:group-hover/subject:text-white transition-colors">{subject.name}</span>
+                  <div className="absolute top-0 right-0 w-32 h-32 bg-zinc-100 dark:bg-zinc-800/50 blur-3xl -mr-16 -mt-16 transition-transform group-hover:scale-150" />
+                  
+                  <div className="flex justify-between items-start mb-6 relative z-10">
+                    <div className="flex flex-col gap-1">
+                      <span className="text-[9px] font-black text-zinc-400 uppercase tracking-[0.2em]">Module {String(idx + 1).padStart(2, '0')}</span>
+                      <h3 className="text-xl font-black text-zinc-900 dark:text-white uppercase tracking-tight leading-none max-w-[80%]">
+                        {subject.name.split('(')[0].trim()}
+                      </h3>
+                    </div>
+                    <RAGBadge status={subject.progress >= 80 ? 'Competent' : 'Not Yet Competent'} progress={subject.progress} />
+                  </div>
+
+                  {subject.name.includes('(') && (
+                    <div className="mb-6 flex flex-wrap gap-2 relative z-10">
+                      {subject.name.match(/\((.*?)\)/)?.[1].split(',').map((sub, i) => (
+                        <span key={i} className="px-2 py-1 bg-zinc-100 dark:bg-zinc-800 rounded-lg text-[8px] font-black text-zinc-500 uppercase tracking-widest border border-zinc-200 dark:border-zinc-700">
+                          {sub.trim()}
+                        </span>
+                      ))}
+                    </div>
+                  )}
+
+                  <div className="space-y-4 relative z-10">
+                    <div className="flex justify-between items-end">
+                      <div className="flex flex-col">
+                        <span className="text-[9px] font-black text-zinc-400 uppercase tracking-widest">Trade Mastery</span>
+                        <span className="text-2xl font-black text-zinc-900 dark:text-white">{subject.progress}%</span>
+                      </div>
                       {generatingQuiz === subject.name ? (
-                        <div className="w-3 h-3 border-2 border-zinc-900 dark:border-white border-t-transparent rounded-full animate-spin" />
+                        <div className="w-8 h-8 border-2 border-zinc-900 dark:border-white border-t-transparent rounded-full animate-spin" />
                       ) : (
-                        <div className="px-2 py-0.5 rounded-full bg-zinc-100 dark:bg-white/10 text-[8px] font-black text-zinc-500 dark:text-zinc-500 uppercase tracking-widest group-hover/subject:bg-zinc-900 dark:group-hover/subject:bg-white group-hover/subject:text-white dark:group-hover/subject:text-black transition-all">
-                          Master Topic
+                        <div className="px-4 py-2 rounded-xl bg-zinc-900 dark:bg-white text-white dark:text-black text-[9px] font-black uppercase tracking-widest hover:scale-105 transition-all shadow-lg">
+                          Start Quiz
                         </div>
                       )}
                     </div>
-                    <span className="text-xs font-black text-zinc-900 dark:text-white tabular-nums">{subject.progress}%</span>
+                    
+                    <div className="h-1.5 w-full bg-zinc-100 dark:bg-black rounded-full overflow-hidden border border-zinc-200 dark:border-zinc-800 p-0.5">
+                      <motion.div 
+                        initial={{ width: 0 }}
+                        animate={{ width: `${subject.progress}%` }}
+                        className={cn(
+                          "h-full rounded-full transition-all duration-1000",
+                          subject.progress >= 80 ? "bg-zinc-900 dark:bg-white" : 
+                          subject.progress >= 40 ? "bg-zinc-500" : "bg-zinc-300 dark:bg-zinc-800"
+                        )}
+                      />
+                    </div>
                   </div>
-                  <div className="w-full h-3 bg-zinc-100 dark:bg-black rounded-full overflow-hidden border border-zinc-200 dark:border-zinc-800 p-0.5">
-                    <motion.div 
-                      initial={{ width: 0 }}
-                      animate={{ width: `${subject.progress}%` }}
-                      className={cn(
-                        "h-full rounded-full transition-all duration-1000",
-                        subject.progress >= 80 ? "bg-zinc-900 dark:bg-white shadow-[0_0_15px_rgba(0,0,0,0.1)] dark:shadow-[0_0_15px_rgba(255,255,255,0.3)]" : 
-                        subject.progress >= 40 ? "bg-zinc-500" : "bg-zinc-300 dark:bg-zinc-800"
-                      )}
-                    />
-                  </div>
-                </div>
+                </motion.div>
               ))}
             </div>
           </section>
@@ -3218,11 +3246,43 @@ const OnboardingPrompt = ({ user, onComplete }: { user: User, onComplete: (updat
     'HEGL': ['History', 'Economics', 'Geography', 'Literature'],
     'HLP': ['History', 'Literature', 'Philosophy'],
     'LFK': ['Literature', 'French', 'Kinyarwanda'],
-    'SOD': ['Python, Java, C++', 'Data Structures & Algorithms', 'Database Management Systems', 'Software Engineering Methodologies'],
-    'NIT': ['Networking Fundamentals', 'Linux Server Administration', 'Cloud Computing', 'Cyber Security', 'Python Programming', 'Zero Client Application'],
-    'BDC': ['Technical Drawings', 'Masonry & Structural Work', 'Quantity Calculation', 'Safety & Standards', 'Construction Techniques'],
-    'MMP': ['Video Production', '2D Animation', 'Graphic Design', 'Audio & Sound', 'Lighting & Camera', 'Design & Post-Production'],
-    'Landsurvey': ['Surveying Computations', 'Instrument Operations', 'Cadastral & Land Law', 'Advanced Mapping & GIS', 'Practical Field Work'],
+    'SOD': [
+      'Python, Java, C++ Programming',
+      'Data Structures & Algorithms',
+      'Database Management Systems',
+      'Software Engineering Methodologies'
+    ],
+    'NIT': [
+      'Networking & Internet Tech (Network Design, IP Addressing, Protocols)',
+      'Linux Server Administration (Installation, Config, Management)',
+      'Cloud Computing Technology (Cloud Services, Data Centers)',
+      'Cyber Security (Infrastructure & Data Security)',
+      'Python Programming Fundamentals (Automation & Scripting)',
+      'Zero Client Application'
+    ],
+    'BDC': [
+      'Interpreting Technical Drawings & Layouts',
+      'Masonry & Structural Work',
+      'Quantity Calculation & Cost Estimation',
+      'Safety & Standards (Building Codes)',
+      'Construction Techniques (Flooring, Plumbing, Electrical)'
+    ],
+    'MMP': [
+      'Video Production (Shooting, Angles, B-rolls)',
+      '2D Animation Production & Character Design',
+      'Graphic Design (Photoshop, Typography, Layout)',
+      'Audio & Sound (Recording & Mixing)',
+      'Lighting & Camera Operation (Frame Rates, White Balance)',
+      'Design Fundamentals (Storyboarding, Scripts)',
+      'Post-Production (Video Export Settings)'
+    ],
+    'Landsurvey': [
+      'Surveying Computations (Area, Traverse, Error Product)',
+      'Instrument Operations (Total Station, Leveling)',
+      'Cadastral & Land Law (Registration, Inspection)',
+      'Advanced Mapping & GIS (ArcGIS, Projections)',
+      'Practical Field Work (Curves, Spirit Leveling)'
+    ],
   };
 
   useEffect(() => {
