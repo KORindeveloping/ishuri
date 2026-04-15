@@ -3209,17 +3209,30 @@ const OnboardingPrompt = ({ user, onComplete }: { user: User, onComplete: (updat
     'Lower Secondary (Senior 1-3)': 'Sciences (Maths, Physics, Chemistry, Biology, ICT), Humanities (History, Geography, Religion & Ethics), Languages (Kinyarwanda, English, French, Kiswahili), Entrepreneurship, Agriculture, Home Science, Music, Fine Arts',
   };
 
+  const combinationMapping: Record<string, string[]> = {
+    'PCB': ['Physics', 'Chemistry', 'Biology'],
+    'PCM': ['Physics', 'Chemistry', 'Mathematics'],
+    'MPC': ['Mathematics', 'Physics', 'Computer Science'],
+    'MEG': ['Mathematics', 'Economics', 'Geography'],
+    'MCE': ['Mathematics', 'Computer Science', 'Economics'],
+    'HEGL': ['History', 'Economics', 'Geography', 'Literature'],
+    'HLP': ['History', 'Literature', 'Philosophy'],
+    'LFK': ['Literature', 'French', 'Kinyarwanda'],
+  };
+
   useEffect(() => {
     if (educationLevel === 'Primary One to Primary 6') {
       setSubjects('Kinyarwanda, English, Mathematics, Science & Tech, Social Studies, Creative Arts, Physical Education');
+    } else if (combination && combinationMapping[combination]) {
+      setSubjects(combinationMapping[combination].join(', '));
     } else if (subjectMapping[educationLevel]) {
       setSubjects(subjectMapping[educationLevel]);
     }
-  }, [educationLevel]);
+  }, [educationLevel, combination]);
 
   const steps = [
     { title: "Education Level", icon: GraduationCap },
-    { title: "Subjects to learn?", icon: BookOpen },
+    { title: "Review Subjects", icon: BookOpen },
     { title: "Best study time?", icon: Clock },
   ];
 
@@ -3244,8 +3257,23 @@ const OnboardingPrompt = ({ user, onComplete }: { user: User, onComplete: (updat
     }
   };
 
+  const isStepValid = () => {
+    if (step === 1) {
+      if (!educationLevel) return false;
+      if ((educationLevel === 'Upper Secondary (S4-S6)' || educationLevel === 'TVET') && !combination) return false;
+      return true;
+    }
+    if (step === 2) {
+      return subjects.length > 0;
+    }
+    if (step === 3) {
+      return !!studyTime;
+    }
+    return false;
+  };
+
   return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center p-6 bg-black/80 backdrop-blur-md">
+    <div className="fixed inset-0 z-[150] flex items-center justify-center p-6 bg-black/90 backdrop-blur-xl">
       <motion.div 
         initial={{ opacity: 0, scale: 0.9, y: 30 }}
         animate={{ opacity: 1, scale: 1, y: 0 }}
@@ -3258,7 +3286,7 @@ const OnboardingPrompt = ({ user, onComplete }: { user: User, onComplete: (updat
               key={i} 
               className={cn(
                 "h-1.5 flex-1 rounded-full transition-all duration-500",
-                step > i ? "bg-white shadow-[0_0_15px_rgba(255,255,255,0.3)]" : "bg-zinc-800"
+                step > i ? "bg-white shadow-[0_0_15px_rgba(255,255,255,0.5)]" : "bg-zinc-800"
               )} 
             />
           ))}
@@ -3291,7 +3319,7 @@ const OnboardingPrompt = ({ user, onComplete }: { user: User, onComplete: (updat
                       }}
                       className={cn(
                         "p-5 rounded-2xl border text-left flex items-center justify-between transition-all group",
-                        educationLevel === l ? "bg-white text-black border-white shadow-xl shadow-white/10" : "bg-black/40 text-zinc-500 border-zinc-800 hover:border-zinc-700"
+                        educationLevel === l ? "bg-white text-black border-white shadow-[0_0_20px_rgba(255,255,255,0.2)]" : "bg-black/40 text-zinc-500 border-zinc-800 hover:border-zinc-700"
                       )}
                     >
                       <span className="font-black uppercase tracking-widest text-xs">{l}</span>
@@ -3319,7 +3347,7 @@ const OnboardingPrompt = ({ user, onComplete }: { user: User, onComplete: (updat
                                 onClick={() => setCombination(opt)}
                                 className={cn(
                                   "px-4 py-2 rounded-xl border text-[10px] font-black tracking-widest transition-all",
-                                  combination === opt ? "bg-white text-black border-white" : "bg-zinc-800 text-zinc-500 border-zinc-700 hover:border-zinc-600"
+                                  combination === opt ? "bg-white text-black border-white shadow-[0_0_15px_rgba(255,255,255,0.1)]" : "bg-zinc-800 text-zinc-500 border-zinc-700 hover:border-zinc-600"
                                 )}
                               >
                                 {opt}
@@ -3346,7 +3374,7 @@ const OnboardingPrompt = ({ user, onComplete }: { user: User, onComplete: (updat
                             onClick={() => setCombination(opt)}
                             className={cn(
                               "px-4 py-2 rounded-xl border text-[10px] font-black tracking-widest transition-all",
-                              combination === opt ? "bg-white text-black border-white" : "bg-zinc-800 text-zinc-500 border-zinc-700 hover:border-zinc-600"
+                              combination === opt ? "bg-white text-black border-white shadow-[0_0_15px_rgba(255,255,255,0.1)]" : "bg-zinc-800 text-zinc-500 border-zinc-700 hover:border-zinc-600"
                             )}
                           >
                             {opt}
@@ -3360,14 +3388,32 @@ const OnboardingPrompt = ({ user, onComplete }: { user: User, onComplete: (updat
             )}
 
             {step === 2 && (
-              <div className="space-y-4">
-                <p className="text-zinc-500 text-xs font-bold uppercase tracking-widest leading-loose">Enter the subjects you need to master for your trade certification.</p>
-                <textarea 
-                  value={subjects}
-                  onChange={(e) => setSubjects(e.target.value)}
-                  placeholder="e.g. Engine Theory, Hydraulics, Vehicle Dynamics..."
-                  className="w-full h-32 bg-black/40 border border-zinc-800 rounded-3xl p-6 text-white outline-none focus:ring-2 focus:ring-white/10 transition-all resize-none font-medium"
-                />
+              <div className="space-y-6">
+                <p className="text-zinc-500 text-xs font-bold uppercase tracking-widest leading-loose">
+                  {combinationMapping[combination] 
+                    ? "Your fixed subjects for this combination:" 
+                    : "Review or enter the subjects you need to master."}
+                </p>
+                
+                {combination && combinationMapping[combination] ? (
+                  <div className="grid grid-cols-1 gap-2">
+                    {combinationMapping[combination].map((s, idx) => (
+                      <div key={idx} className="p-4 bg-white/5 border border-zinc-800 rounded-2xl flex items-center gap-4 group hover:border-zinc-700 transition-all">
+                        <div className="w-8 h-8 rounded-lg bg-zinc-800 flex items-center justify-center text-[10px] font-black text-zinc-500">
+                          0{idx + 1}
+                        </div>
+                        <span className="text-white text-sm font-bold uppercase tracking-wider">{s}</span>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <textarea 
+                    value={subjects}
+                    onChange={(e) => setSubjects(e.target.value)}
+                    placeholder="e.g. Engine Theory, Hydraulics, Vehicle Dynamics..."
+                    className="w-full h-40 bg-black/40 border border-zinc-800 rounded-3xl p-6 text-white outline-none focus:ring-2 focus:ring-white/10 transition-all resize-none font-medium text-sm"
+                  />
+                )}
               </div>
             )}
 
@@ -3383,7 +3429,7 @@ const OnboardingPrompt = ({ user, onComplete }: { user: User, onComplete: (updat
                     onClick={() => setStudyTime(t.label)}
                     className={cn(
                       "flex flex-col items-center justify-center p-6 bg-black/40 border border-zinc-800 rounded-3xl gap-4 transition-all hover:border-white/20",
-                      studyTime === t.label ? "bg-white text-black border-white shadow-xl shadow-white/10" : "text-zinc-500"
+                      studyTime === t.label ? "bg-white text-black border-white shadow-[0_0_20px_rgba(255,255,255,0.2)]" : "text-zinc-500"
                     )}
                   >
                     <t.icon className="w-8 h-8" />
@@ -3406,12 +3452,16 @@ const OnboardingPrompt = ({ user, onComplete }: { user: User, onComplete: (updat
           )}
           <button 
             onClick={() => {
-              if (step === 1 && !educationLevel) return;
-              if (step === 1 && (educationLevel === 'Upper Secondary (S4-S6)' || educationLevel === 'TVET') && !combination) return;
+              if (!isStepValid()) return;
               step < 3 ? setStep(step + 1) : handleFinish();
             }}
-            disabled={loading || (step === 1 && !educationLevel) || (step === 1 && (educationLevel === 'Upper Secondary (S4-S6)' || educationLevel === 'TVET') && !combination)}
-            className="flex-1 py-5 bg-white text-black rounded-2xl font-black uppercase tracking-widest text-[10px] shadow-xl shadow-white/10 hover:bg-zinc-100 transition-all flex items-center justify-center gap-2 disabled:opacity-30 disabled:cursor-not-allowed"
+            disabled={loading || !isStepValid()}
+            className={cn(
+              "flex-1 py-5 rounded-2xl font-black uppercase tracking-widest text-[10px] transition-all flex items-center justify-center gap-2",
+              isStepValid() 
+                ? "bg-white text-black shadow-[0_0_25px_rgba(255,255,255,0.2)] hover:bg-zinc-100" 
+                : "bg-zinc-800 text-zinc-600 cursor-not-allowed opacity-50"
+            )}
           >
             {loading ? (
               <div className="w-5 h-5 border-2 border-black/20 border-t-black rounded-full animate-spin" />
@@ -3908,7 +3958,21 @@ export default function App() {
             history={history}
             onLogout={handleLogout}
           />
-        );        default: return <DashboardView user={user} onStartQuiz={handleStartCustomQuiz} onLogout={handleLogout} history={history} onNavigate={handleTabChange} showToast={showToast} />;
+        );
+        default: return (
+          <DashboardView 
+            user={user} 
+            onStartQuiz={handleStartCustomQuiz} 
+            onLogout={handleLogout} 
+            history={history} 
+            onNavigate={handleTabChange} 
+            showToast={showToast} 
+            onCourseAI={(course) => {
+              setSelectedCourse(course);
+              setShowCourseAI(true);
+            }}
+          />
+        );
       }
     })();
 
@@ -3926,10 +3990,9 @@ export default function App() {
 
   return (
     <div className="min-h-screen bg-white dark:bg-[#050505] font-sans text-zinc-900 dark:text-white flex transition-colors duration-500">
-      <AICopilot user={user} />
-      
-      <AnimatePresence>
-        {showCourseAI && (
+      {!showOnboarding && <AICopilot user={user} />}
+
+      <AnimatePresence>        {showCourseAI && (
           <CourseLessonsAI user={user} onClose={() => setShowCourseAI(false)} initialCourse={selectedCourse} />
         )}
       </AnimatePresence>

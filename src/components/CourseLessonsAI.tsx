@@ -335,9 +335,11 @@ export const CourseLessonsAI = ({ user, onClose, initialCourse }: { user: User; 
                             ? "bg-zinc-900 dark:bg-white text-white dark:text-black rounded-tr-none" 
                             : "bg-zinc-50 dark:bg-zinc-900 text-zinc-800 dark:text-zinc-200 rounded-tl-none border border-zinc-200 dark:border-zinc-800"
                         )}>
-                          <ReactMarkdown className="prose prose-sm dark:prose-invert max-w-none prose-p:leading-relaxed prose-pre:bg-black/5 dark:prose-pre:bg-white/5 prose-pre:rounded-2xl">
-                            {msg.text}
-                          </ReactMarkdown>
+                          <div className="prose prose-sm dark:prose-invert max-w-none prose-p:leading-relaxed prose-pre:bg-black/5 dark:prose-pre:bg-white/5 prose-pre:rounded-2xl">
+                            <ReactMarkdown>
+                              {msg.text}
+                            </ReactMarkdown>
+                          </div>
                           
                           {msg.options && msg.id === messages[messages.length - 1].id && (
                             <div className="flex flex-wrap gap-3 mt-6">
