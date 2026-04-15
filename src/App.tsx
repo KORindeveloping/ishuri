@@ -3218,6 +3218,11 @@ const OnboardingPrompt = ({ user, onComplete }: { user: User, onComplete: (updat
     'HEGL': ['History', 'Economics', 'Geography', 'Literature'],
     'HLP': ['History', 'Literature', 'Philosophy'],
     'LFK': ['Literature', 'French', 'Kinyarwanda'],
+    'SOD': ['Python, Java, C++', 'Data Structures & Algorithms', 'Database Management Systems', 'Software Engineering Methodologies'],
+    'NIT': ['Networking Fundamentals', 'Linux Server Administration', 'Cloud Computing', 'Cyber Security', 'Python Programming', 'Zero Client Application'],
+    'BDC': ['Technical Drawings', 'Masonry & Structural Work', 'Quantity Calculation', 'Safety & Standards', 'Construction Techniques'],
+    'MMP': ['Video Production', '2D Animation', 'Graphic Design', 'Audio & Sound', 'Lighting & Camera', 'Design & Post-Production'],
+    'Landsurvey': ['Surveying Computations', 'Instrument Operations', 'Cadastral & Land Law', 'Advanced Mapping & GIS', 'Practical Field Work'],
   };
 
   useEffect(() => {
