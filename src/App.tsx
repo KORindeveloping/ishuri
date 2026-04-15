@@ -310,6 +310,42 @@ const DashboardView = ({ user, onStartQuiz, onLogout, history, onNavigate, showT
   const [newGoalUrgency, setNewGoalUrgency] = useState<'critical' | 'soon' | 'later'>('soon');
   const [newGoalDate, setNewGoalDate] = useState('');
 
+  const [isAiDashboard, setIsAiDashboard] = useState(false);
+  const [aiSubjects, setAiSubjects] = useState<{ name: string, progress: number }[]>([]);
+
+  const generateAiDashboard = async () => {
+    setGeneratingQuiz("AI_ARCHITECT");
+    try {
+      const historySummary = history.slice(0, 10).map(h => `${h.subject}: ${h.score}/${h.totalPoints}`).join(', ');
+      const prompt = `Act as a TVET Academic Architect. Based on my recent study history: [${historySummary || 'No history yet'}] and my trade: ${user.trade}, generate a personalized dashboard of 6 specific "Mastery Modules". 
+      
+      RULES:
+      1. If I have high scores in a topic, suggest an "Advanced" or "Professional" version of that module.
+      2. If I have low scores, suggest a "Foundations" or "Remedial" module for that topic.
+      3. If I haven't studied something from my trade yet, suggest a "Core Entry" module.
+      4. Use technical, professional names (e.g., 'Subnetting Mastery' instead of just 'Math').
+      
+      Return ONLY a JSON array of objects with "name" and "progress" (use 0 if it's a new suggestion, or my average score if it's based on history).
+      Example format: [{"name": "Module Name", "progress": 45}]`;
+      
+      const response = await api.sendChatMessage(prompt, []);
+      const jsonMatch = response.reply.match(/\[[\s\S]*\]/);
+      if (jsonMatch) {
+        const generated = JSON.parse(jsonMatch[0]);
+        setAiSubjects(generated);
+        setIsAiDashboard(true);
+        showToast("AI Dashboard Architected!", "success");
+      }
+    } catch (e) {
+      console.error(e);
+      showToast("AI Architect failed to build dashboard.", "error");
+    } finally {
+      setGeneratingQuiz(null);
+    }
+  };
+
+  const displaySubjects = isAiDashboard ? aiSubjects : subjects;
+
   return (
     <div className="space-y-12 pb-24 font-sans relative">
       <AnimatePresence>
@@ -324,17 +360,19 @@ const DashboardView = ({ user, onStartQuiz, onLogout, history, onNavigate, showT
                     <Sparkles className="w-10 h-10 text-indigo-400 animate-pulse" />
                   </div>
                </div>
-               <h3 className="text-2xl font-black text-white uppercase tracking-widest mb-4">AI Engine Active</h3>
+               <h3 className="text-2xl font-black text-white uppercase tracking-widest mb-4">
+                 {generatingQuiz === "AI_ARCHITECT" ? "Architecting Dashboard" : "AI Engine Active"}
+               </h3>
                <div className="h-6 overflow-hidden">
                  <motion.div
                    animate={{ y: [0, -24, -48, -72] }}
                    transition={{ repeat: Infinity, duration: 4, ease: "linear" }}
                    className="text-[10px] font-black text-zinc-400 flex flex-col items-center gap-1 leading-6 uppercase tracking-[0.2em]"
                  >
-                   <span className="h-6">Analyzing Competency Profile...</span>
-                   <span className="h-6">Cross-referencing Syllabus...</span>
-                   <span className="h-6">Crafting Technical Questions...</span>
-                   <span className="h-6">Calibrating Difficulty...</span>
+                   <span className="h-6">{generatingQuiz === "AI_ARCHITECT" ? "Mapping Learning History..." : "Analyzing Competency Profile..."}</span>
+                   <span className="h-6">{generatingQuiz === "AI_ARCHITECT" ? "Synthesizing New Modules..." : "Cross-referencing Syllabus..."}</span>
+                   <span className="h-6">{generatingQuiz === "AI_ARCHITECT" ? "Calibrating Difficulty..." : "Crafting Technical Questions..."}</span>
+                   <span className="h-6">Finalizing View...</span>
                  </motion.div>
                </div>
              </motion.div>
@@ -431,20 +469,46 @@ const DashboardView = ({ user, onStartQuiz, onLogout, history, onNavigate, showT
         {/* Left Column */}
         <div className="lg:col-span-2 space-y-8">
           {/* Subject Progress */}
-          <section className="bg-white dark:bg-zinc-900 p-5 sm:p-6 md:p-8 rounded-[2rem] border border-zinc-200 dark:border-zinc-800 shadow-sm">
-            <div className="flex items-center justify-between mb-8">
-              <h2 className="text-xl font-black text-zinc-900 dark:text-white flex items-center gap-3 uppercase tracking-tight">
-                <BarChart3 className="w-6 h-6 text-zinc-400 dark:text-zinc-500" /> Subject Progress
-              </h2>
-              <button 
-                onClick={() => onNavigate('analytics')}
-                className="text-[10px] font-black text-zinc-400 dark:text-zinc-500 hover:text-zinc-900 dark:hover:text-white uppercase tracking-widest transition-colors"
-              >
-                Detailed Analytics
-              </button>
+          <section className="bg-white dark:bg-zinc-900 p-5 sm:p-6 md:p-8 rounded-[2rem] border border-zinc-200 dark:border-zinc-800 shadow-sm relative overflow-hidden">
+            <div className="absolute top-0 right-0 p-8 opacity-5">
+              <Sparkles className="w-32 h-32" />
             </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {subjects.map((subject, idx) => (
+            
+            <div className="flex flex-col md:flex-row md:items-center justify-between mb-8 gap-4 relative z-10">
+              <div>
+                <h2 className="text-xl font-black text-zinc-900 dark:text-white flex items-center gap-3 uppercase tracking-tight">
+                  <BarChart3 className="w-6 h-6 text-zinc-400 dark:text-zinc-500" /> 
+                  {isAiDashboard ? 'AI Personalized Roadmap' : 'Subject Progress'}
+                </h2>
+                <p className="text-[10px] font-black text-zinc-500 uppercase tracking-widest mt-1">
+                  {isAiDashboard ? 'Generated based on your study history' : 'Official National Curriculum'}
+                </p>
+              </div>
+              
+              <div className="flex items-center gap-3">
+                <button 
+                  onClick={() => isAiDashboard ? setIsAiDashboard(false) : generateAiDashboard()}
+                  className={cn(
+                    "flex items-center gap-2 px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all",
+                    isAiDashboard 
+                      ? "bg-indigo-500 text-white shadow-lg shadow-indigo-500/20" 
+                      : "bg-zinc-100 dark:bg-zinc-800 text-zinc-500 hover:text-zinc-900 dark:hover:text-white"
+                  )}
+                >
+                  <Sparkles className={cn("w-3.5 h-3.5", isAiDashboard && "animate-pulse")} />
+                  {isAiDashboard ? 'AI Dashboard Active' : 'Architect AI Dashboard'}
+                </button>
+                <button 
+                  onClick={() => onNavigate('analytics')}
+                  className="text-[10px] font-black text-zinc-400 dark:text-zinc-500 hover:text-zinc-900 dark:hover:text-white uppercase tracking-widest transition-colors px-2"
+                >
+                  Stats
+                </button>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 relative z-10">
+              {displaySubjects.map((subject, idx) => (
                 <motion.div 
                   key={subject.name}
                   initial={{ opacity: 0, y: 20 }}
@@ -453,15 +517,20 @@ const DashboardView = ({ user, onStartQuiz, onLogout, history, onNavigate, showT
                   onClick={() => !generatingQuiz && startPracticeQuiz(subject.name)}
                   className={cn(
                     "group relative bg-white dark:bg-zinc-900 rounded-[2.5rem] p-8 border border-zinc-200 dark:border-zinc-800 shadow-sm hover:shadow-2xl transition-all cursor-pointer overflow-hidden",
-                    `dashboard-card-${(idx + 4) % 10}`,
+                    isAiDashboard ? "border-indigo-500/10 dark:border-indigo-500/20" : `dashboard-card-${(idx + 4) % 10}`,
                     generatingQuiz === subject.name && "opacity-60 cursor-wait"
                   )}
                 >
-                  <div className="absolute top-0 right-0 w-32 h-32 bg-zinc-100 dark:bg-zinc-800/50 blur-3xl -mr-16 -mt-16 transition-transform group-hover:scale-150" />
+                  <div className={cn(
+                    "absolute top-0 right-0 w-32 h-32 blur-3xl -mr-16 -mt-16 transition-transform group-hover:scale-150",
+                    isAiDashboard ? "bg-indigo-500/5" : "bg-zinc-100 dark:bg-zinc-800/50"
+                  )} />
                   
                   <div className="flex justify-between items-start mb-6 relative z-10">
                     <div className="flex flex-col gap-1">
-                      <span className="text-[9px] font-black text-zinc-400 uppercase tracking-[0.2em]">Module {String(idx + 1).padStart(2, '0')}</span>
+                      <span className="text-[9px] font-black text-zinc-400 uppercase tracking-[0.2em]">
+                        {isAiDashboard ? 'AI Suggestion' : `Module ${String(idx + 1).padStart(2, '0')}`}
+                      </span>
                       <h3 className="text-xl font-black text-zinc-900 dark:text-white uppercase tracking-tight leading-none max-w-[80%]">
                         {subject.name.split('(')[0].trim()}
                       </h3>
@@ -482,13 +551,18 @@ const DashboardView = ({ user, onStartQuiz, onLogout, history, onNavigate, showT
                   <div className="space-y-4 relative z-10">
                     <div className="flex justify-between items-end">
                       <div className="flex flex-col">
-                        <span className="text-[9px] font-black text-zinc-400 uppercase tracking-widest">Trade Mastery</span>
+                        <span className="text-[9px] font-black text-zinc-400 uppercase tracking-widest">
+                          {isAiDashboard ? 'Predicted Mastery' : 'Trade Mastery'}
+                        </span>
                         <span className="text-2xl font-black text-zinc-900 dark:text-white">{subject.progress}%</span>
                       </div>
                       {generatingQuiz === subject.name ? (
                         <div className="w-8 h-8 border-2 border-zinc-900 dark:border-white border-t-transparent rounded-full animate-spin" />
                       ) : (
-                        <div className="px-4 py-2 rounded-xl bg-zinc-900 dark:bg-white text-white dark:text-black text-[9px] font-black uppercase tracking-widest hover:scale-105 transition-all shadow-lg">
+                        <div className={cn(
+                          "px-4 py-2 rounded-xl text-[9px] font-black uppercase tracking-widest hover:scale-105 transition-all shadow-lg",
+                          isAiDashboard ? "bg-indigo-500 text-white" : "bg-zinc-900 dark:bg-white text-white dark:text-black"
+                        )}>
                           Start Quiz
                         </div>
                       )}
@@ -500,8 +574,7 @@ const DashboardView = ({ user, onStartQuiz, onLogout, history, onNavigate, showT
                         animate={{ width: `${subject.progress}%` }}
                         className={cn(
                           "h-full rounded-full transition-all duration-1000",
-                          subject.progress >= 80 ? "bg-zinc-900 dark:bg-white" : 
-                          subject.progress >= 40 ? "bg-zinc-500" : "bg-zinc-300 dark:bg-zinc-800"
+                          isAiDashboard ? "bg-indigo-500" : (subject.progress >= 80 ? "bg-zinc-900 dark:bg-white" : subject.progress >= 40 ? "bg-zinc-500" : "bg-zinc-300 dark:bg-zinc-800")
                         )}
                       />
                     </div>
