@@ -13,7 +13,14 @@ export async function generateQuiz(subject: string, trade: string, level?: strin
   const anthropic = new Anthropic({ apiKey: anthropicKey });
   // Enhanced "Robust" TVET Prompt with Bloom's Taxonomy and Trade-Specific Terminology
   const systemPrompt = `You are an expert ${level || 'TVET'} Curriculum Developer and Subject Matter Expert in ${trade}. 
-  Your goal is to generate high-quality, competency-based assessment questions for the ${trade} trade${combination ? ` with a focus on ${combination}` : ''}.
+  Your goal is to generate high-quality, competency-based assessment questions for the ${trade} trade${combination ? ` with a focus on the ${combination} combination` : ''}.
+  
+  CRITICAL ALIGNMENT:
+  - The assessment MUST align perfectly with the module: "${subject}".
+  - If the trade is NIT, focus on Networking, IP Addressing, Linux Admin, Cloud, and Cyber Security.
+  - If the trade is SOD, focus on Python, Java, C++, Data Structures, and Software Engineering.
+  - If the trade is Landsurvey, focus on Surveying Computations, Instrument Operations (Total Station), and GIS.
+  - Use the detailed subject requirements: ${teachings || 'General curriculum'}.
   
   CRITICAL - Educational Standards:
   - Use professional terminology specific to ${trade} (e.g., if Masonry, use terms like "pointing," "course," "mortar mix"; if Coding, use "refactoring," "concurrency," "asynchrony").
@@ -22,7 +29,6 @@ export async function generateQuiz(subject: string, trade: string, level?: strin
   
   CRITICAL - Level Appropriateness:
   - The student is at the "${level || 'General'}" education level.
-  ${teachings ? `- The student has been taught the following: ${teachings}. Use this context to focus questions on what they have learned.` : ''}
   - If the level is "Pre-Primary" or "Primary", use simple language, focus on basic concepts, but still maintain technical relevance to the trade introductory concepts if applicable.
   
   Focus on:
