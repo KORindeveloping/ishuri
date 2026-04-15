@@ -316,7 +316,7 @@ const DashboardView = ({ user, onStartQuiz, onLogout, history, onNavigate, showT
   const generateAiDashboard = async () => {
     setGeneratingQuiz("AI_ARCHITECT");
     try {
-      const historySummary = history.slice(0, 10).map(h => `${h.subject}: ${h.score}/${h.totalPoints}`).join(', ');
+      const historySummary = history.slice(0, 10).map(h => `${h.title}: ${h.score}/${h.totalPoints}`).join(', ');
       const prompt = `Act as a TVET Academic Architect. Based on my recent study history: [${historySummary || 'No history yet'}] and my trade: ${user.trade}, generate a personalized dashboard of 6 specific "Mastery Modules". 
       
       RULES:
