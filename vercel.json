@@ -1,4 +1,8 @@
 {
+  "framework": "vite",
+  "buildCommand": "[ -f package.json ] && npm run build || echo 'No package.json found - using static assets'",
+  "installCommand": "[ -f package.json ] && npm install || echo 'No package.json found - skipping install'",
+  "outputDirectory": "dist",
   "rewrites": [
     { "source": "/(.*)", "destination": "/index.html" }
   ]

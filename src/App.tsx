@@ -1091,7 +1091,7 @@ const FlashcardsView = ({ user, showToast }: { user: User, showToast: (m: string
   });
   
   const [index, setIndex] = useState(0);
-  const [flipped, setFlipped] = useState(false);
+  const [rotation, setRotation] = useState(0);
   const [showAddModal, setShowAddModal] = useState(false);
   const [viewMode, setViewMode] = useState<'review' | 'library'>('review');
   const [newCard, setNewCard] = useState({ q: '', a: '', category: 'General' });
@@ -1102,6 +1102,7 @@ const FlashcardsView = ({ user, showToast }: { user: User, showToast: (m: string
   }, [cards]);
 
   const dueCards = cards.filter((c: any) => new Date(c.nextReview) <= new Date());
+  const flipped = (rotation / 180) % 2 !== 0;
 
   const handlePerformance = (quality: 'easy' | 'hard') => {
     const currentCard = dueCards[index];
@@ -1119,7 +1120,7 @@ const FlashcardsView = ({ user, showToast }: { user: User, showToast: (m: string
     };
 
     setCards(updatedCards);
-    setFlipped(false);
+    setRotation(rotation + 180); // Flip back to front
     
     setTimeout(() => {
       if (index >= dueCards.length - 1) {
@@ -1168,7 +1169,7 @@ const FlashcardsView = ({ user, showToast }: { user: User, showToast: (m: string
     const newCards = cards.filter((c: any) => c.q !== q);
     setCards(newCards);
     if (index >= dueCards.length - 1 && index > 0) setIndex(index - 1);
-    setFlipped(false);
+    setRotation(Math.ceil(rotation / 360) * 360);
   };
 
   return (
@@ -1285,11 +1286,11 @@ const FlashcardsView = ({ user, showToast }: { user: User, showToast: (m: string
             <div className="relative w-full">
               <div className="absolute -inset-4 bg-zinc-200 dark:bg-zinc-800 rounded-[4rem] blur-2xl opacity-20 -z-10" />
               <div 
-                onClick={() => setFlipped(!flipped)}
-                className="w-full aspect-[16/10] relative cursor-pointer perspective-2000"
+                onClick={() => setRotation(rotation + 180)}
+                className="w-full aspect-[16/10] relative cursor-pointer"
               >
                 <motion.div 
-                  animate={{ rotateY: flipped ? 180 : 0 }}
+                  animate={{ rotateY: rotation }}
                   transition={{ duration: 0.7, type: 'spring', stiffness: 200, damping: 25 }}
                   className="w-full h-full relative preserve-3d"
                 >
@@ -1316,27 +1317,27 @@ const FlashcardsView = ({ user, showToast }: { user: User, showToast: (m: string
                   </div>
 
                   {/* Back */}
-                  <div className="absolute inset-0 bg-zinc-900 dark:bg-white border border-zinc-900 dark:border-white rounded-[4rem] p-12 md:p-20 flex flex-col items-center justify-center text-center backface-hidden rotate-y-180 shadow-2xl relative overflow-hidden">
-                    <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(255,255,255,0.05),transparent)] dark:bg-[radial-gradient(circle_at_top_right,rgba(0,0,0,0.05),transparent)]" />
+                  <div className="absolute inset-0 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-[4rem] p-12 md:p-20 flex flex-col items-center justify-center text-center backface-hidden rotate-y-180 shadow-2xl relative overflow-hidden">
+                    <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(0,0,0,0.02),transparent)] dark:bg-[radial-gradient(circle_at_top_right,rgba(255,255,255,0.02),transparent)]" />
                     
                     <div className="absolute top-12 left-12">
-                      <span className="text-[10px] font-black text-white/40 dark:text-black/40 uppercase tracking-[0.4em]">Verified Answer</span>
+                      <span className="text-[10px] font-black text-zinc-400 dark:text-zinc-500 uppercase tracking-[0.4em]">Verified Answer</span>
                     </div>
 
-                    <h2 className="text-3xl md:text-5xl font-black text-white dark:text-black leading-[1.1] tracking-tight uppercase max-w-2xl relative z-10">
+                    <h2 className="text-3xl md:text-5xl font-black text-zinc-900 dark:text-white leading-[1.1] tracking-tight uppercase max-w-2xl relative z-10">
                       {dueCards[index].a}
                     </h2>
                     
                     <div className="mt-20 flex gap-6 w-full max-w-md relative z-10">
                       <button 
                         onClick={(e) => { e.stopPropagation(); handlePerformance('hard'); }}
-                        className="flex-1 py-6 bg-zinc-800 dark:bg-zinc-100 text-white dark:text-black rounded-[2rem] font-black uppercase tracking-widest text-[11px] hover:bg-zinc-700 dark:hover:bg-zinc-200 transition-all border border-white/10 dark:border-black/10 shadow-xl"
+                        className="flex-1 py-6 bg-zinc-100 dark:bg-zinc-800 text-zinc-900 dark:text-white rounded-[2rem] font-black uppercase tracking-widest text-[11px] hover:bg-zinc-200 dark:hover:bg-zinc-700 transition-all border border-zinc-200 dark:border-zinc-700 shadow-sm"
                       >
                         Difficult (1d)
                       </button>
                       <button 
                         onClick={(e) => { e.stopPropagation(); handlePerformance('easy'); }}
-                        className="flex-1 py-6 bg-white dark:bg-black text-black dark:text-white rounded-[2rem] font-black uppercase tracking-widest text-[11px] hover:scale-105 active:scale-95 transition-all shadow-[0_20px_40px_rgba(255,255,255,0.1)] dark:shadow-[0_20px_40px_rgba(0,0,0,0.1)]"
+                        className="flex-1 py-6 bg-zinc-900 dark:bg-white text-white dark:text-black rounded-[2rem] font-black uppercase tracking-widest text-[11px] hover:scale-105 active:scale-95 transition-all shadow-xl"
                       >
                         Mastered ({dueCards[index].interval * 2}d)
                       </button>
