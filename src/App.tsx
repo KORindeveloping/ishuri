@@ -1283,19 +1283,24 @@ const FlashcardsView = ({ user, showToast }: { user: User, showToast: (m: string
               </div>
             </motion.div>
           ) : (
-            <div className="relative w-full">
+            <div className="relative w-full max-w-2xl mx-auto">
               <div className="absolute -inset-4 bg-zinc-200 dark:bg-zinc-800 rounded-[4rem] blur-2xl opacity-20 -z-10" />
               <div 
                 onClick={() => setRotation(rotation + 180)}
                 className="w-full aspect-[16/10] relative cursor-pointer"
+                style={{ perspective: '2000px' }}
               >
                 <motion.div 
-                  animate={{ rotateY: rotation }}
-                  transition={{ duration: 0.7, type: 'spring', stiffness: 200, damping: 25 }}
-                  className="w-full h-full relative preserve-3d"
+                  animate={{ rotateX: rotation }}
+                  transition={{ duration: 0.6, type: 'spring', stiffness: 260, damping: 20 }}
+                  className="w-full h-full relative"
+                  style={{ transformStyle: 'preserve-3d' }}
                 >
                   {/* Front */}
-                  <div className="absolute inset-0 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-[4rem] p-12 md:p-20 flex flex-col items-center justify-center text-center backface-hidden shadow-2xl relative overflow-hidden">
+                  <div 
+                    className="absolute inset-0 w-full h-full bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-[4rem] p-12 md:p-20 flex flex-col items-center justify-center text-center backface-hidden shadow-2xl overflow-hidden"
+                    style={{ transform: 'translateZ(0)' }}
+                  >
                     <div className="absolute top-0 left-0 w-full h-2 bg-zinc-100 dark:bg-zinc-800" />
                     <div className="absolute top-12 left-12 flex items-center gap-3">
                       <div className="w-2 h-2 bg-indigo-500 rounded-full animate-pulse" />
@@ -1317,7 +1322,10 @@ const FlashcardsView = ({ user, showToast }: { user: User, showToast: (m: string
                   </div>
 
                   {/* Back */}
-                  <div className="absolute inset-0 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-[4rem] p-12 md:p-20 flex flex-col items-center justify-center text-center backface-hidden rotate-y-180 shadow-2xl relative overflow-hidden">
+                  <div 
+                    className="absolute inset-0 w-full h-full bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-[4rem] p-12 md:p-20 flex flex-col items-center justify-center text-center backface-hidden shadow-2xl overflow-hidden"
+                    style={{ transform: 'rotateX(180deg) translateZ(0)' }}
+                  >
                     <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(0,0,0,0.02),transparent)] dark:bg-[radial-gradient(circle_at_top_right,rgba(255,255,255,0.02),transparent)]" />
                     
                     <div className="absolute top-12 left-12">
