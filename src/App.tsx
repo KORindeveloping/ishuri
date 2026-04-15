@@ -1079,14 +1079,14 @@ const AnalyticsView = ({ history, user, onStartQuiz, showToast }: {
   );
 };
 
-const FlashcardsView = () => {
+const FlashcardsView = ({ user, showToast }: { user: User, showToast: (m: string, t?: 'success' | 'error' | 'info') => void }) => {
   const [cards, setCards] = useState(() => {
     const saved = localStorage.getItem('tvet_flashcards');
     return saved ? JSON.parse(saved) : [
-      { q: "What is the stoichiometric ratio for gasoline?", a: "14.7:1", interval: 1, nextReview: new Date().toISOString() },
-      { q: "What does ABS stand for?", a: "Anti-lock Braking System", interval: 1, nextReview: new Date().toISOString() },
-      { q: "What is the unit of electrical resistance?", a: "Ohm (Ω)", interval: 1, nextReview: new Date().toISOString() },
-      { q: "What is the primary function of a thermostat?", a: "Regulate engine temperature", interval: 1, nextReview: new Date().toISOString() },
+      { q: "What is the stoichiometric ratio for gasoline?", a: "14.7:1", interval: 1, nextReview: new Date().toISOString(), category: "Auto" },
+      { q: "What does ABS stand for?", a: "Anti-lock Braking System", interval: 1, nextReview: new Date().toISOString(), category: "Safety" },
+      { q: "What is the unit of electrical resistance?", a: "Ohm (Ω)", interval: 1, nextReview: new Date().toISOString(), category: "Electrical" },
+      { q: "What is the primary function of a thermostat?", a: "Regulate engine temperature", interval: 1, nextReview: new Date().toISOString(), category: "Cooling" },
     ];
   });
   
@@ -1094,7 +1094,8 @@ const FlashcardsView = () => {
   const [flipped, setFlipped] = useState(false);
   const [showAddModal, setShowAddModal] = useState(false);
   const [viewMode, setViewMode] = useState<'review' | 'library'>('review');
-  const [newCard, setNewCard] = useState({ q: '', a: '' });
+  const [newCard, setNewCard] = useState({ q: '', a: '', category: 'General' });
+  const [isGenerating, setIsGenerating] = useState(false);
 
   useEffect(() => {
     localStorage.setItem('tvet_flashcards', JSON.stringify(cards));
@@ -1119,135 +1120,295 @@ const FlashcardsView = () => {
 
     setCards(updatedCards);
     setFlipped(false);
-    if (index >= dueCards.length - 1) {
-      setIndex(0);
+    
+    setTimeout(() => {
+      if (index >= dueCards.length - 1) {
+        setIndex(0);
+      } else {
+        setIndex(index + 1);
+      }
+    }, 300);
+  };
+
+  const generateAiCards = async () => {
+    setIsGenerating(true);
+    try {
+      const prompt = `Act as a TVET Education Expert. Generate 5 professional, high-quality flashcards for a student studying ${user.trade || 'General Tech'} at the ${user.educationLevel || 'TVET'} level. 
+      The cards should cover core concepts, technical terms, or safety protocols.
+      Return ONLY a JSON array of objects with "q" (question), "a" (answer), and "category".
+      Example: [{"q": "...", "a": "...", "category": "..."}]`;
+      
+      const response = await api.sendChatMessage(prompt, []);
+      const jsonMatch = response.reply.match(/\[[\s\S]*\]/);
+      if (jsonMatch) {
+        const generated = JSON.parse(jsonMatch[0]).map((c: any) => ({
+          ...c,
+          interval: 1,
+          nextReview: new Date().toISOString()
+        }));
+        setCards([...cards, ...generated]);
+        showToast("5 Professional cards generated!", "success");
+      }
+    } catch (e) {
+      showToast("AI Generation failed.", "error");
+    } finally {
+      setIsGenerating(false);
     }
   };
 
   const addCard = () => {
     if (!newCard.q || !newCard.a) return;
     setCards([...cards, { ...newCard, interval: 1, nextReview: new Date().toISOString() }]);
-    setNewCard({ q: '', a: '' });
+    setNewCard({ q: '', a: '', category: 'General' });
     setShowAddModal(false);
   };
 
-  const deleteCard = (e: React.MouseEvent, idx: number) => {
+  const deleteCard = (e: React.MouseEvent, q: string) => {
     e.stopPropagation();
-    if (cards.length <= 1) return;
-    const currentCard = dueCards[idx];
-    const originalIndex = cards.findIndex((c: any) => c.q === currentCard.q);
-    const newCards = cards.filter((_: any, i: number) => i !== originalIndex);
+    const newCards = cards.filter((c: any) => c.q !== q);
     setCards(newCards);
-    if (index >= dueCards.length - 1) setIndex(0);
+    if (index >= dueCards.length - 1 && index > 0) setIndex(index - 1);
     setFlipped(false);
   };
 
   return (
-    <div className="space-y-8 flex flex-col items-center p-4 min-h-[600px]">
-      <header className="w-full flex flex-col sm:flex-row sm:items-center justify-between gap-6">
-        <div>
-          <h1 className="text-3xl font-black text-zinc-900 dark:text-white tracking-tight uppercase">Active Recall Flashcards</h1>
-          <p className="text-zinc-500 font-medium">Master key concepts through spaced repetition.</p>
+    <div className="space-y-12 pb-24">
+      <header className="flex flex-col md:flex-row md:items-end justify-between gap-8 bg-zinc-50 dark:bg-zinc-900/50 p-10 rounded-[3rem] border border-zinc-200 dark:border-zinc-800 relative overflow-hidden">
+        <div className="absolute top-0 right-0 w-64 h-64 bg-indigo-500/5 blur-3xl rounded-full -mr-32 -mt-32" />
+        <div className="relative z-10">
+          <div className="flex items-center gap-3 mb-4">
+            <div className="w-10 h-10 rounded-xl bg-zinc-900 dark:bg-white flex items-center justify-center">
+              <Zap className="w-5 h-5 text-white dark:text-black" />
+            </div>
+            <span className="text-[10px] font-black text-zinc-500 uppercase tracking-[0.4em]">Active Recall Engine</span>
+          </div>
+          <h1 className="text-4xl md:text-6xl font-black text-zinc-900 dark:text-white tracking-tighter leading-none uppercase">
+            Flashcard<br />
+            <span className="text-zinc-400 dark:text-zinc-700 text-3xl md:text-5xl">Laboratory.</span>
+          </h1>
         </div>
-        <div className="flex gap-4">
-          <div className="bg-zinc-100 dark:bg-zinc-900 p-1.5 rounded-2xl flex border border-zinc-200 dark:border-zinc-800">
+
+        <div className="flex flex-wrap gap-4 relative z-10">
+          <div className="bg-white dark:bg-black p-1.5 rounded-2xl flex border border-zinc-200 dark:border-zinc-800 shadow-sm">
             <button 
               onClick={() => setViewMode('review')}
-              className={cn("px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all", viewMode === 'review' ? "bg-white dark:bg-zinc-800 text-zinc-900 dark:text-white shadow-lg" : "text-zinc-500")}
+              className={cn("px-6 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all", viewMode === 'review' ? "bg-zinc-900 dark:bg-white text-white dark:text-black shadow-xl" : "text-zinc-500 hover:text-zinc-900 dark:hover:text-white")}
             >
-              Review
+              Review ({dueCards.length})
             </button>
             <button 
               onClick={() => setViewMode('library')}
-              className={cn("px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all", viewMode === 'library' ? "bg-white dark:bg-zinc-800 text-zinc-900 dark:text-white shadow-lg" : "text-zinc-500")}
+              className={cn("px-6 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all", viewMode === 'library' ? "bg-zinc-900 dark:bg-white text-white dark:text-black shadow-xl" : "text-zinc-500 hover:text-zinc-900 dark:hover:text-white")}
             >
-              Library
+              Library ({cards.length})
             </button>
           </div>
+          
+          <button 
+            onClick={generateAiCards}
+            disabled={isGenerating}
+            className="px-8 py-4 bg-indigo-500 text-white font-black uppercase tracking-widest text-[10px] rounded-2xl flex items-center gap-3 shadow-xl shadow-indigo-500/20 hover:scale-105 active:scale-95 transition-all disabled:opacity-50"
+          >
+            {isGenerating ? <Loader2 className="w-4 h-4 animate-spin" /> : <Sparkles className="w-4 h-4" />}
+            AI Generate
+          </button>
+          
           <button 
             onClick={() => setShowAddModal(true)}
-            className="px-6 py-3 bg-zinc-900 dark:bg-white text-white dark:text-black font-black uppercase tracking-widest text-xs rounded-2xl flex items-center gap-2"
+            className="px-8 py-4 bg-zinc-900 dark:bg-white text-white dark:text-black font-black uppercase tracking-widest text-[10px] rounded-2xl flex items-center gap-3 shadow-xl hover:scale-105 active:scale-95 transition-all"
           >
             <Plus className="w-4 h-4" /> New Card
           </button>
         </div>
       </header>
 
-      {viewMode === 'library' ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 w-full max-w-6xl mt-8">
-           {cards.map((card: any, i: number) => (
-             <div key={i} className="bg-white dark:bg-zinc-900 p-6 rounded-[2rem] border border-zinc-200 dark:border-zinc-800 flex flex-col justify-between group h-48 shadow-sm">
-                <div>
-                  <div className="flex items-center justify-between mb-4">
-                    <span className={cn(
-                      "px-2 py-0.5 rounded text-[8px] font-black uppercase tracking-widest",
-                      card.interval > 4 ? "bg-emerald-100 text-emerald-600" : "bg-amber-100 text-amber-600"
-                    )}>
-                      {card.interval > 4 ? 'Mastered' : 'Learning'}
-                    </span>
-                    <button onClick={(e) => deleteCard(e, i)} className="opacity-0 group-hover:opacity-100 p-1.5 text-zinc-300 hover:text-red-500 transition-all">
-                      <Trash2 className="w-3 h-3" />
-                    </button>
-                  </div>
-                  <h3 className="text-sm font-black text-zinc-900 dark:text-white line-clamp-2">{card.q}</h3>
+      <div className="max-w-4xl mx-auto w-full">
+        <AnimatePresence mode="wait">
+          {viewMode === 'library' ? (
+            <motion.div 
+              key="library"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
+              className="grid grid-cols-1 md:grid-cols-2 gap-6"
+            >
+               {cards.map((card: any, i: number) => (
+                 <div key={i} className="bg-white dark:bg-zinc-900 p-8 rounded-[3rem] border border-zinc-200 dark:border-zinc-800 flex flex-col justify-between group h-64 shadow-sm hover:shadow-2xl transition-all relative overflow-hidden">
+                    <div className="absolute top-0 right-0 w-24 h-24 bg-zinc-50 dark:bg-zinc-800/50 blur-2xl rounded-full -mr-12 -mt-12" />
+                    <div className="relative z-10">
+                      <div className="flex items-center justify-between mb-6">
+                        <div className="flex gap-2">
+                          <span className={cn(
+                            "px-3 py-1 rounded-lg text-[8px] font-black uppercase tracking-widest",
+                            card.interval > 4 ? "bg-emerald-500/10 text-emerald-600" : "bg-amber-500/10 text-amber-600"
+                          )}>
+                            {card.interval > 4 ? 'Mastered' : 'Learning'}
+                          </span>
+                          <span className="px-3 py-1 bg-zinc-100 dark:bg-zinc-800 rounded-lg text-[8px] font-black text-zinc-500 uppercase tracking-widest border border-zinc-200 dark:border-zinc-700">
+                            {card.category || 'General'}
+                          </span>
+                        </div>
+                        <button onClick={(e) => deleteCard(e, card.q)} className="p-2 text-zinc-300 hover:text-red-500 hover:bg-red-500/10 rounded-xl transition-all">
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </div>
+                      <h3 className="text-lg font-black text-zinc-900 dark:text-white line-clamp-2 leading-tight uppercase tracking-tight">{card.q}</h3>
+                    </div>
+                    <div className="pt-6 border-t border-zinc-100 dark:border-zinc-800 relative z-10">
+                      <p className="text-[10px] font-black text-zinc-400 uppercase tracking-[0.2em] mb-1">Answer</p>
+                      <p className="text-sm font-bold text-zinc-900 dark:text-white line-clamp-2">{card.a}</p>
+                    </div>
+                 </div>
+               ))}
+            </motion.div>
+          ) : dueCards.length === 0 ? (
+            <motion.div 
+              key="empty"
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              className="text-center py-32 bg-white dark:bg-zinc-900 rounded-[4rem] border border-zinc-200 dark:border-zinc-800 shadow-xl overflow-hidden relative"
+            >
+              <div className="absolute inset-0 bg-gradient-to-b from-transparent to-zinc-50/50 dark:to-black/20" />
+              <div className="relative z-10">
+                <div className="w-24 h-24 bg-zinc-100 dark:bg-black rounded-[2rem] flex items-center justify-center mx-auto mb-8 shadow-inner">
+                  <CheckCircle2 className="w-12 h-12 text-zinc-900 dark:text-white" />
                 </div>
-                <div className="pt-4 border-t border-zinc-50 dark:border-zinc-800">
-                  <p className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest">Answer: <span className="text-zinc-900 dark:text-white">{card.a}</span></p>
+                <h3 className="text-3xl font-black text-zinc-900 dark:text-white uppercase tracking-tighter mb-2">Sync Complete.</h3>
+                <p className="text-zinc-500 font-bold text-sm uppercase tracking-widest mb-12">All cards are currently stored in long-term memory.</p>
+                <div className="flex justify-center gap-4">
+                  <button onClick={() => setViewMode('library')} className="px-8 py-4 bg-zinc-100 dark:bg-zinc-800 text-zinc-900 dark:text-white rounded-2xl font-black uppercase tracking-widest text-[10px] hover:bg-zinc-200 dark:hover:bg-zinc-700 transition-all">Browse Library</button>
+                  <button onClick={generateAiCards} className="px-8 py-4 bg-indigo-500 text-white rounded-2xl font-black uppercase tracking-widest text-[10px] shadow-xl shadow-indigo-500/20 hover:scale-105 transition-all">Generate More</button>
                 </div>
-             </div>
-           ))}
-        </div>
-      ) : dueCards.length === 0 ? (
-        <div className="text-center py-24 border-2 border-dashed border-zinc-200 dark:border-zinc-800 rounded-3xl w-full max-w-lg mt-12">
-          <div className="w-16 h-16 bg-zinc-100 dark:bg-zinc-900 rounded-2xl flex items-center justify-center mx-auto mb-6">
-            <CheckCircle2 className="w-8 h-8 text-zinc-900 dark:text-white" />
-          </div>
-          <p className="text-zinc-500 font-bold mb-2">All caught up!</p>
-          <p className="text-zinc-400 dark:text-zinc-700 text-xs font-medium mb-8">No cards due for review right now.</p>
-          <button onClick={() => setShowAddModal(true)} className="text-zinc-900 dark:text-white font-black hover:underline uppercase tracking-widest text-[10px]">Create more cards</button>
-        </div>
-      ) : (
-        <div className="relative w-full max-w-lg mt-12">
-          <div 
-            onClick={() => setFlipped(!flipped)}
-            className="w-full aspect-[4/3] relative cursor-pointer perspective-1000 group"
-          >
-          <motion.div 
-            animate={{ rotateY: flipped ? 180 : 0 }}
-            transition={{ duration: 0.6, type: 'spring', stiffness: 260, damping: 20 }}
-            className="w-full h-full relative preserve-3d"
-          >
-            <div className="absolute inset-0 bg-white dark:bg-zinc-900 border-2 border-zinc-200 dark:border-zinc-800 rounded-[3rem] p-6 md:p-12 flex flex-col items-center justify-center text-center backface-hidden shadow-2xl">
-              <p className="text-[10px] font-black text-zinc-400 dark:text-zinc-500 uppercase tracking-widest mb-8">Question {index + 1}/{dueCards.length}</p>
-              <h2 className="text-2xl font-black text-zinc-900 dark:text-white leading-tight">{dueCards[index].q}</h2>
-              <p className="text-xs text-zinc-400 dark:text-zinc-600 mt-12 font-bold uppercase tracking-widest">Tap to reveal answer</p>
-              <button 
-                onClick={(e) => deleteCard(e, index)}
-                className="absolute top-5 sm:p-6 md:p-8 right-8 p-2 bg-zinc-100 dark:bg-zinc-800 text-zinc-400 dark:text-zinc-600 hover:text-red-500 rounded-xl transition-colors"
+              </div>
+            </motion.div>
+          ) : (
+            <div className="relative w-full">
+              <div className="absolute -inset-4 bg-zinc-200 dark:bg-zinc-800 rounded-[4rem] blur-2xl opacity-20 -z-10" />
+              <div 
+                onClick={() => setFlipped(!flipped)}
+                className="w-full aspect-[16/10] relative cursor-pointer perspective-2000"
               >
-                <Trash2 className="w-4 h-4" />
-              </button>
-            </div>
-            <div className="absolute inset-0 bg-zinc-900 dark:bg-white border-2 border-zinc-900 dark:border-white rounded-[3rem] p-6 md:p-12 flex flex-col items-center justify-center text-center backface-hidden rotate-y-180 shadow-2xl">
-              <p className="text-[10px] font-black text-zinc-500 dark:text-zinc-400 uppercase tracking-widest mb-8">Answer</p>
-              <h2 className="text-2xl font-black text-white dark:text-black leading-tight">{dueCards[index].a}</h2>
-              <div className="mt-12 flex gap-4 w-full">
-                <button 
-                  onClick={(e) => { e.stopPropagation(); handlePerformance('hard'); }}
-                  className="flex-1 py-4 bg-zinc-800 dark:bg-zinc-100 text-white dark:text-black rounded-2xl font-black uppercase tracking-widest text-[10px] hover:bg-zinc-700 dark:hover:bg-zinc-200 transition-all border border-white/10 dark:border-black/10"
+                <motion.div 
+                  animate={{ rotateY: flipped ? 180 : 0 }}
+                  transition={{ duration: 0.7, type: 'spring', stiffness: 200, damping: 25 }}
+                  className="w-full h-full relative preserve-3d"
                 >
-                  Hard (1d)
-                </button>
-                <button 
-                  onClick={(e) => { e.stopPropagation(); handlePerformance('easy'); }}
-                  className="flex-1 py-4 bg-white dark:bg-black text-black dark:text-white rounded-2xl font-black uppercase tracking-widest text-[10px] hover:bg-zinc-100 dark:hover:bg-zinc-900 transition-all shadow-lg"
-                >
-                  Easy ({dueCards[index].interval * 2}d)
-                </button>
+                  {/* Front */}
+                  <div className="absolute inset-0 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-[4rem] p-12 md:p-20 flex flex-col items-center justify-center text-center backface-hidden shadow-2xl relative overflow-hidden">
+                    <div className="absolute top-0 left-0 w-full h-2 bg-zinc-100 dark:bg-zinc-800" />
+                    <div className="absolute top-12 left-12 flex items-center gap-3">
+                      <div className="w-2 h-2 bg-indigo-500 rounded-full animate-pulse" />
+                      <span className="text-[10px] font-black text-zinc-400 uppercase tracking-[0.3em]">Module {index + 1}/{dueCards.length}</span>
+                    </div>
+                    
+                    <span className="px-4 py-1.5 bg-zinc-100 dark:bg-zinc-800 rounded-full text-[10px] font-black text-zinc-500 uppercase tracking-widest mb-10">
+                      {dueCards[index].category || 'General'}
+                    </span>
+                    
+                    <h2 className="text-3xl md:text-5xl font-black text-zinc-900 dark:text-white leading-[1.1] tracking-tight uppercase max-w-2xl">
+                      {dueCards[index].q}
+                    </h2>
+                    
+                    <div className="mt-16 flex items-center gap-3 text-zinc-400 animate-bounce">
+                      <Zap className="w-4 h-4" />
+                      <span className="text-[10px] font-black uppercase tracking-widest">Tap to flip</span>
+                    </div>
+                  </div>
+
+                  {/* Back */}
+                  <div className="absolute inset-0 bg-zinc-900 dark:bg-white border border-zinc-900 dark:border-white rounded-[4rem] p-12 md:p-20 flex flex-col items-center justify-center text-center backface-hidden rotate-y-180 shadow-2xl relative overflow-hidden">
+                    <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(255,255,255,0.05),transparent)] dark:bg-[radial-gradient(circle_at_top_right,rgba(0,0,0,0.05),transparent)]" />
+                    
+                    <div className="absolute top-12 left-12">
+                      <span className="text-[10px] font-black text-white/40 dark:text-black/40 uppercase tracking-[0.4em]">Verified Answer</span>
+                    </div>
+
+                    <h2 className="text-3xl md:text-5xl font-black text-white dark:text-black leading-[1.1] tracking-tight uppercase max-w-2xl relative z-10">
+                      {dueCards[index].a}
+                    </h2>
+                    
+                    <div className="mt-20 flex gap-6 w-full max-w-md relative z-10">
+                      <button 
+                        onClick={(e) => { e.stopPropagation(); handlePerformance('hard'); }}
+                        className="flex-1 py-6 bg-zinc-800 dark:bg-zinc-100 text-white dark:text-black rounded-[2rem] font-black uppercase tracking-widest text-[11px] hover:bg-zinc-700 dark:hover:bg-zinc-200 transition-all border border-white/10 dark:border-black/10 shadow-xl"
+                      >
+                        Difficult (1d)
+                      </button>
+                      <button 
+                        onClick={(e) => { e.stopPropagation(); handlePerformance('easy'); }}
+                        className="flex-1 py-6 bg-white dark:bg-black text-black dark:text-white rounded-[2rem] font-black uppercase tracking-widest text-[11px] hover:scale-105 active:scale-95 transition-all shadow-[0_20px_40px_rgba(255,255,255,0.1)] dark:shadow-[0_20px_40px_rgba(0,0,0,0.1)]"
+                      >
+                        Mastered ({dueCards[index].interval * 2}d)
+                      </button>
+                    </div>
+                  </div>
+                </motion.div>
               </div>
             </div>
-          </motion.div>
-        </div>
+          )}
+        </AnimatePresence>
+      </div>
+
+      <AnimatePresence>
+        {showAddModal && (
+          <div className="fixed inset-0 z-[250] flex items-center justify-center p-6 bg-black/90 backdrop-blur-xl">
+            <motion.div 
+              initial={{ opacity: 0, scale: 0.9, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              className="w-full max-w-xl bg-zinc-900 rounded-[3.5rem] p-12 border border-white/10 shadow-2xl"
+            >
+              <div className="flex items-center justify-between mb-12">
+                <h2 className="text-2xl font-black text-white uppercase tracking-tight">Create Card</h2>
+                <button onClick={() => setShowAddModal(false)} className="p-3 bg-zinc-800 text-white rounded-2xl hover:bg-zinc-700">
+                  <X className="w-6 h-6" />
+                </button>
+              </div>
+              
+              <div className="space-y-8">
+                <div className="space-y-3">
+                  <label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest ml-1">Technical Question</label>
+                  <input 
+                    type="text"
+                    value={newCard.q}
+                    onChange={(e) => setNewCard({...newCard, q: e.target.value})}
+                    placeholder="e.g. What is the function of a crankshaft?"
+                    className="w-full bg-black/50 border border-zinc-800 rounded-2xl px-8 py-5 text-white outline-none focus:border-white/20 transition-all"
+                  />
+                </div>
+                <div className="space-y-3">
+                  <label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest ml-1">Verified Answer</label>
+                  <textarea 
+                    value={newCard.a}
+                    onChange={(e) => setNewCard({...newCard, a: e.target.value})}
+                    placeholder="e.g. It converts linear motion into rotational motion."
+                    className="w-full h-32 bg-black/50 border border-zinc-800 rounded-3xl px-8 py-5 text-white outline-none focus:border-white/20 transition-all resize-none"
+                  />
+                </div>
+                <div className="space-y-3">
+                  <label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest ml-1">Category</label>
+                  <input 
+                    type="text"
+                    value={newCard.category}
+                    onChange={(e) => setNewCard({...newCard, category: e.target.value})}
+                    placeholder="e.g. Automotive, Theory, Safety"
+                    className="w-full bg-black/50 border border-zinc-800 rounded-2xl px-8 py-5 text-white outline-none focus:border-white/20 transition-all"
+                  />
+                </div>
+                
+                <button 
+                  onClick={addCard}
+                  className="w-full py-6 bg-white text-black rounded-[2rem] font-black uppercase tracking-widest text-xs shadow-xl shadow-white/10 hover:bg-zinc-200 transition-all mt-4"
+                >
+                  Authorize & Store Card
+                </button>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+    </div>
+  );
+};
         
         <div className="flex justify-center gap-6 mt-12">
           <button 
@@ -4081,7 +4242,7 @@ export default function App() {
         );
         case 'history': return <QuizHistoryView history={history} onReviewQuiz={handleReviewHistoryQuiz} showToast={showToast} />;
         case 'analytics': return <AnalyticsView history={history} user={user} onStartQuiz={handleStartCustomQuiz} showToast={showToast} />;
-        case 'flashcards': return <FlashcardsView />;
+        case 'flashcards': return <FlashcardsView user={user} showToast={showToast} />;
         case 'planner': return <PlannerView user={user} showToast={showToast} />;
         case 'portfolio': return <PortfolioView user={user} showToast={showToast} />;
         case 'papers': return <PastPapers user={user} onStartQuiz={handleStartCustomQuiz} />;
