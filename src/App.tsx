@@ -2034,7 +2034,7 @@ const AssessmentView = ({
 
   const [activeExam, setActiveExam] = useState<Assessment | null>(reviewHistoryItem?.quiz || customQuiz || null);
   const [searchQuery, setSearchQuery] = useState('');
-  const [tradeFilter, setTradeFilter] = useState<'All' | 'Mine' | 'General'>(user.trade ? 'Mine' : 'All');
+  const [tradeFilter, setTradeFilter] = useState<'All' | 'Curriculum' | 'General'>(user.trade ? 'Curriculum' : 'All');
   const [showUploadModal, setShowUploadModal] = useState(false);
   const [showChecklist, setShowChecklist] = useState(false);
   const [practicalScore, setPracticalScore] = useState<number | null>(null);
@@ -2057,12 +2057,16 @@ const AssessmentView = ({
     }
   }, [customQuiz, reviewHistoryItem]);
 
+  const studentSubjects = (user.subjects || '').toLowerCase().split(',').map(s => s.trim());
+
   const filteredAssessments = localAssessments.filter(exam => {
     const matchesSearch = exam.title.toLowerCase().includes(searchQuery.toLowerCase()) || 
                          exam.trade.toLowerCase().includes(searchQuery.toLowerCase());
     
-    if (tradeFilter === 'Mine') {
-      return matchesSearch && (exam.trade === user.trade || exam.trade === 'General');
+    if (tradeFilter === 'Curriculum') {
+      const tradeMatch = exam.trade.toLowerCase() === user.trade?.toLowerCase();
+      const subjectMatch = studentSubjects.some(s => s && (exam.title.toLowerCase().includes(s) || exam.trade.toLowerCase().includes(s)));
+      return matchesSearch && (tradeMatch || subjectMatch);
     }
     if (tradeFilter === 'General') {
       return matchesSearch && exam.trade === 'General';
@@ -2217,116 +2221,122 @@ const AssessmentView = ({
 
   if (!activeExam) {
     return (
-      <div className="space-y-8 pb-12">
-        <header className="flex flex-col md:flex-row md:items-end justify-between gap-5 sm:p-6 md:p-8">
-          <div>
-            <div className="flex items-center gap-2 mb-3">
-               <div className="px-3 py-1 bg-zinc-900 dark:bg-white text-white dark:text-black text-[10px] font-black uppercase tracking-widest rounded-lg">
-                 Certification Hub
+      <div className="space-y-12 pb-24">
+        <header className="flex flex-col md:flex-row md:items-end justify-between gap-10 bg-zinc-50 dark:bg-zinc-900/50 p-10 rounded-[3rem] border border-zinc-200 dark:border-zinc-800 relative overflow-hidden">
+          <div className="absolute top-0 right-0 w-64 h-64 bg-emerald-500/5 blur-3xl rounded-full -mr-32 -mt-32" />
+          <div className="relative z-10">
+            <div className="flex items-center gap-3 mb-6">
+               <div className="w-10 h-10 rounded-xl bg-zinc-900 dark:bg-white flex items-center justify-center">
+                 <ShieldCheck className="w-5 h-5 text-white dark:text-black" />
                </div>
-               <p className="text-[10px] font-black text-zinc-400 uppercase tracking-widest">v2.0 Verified</p>
+               <span className="text-[10px] font-black text-zinc-500 uppercase tracking-[0.4em]">RTB Verified Standard</span>
             </div>
-            <h1 className="text-4xl font-black text-zinc-900 dark:text-white tracking-tighter uppercase mb-2">Assessment Library</h1>
-            <p className="text-zinc-500 font-medium">Certification simulations and practice modules.</p>
+            <h1 className="text-4xl md:text-6xl font-black text-zinc-900 dark:text-white tracking-tighter leading-none uppercase">
+              Certification<br />
+              <span className="text-zinc-400 dark:text-zinc-700 text-3xl md:text-5xl">Engine.</span>
+            </h1>
           </div>
-          <div className="flex flex-col sm:flex-row gap-4">
-            <div className="flex items-center gap-3 bg-white dark:bg-zinc-950 px-6 py-3 rounded-[1.25rem] border border-zinc-200 dark:border-zinc-800 shadow-sm focus-within:border-zinc-400 dark:focus-within:border-zinc-600 transition-all">
+
+          <div className="flex flex-col sm:flex-row gap-4 relative z-10">
+            <div className="flex items-center gap-3 bg-white dark:bg-black px-6 py-4 rounded-2xl border border-zinc-200 dark:border-zinc-800 shadow-sm focus-within:ring-2 focus-within:ring-zinc-900/5 dark:focus-within:ring-white/5 transition-all">
               <Search className="w-4 h-4 text-zinc-400" />
               <input 
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 type="text" 
-                placeholder="Search assessments..." 
-                className="bg-transparent border-none text-xs focus:ring-0 text-zinc-900 dark:text-white w-48 font-bold placeholder:text-zinc-300 dark:placeholder:text-zinc-800" 
+                placeholder="Search modules..." 
+                className="bg-transparent border-none text-[11px] focus:ring-0 text-zinc-900 dark:text-white w-48 font-black uppercase tracking-widest placeholder:text-zinc-300 dark:placeholder:text-zinc-800" 
               />
             </div>
             <button 
               onClick={() => setShowUploadModal(true)}
-              className="px-6 py-4 bg-zinc-900 dark:bg-white text-white dark:text-black rounded-[1.25rem] text-[10px] font-black uppercase tracking-widest hover:scale-[1.02] active:scale-95 transition-all shadow-xl shadow-black/10 dark:shadow-white/10 flex items-center gap-2"
+              className="px-8 py-4 bg-zinc-900 dark:bg-white text-white dark:text-black rounded-2xl text-[10px] font-black uppercase tracking-widest hover:scale-105 active:scale-95 transition-all shadow-xl flex items-center gap-3"
             >
-              <FileUp className="w-4 h-4" /> Contribute Assessment
+              <Plus className="w-4 h-4" /> Contribute
             </button>
           </div>
         </header>
 
-        <div className="flex items-center gap-2 mb-8 bg-zinc-50 dark:bg-zinc-900/50 p-1.5 rounded-2xl w-fit border border-zinc-200 dark:border-zinc-800">
-          {(['Mine', 'All', 'General'] as const).map(tab => (
-            <button 
-              key={tab}
-              onClick={() => setTradeFilter(tab)}
-              className={cn(
-                "px-6 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all",
-                tradeFilter === tab 
-                  ? "bg-white dark:bg-zinc-800 text-zinc-900 dark:text-white shadow-xl border border-zinc-100 dark:border-zinc-700" 
-                  : "text-zinc-500 hover:text-zinc-700 dark:hover:text-zinc-300"
-              )}
-            >
-              {tab === 'Mine' ? (user.trade || 'My Trade') : tab}
-            </button>
-          ))}
+        <div className="flex flex-col md:flex-row items-center justify-between gap-6 px-4">
+          <div className="bg-white dark:bg-black p-1.5 rounded-2xl flex border border-zinc-200 dark:border-zinc-800 shadow-sm">
+            {(['Curriculum', 'All', 'General'] as const).map(tab => (
+              <button 
+                key={tab}
+                onClick={() => setTradeFilter(tab)}
+                className={cn(
+                  "px-6 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all",
+                  tradeFilter === tab 
+                    ? "bg-zinc-900 dark:bg-white text-white dark:text-black shadow-xl" 
+                    : "text-zinc-500 hover:text-zinc-900 dark:hover:text-white"
+                )}
+              >
+                {tab === 'Curriculum' ? (user.trade || 'Curriculum') : tab}
+              </button>
+            ))}
+          </div>
+          
+          <div className="flex items-center gap-8">
+            <div className="flex flex-col items-end">
+              <span className="text-[9px] font-black text-zinc-400 uppercase tracking-widest">Library Health</span>
+              <span className="text-sm font-black text-zinc-900 dark:text-white uppercase tracking-tighter">Optimal (v{localAssessments.length}.0)</span>
+            </div>
+            <div className="w-10 h-10 rounded-full bg-emerald-500/10 flex items-center justify-center">
+              <div className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse" />
+            </div>
+          </div>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5 sm:p-6 md:p-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
           {filteredAssessments.map((exam) => (
             <motion.div
               key={exam.id}
-              whileHover={{ y: -8 }}
-              className="bg-white dark:bg-zinc-900/40 backdrop-blur-3xl p-5 sm:p-6 md:p-8 rounded-[3.5rem] border border-zinc-200 dark:border-white/[0.05] flex flex-col group hover:border-zinc-400 dark:hover:border-white/10 transition-all cursor-pointer relative overflow-hidden shadow-2xl"
+              whileHover={{ y: -5 }}
+              className="bg-white dark:bg-zinc-900 p-8 rounded-[3rem] border border-zinc-200 dark:border-zinc-800 flex flex-col group hover:shadow-2xl transition-all cursor-pointer relative overflow-hidden"
               onClick={() => setActiveExam(exam)}
             >
-              <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-blue-500/10 to-purple-500/10 blur-3xl -mr-16 -mt-16 rounded-full group-hover:from-blue-500/20 transition-all" />
+              <div className="absolute top-0 right-0 w-32 h-32 bg-zinc-50 dark:bg-zinc-800/50 blur-3xl -mr-16 -mt-16 rounded-full group-hover:scale-150 transition-all duration-700" />
               
-              <div className="flex items-center justify-between mb-10">
-                <div className="w-16 h-16 rounded-[1.75rem] bg-zinc-50 dark:bg-zinc-950 flex items-center justify-center border border-zinc-100 dark:border-zinc-800 group-hover:bg-zinc-900 dark:group-hover:bg-white group-hover:text-white dark:group-hover:text-black transition-all shadow-sm">
-                  <Award className={cn("w-8 h-8", exam.trade === user.trade ? "text-emerald-500" : "text-zinc-400")} />
+              <div className="flex items-center justify-between mb-8 relative z-10">
+                <div className="w-14 h-14 rounded-2xl bg-zinc-50 dark:bg-zinc-950 flex items-center justify-center border border-zinc-100 dark:border-zinc-800 group-hover:bg-zinc-900 dark:group-hover:bg-white group-hover:text-white dark:group-hover:text-black transition-all">
+                  <Award className="w-6 h-6" />
                 </div>
-                <div className="flex flex-col items-end gap-3">
-                  <div className="px-3 py-1 bg-zinc-900 dark:bg-white text-white dark:text-black text-[9px] font-black uppercase tracking-tighter rounded-lg shadow-lg">
-                    {exam.timeLimit} Min Session
-                  </div>
-                  <button 
-                    onClick={(e) => exportAssessmentAsPDF(e, exam)}
-                    className="p-2.5 bg-zinc-50 dark:bg-zinc-800 text-zinc-400 rounded-xl hover:bg-zinc-900 dark:hover:bg-white hover:text-white dark:hover:text-black transition-all border border-zinc-200 dark:border-zinc-700"
-                  >
-                    <Download className="w-4 h-4" />
-                  </button>
-                </div>
+                <button 
+                  onClick={(e) => exportAssessmentAsPDF(e, exam)}
+                  className="w-10 h-10 bg-zinc-50 dark:bg-zinc-800 text-zinc-400 rounded-xl hover:bg-zinc-900 dark:hover:bg-white hover:text-white dark:hover:text-black transition-all border border-zinc-200 dark:border-zinc-700 flex items-center justify-center"
+                >
+                  <Download className="w-4 h-4" />
+                </button>
               </div>
 
-              <div className="flex-1">
-                <div className="flex items-center gap-2 mb-3">
-                   <div className="w-1 h-3 bg-zinc-200 dark:bg-zinc-700 rounded-full" />
-                   <span className="text-[10px] font-black uppercase tracking-widest text-zinc-400">{exam.trade} Certification</span>
+              <div className="flex-1 relative z-10">
+                <div className="flex items-center gap-2 mb-4">
+                   <span className="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-400">{exam.trade}</span>
+                   <div className="w-1 h-1 bg-zinc-300 dark:bg-zinc-700 rounded-full" />
+                   <span className="text-[10px] font-black uppercase tracking-[0.2em] text-indigo-500">{exam.timeLimit}m</span>
                 </div>
-                <h3 className="text-2xl font-black text-zinc-900 dark:text-white mb-3 tracking-tighter leading-tight">{exam.title}</h3>
-                <p className="text-xs text-zinc-500 font-medium mb-12 line-clamp-2">{exam.questions.length} Professional Modules • Theoretical & Practical Evaluation</p>
+                <h3 className="text-xl font-black text-zinc-900 dark:text-white mb-3 tracking-tighter leading-tight uppercase group-hover:text-indigo-500 transition-colors">{exam.title}</h3>
+                <p className="text-[11px] text-zinc-500 font-bold mb-8 uppercase tracking-widest">{exam.questions.length} Competency Units</p>
               </div>
               
-              <div className="pt-8 border-t border-zinc-50 dark:border-zinc-800/50 flex items-center justify-between">
-                <div className="flex -space-x-3">
-                   {[1,2,3,4].map(i => (
-                     <div key={i} className="w-8 h-8 rounded-full bg-zinc-100 dark:bg-zinc-800 border-[3px] border-white dark:border-zinc-900 flex items-center justify-center overflow-hidden shadow-sm">
-                       <img src={`https://i.pravatar.cc/100?img=${i+20}`} alt="user" className="grayscale group-hover:grayscale-0 transition-all" />
-                     </div>
-                   ))}
-                   <div className="w-8 h-8 rounded-full bg-zinc-50 dark:bg-zinc-950 border-[3px] border-white dark:border-zinc-900 flex items-center justify-center text-[10px] font-black text-zinc-300 dark:text-zinc-700">
-                     +
-                   </div>
+              <div className="pt-6 border-t border-zinc-100 dark:border-zinc-800/50 flex items-center justify-between relative z-10">
+                <div className="flex items-center gap-2">
+                  <div className="w-2 h-2 bg-emerald-500 rounded-full" />
+                  <span className="text-[9px] font-black text-zinc-400 uppercase tracking-widest">Simulation Ready</span>
                 </div>
-                <div className="flex items-center gap-3 text-zinc-900 dark:text-white font-black text-[10px] uppercase tracking-widest group-hover:translate-x-1 transition-transform">
-                  Begin Entry <ArrowRight className="w-4 h-4 ml-1" />
+                <div className="flex items-center gap-2 text-zinc-900 dark:text-white font-black text-[10px] uppercase tracking-widest">
+                  Start <ArrowRight className="w-4 h-4" />
                 </div>
               </div>
             </motion.div>
           ))}
           
           {filteredAssessments.length === 0 && (
-             <div className="col-span-full py-24 text-center bg-zinc-50 dark:bg-zinc-900/20 rounded-[3rem] border-2 border-dashed border-zinc-200 dark:border-zinc-800">
-                <div className="w-16 h-16 bg-zinc-100 dark:bg-zinc-900 rounded-3xl flex items-center justify-center mx-auto mb-6">
-                  <Search className="w-6 h-6 text-zinc-300 dark:text-zinc-700" />
+             <div className="col-span-full py-32 text-center bg-zinc-50 dark:bg-zinc-900/20 rounded-[4rem] border-2 border-dashed border-zinc-200 dark:border-zinc-800">
+                <div className="w-20 h-20 bg-zinc-100 dark:bg-zinc-900 rounded-[2.5rem] flex items-center justify-center mx-auto mb-8">
+                  <Search className="w-8 h-8 text-zinc-300 dark:text-zinc-700" />
                 </div>
-                <h3 className="text-xl font-black text-zinc-900 dark:text-white mb-2 uppercase tracking-tighter">No assessments found</h3>
-                <p className="text-zinc-500 text-xs font-medium">Try broadening your search or switching trade filters.</p>
+                <h3 className="text-2xl font-black text-zinc-900 dark:text-white mb-2 uppercase tracking-tighter">No assessments found</h3>
+                <p className="text-zinc-500 text-[10px] font-black uppercase tracking-[0.2em]">BROADEN SEARCH OR SWITCH FILTERS</p>
              </div>
           )}
         </div>
