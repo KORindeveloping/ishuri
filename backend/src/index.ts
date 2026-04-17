@@ -25,17 +25,19 @@ const io = new Server(httpServer, {
 
 const allowedOrigins = [
   process.env.CLIENT_URL || "http://localhost:3000",
+  "http://localhost:5173",
   "https://ishuri.vercel.app",
-  "https://ishuri-dr9avbmpe-kays-projects-a1165b1b.vercel.app"
 ];
 
 app.use(cors({
   origin: (origin, callback) => {
-    if (!origin || allowedOrigins.includes(origin)) {
-      callback(null, true);
-    } else {
-      callback(new Error('Not allowed by CORS'));
-    }
+    // Allow requests with no origin (mobile apps, curl, Postman)
+    if (!origin) return callback(null, true);
+    // Allow any vercel.app subdomain (covers all preview & production deployments)
+    if (origin.endsWith('.vercel.app')) return callback(null, true);
+    // Allow explicitly listed origins
+    if (allowedOrigins.includes(origin)) return callback(null, true);
+    callback(new Error(`CORS: origin '${origin}' not allowed`));
   },
   credentials: true
 }));
