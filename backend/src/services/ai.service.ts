@@ -3,7 +3,7 @@ import { GoogleGenerativeAI } from '@google/generative-ai';
 import dotenv from 'dotenv';
 dotenv.config();
 
-const getGeminiKey = () => process.env.GEMINI_API_KEY || '';
+const getGeminiKey = () => process.env.tvet || process.env.GEMINI_API_KEY || '';
 const getAnthropicKey = () => process.env.ANTHROPIC_API_KEY || '';
 
 export async function generateQuiz(
