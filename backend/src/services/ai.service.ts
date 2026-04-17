@@ -307,22 +307,32 @@ export async function chatTutor(message: string, context: { trade?: string, leve
     } catch (e: any) {
       console.error(`[AI-Chat] Gemini primary failed: ${e.message}`);
       lastError = `Gemini: ${e.message}`;
-      
-      // If it's a quota error, DO NOT retry to save user's remaining quota
-      if (e.message.includes('429') || e.message.toLowerCase().includes('quota')) {
-        lastError = '429 Quota Exceeded';
-      } else {
-        // Only try fallback for other types of errors
+
+      // If not a quota error, try a simpler Gemini request without systemInstruction
+      if (!e.message.includes('429') && !e.message.toLowerCase().includes('quota')) {
         try {
           const model = genAI.getGenerativeModel({ model: 'gemini-2.0-flash' });
           const result = await model.generateContent(`${systemPrompt}\n\nStudent Message: ${message}`);
           const response = await result.response;
           return response.text();
         } catch (e2: any) {
-          console.error(`[AI-Chat] Gemini fallback failed: ${e2.message}`);
+          console.error(`[AI-Chat] Gemini simple fallback failed: ${e2.message}`);
           lastError += ` | Fallback: ${e2.message}`;
         }
+      } else {
+        // On quota/rate-limit, try the lighter model which has higher free-tier RPM
+        try {
+          console.log(`[AI-Chat] Gemini quota hit, retrying with gemini-2.0-flash-lite...`);
+          const liteModel = genAI.getGenerativeModel({ model: 'gemini-2.0-flash-lite' });
+          const result = await liteModel.generateContent(`${systemPrompt}\n\nStudent Message: ${message}`);
+          const response = await result.response;
+          return response.text();
+        } catch (e2: any) {
+          console.error(`[AI-Chat] Gemini lite fallback failed: ${e2.message}`);
+          lastError += ` | Lite: ${e2.message}`;
+        }
       }
+      // Always fall through to Claude when Gemini fails (quota or otherwise)
     }
   }
 
@@ -346,9 +356,14 @@ export async function chatTutor(message: string, context: { trade?: string, leve
   }
 
   if (lastError.includes('429') || lastError.toLowerCase().includes('quota')) {
-    return `Hello! I'm currently on a short break because my **API Quota has been reached** 📊. 
+    return `I'm temporarily rate-limited by the AI provider 📊. Both primary and fallback models have been tried.
 
-This usually happens on the free tier when there are too many requests in a short time. Please **try again in about 30-60 seconds**, and I should be back to help you with your studies!`;
+**What you can do:**
+- Wait **1-2 minutes** and try again
+- The free tier allows 15 requests/minute — heavy use can trigger this
+- Consider upgrading your Gemini API key to a paid plan for uninterrupted access
+
+I'll be back shortly to help with your studies! 💪`;
   }
 
   const debugInfo = lastError ? `\n\n**Debug Error:** ${lastError}` : '';
