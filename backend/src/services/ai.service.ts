@@ -6,61 +6,63 @@ dotenv.config();
 const getGeminiKey = () => process.env.GEMINI_API_KEY || '';
 const getAnthropicKey = () => process.env.ANTHROPIC_API_KEY || '';
 
-export async function generateQuiz(subject: string, trade: string, level?: string, combination?: string, teachings?: string) {
+export async function generateQuiz(
+  subject: string, 
+  trade: string, 
+  level?: string, 
+  combination?: string, 
+  teachings?: string,
+  performanceSummary?: string,
+  numQuestions: number = 10
+) {
   const geminiKey = getGeminiKey();
   const anthropicKey = getAnthropicKey();
   const genAI = new GoogleGenerativeAI(geminiKey);
   const anthropic = new Anthropic({ apiKey: anthropicKey });
+
   // Enhanced "Robust" TVET Prompt with Bloom's Taxonomy and Trade-Specific Terminology
-  const systemPrompt = `You are an expert ${level || 'TVET'} Curriculum Developer and Subject Matter Expert in ${trade}. 
-  Your goal is to generate high-quality, competency-based assessment questions for the ${trade} trade${combination ? ` with a focus on the ${combination} combination` : ''}.
-  
-  CRITICAL ALIGNMENT:
-  - The assessment MUST align perfectly with the module: "${subject}".
-  - If the trade is NIT, focus on Networking, IP Addressing, Linux Admin, Cloud, and Cyber Security.
-  - If the trade is SOD, focus on Python, Java, C++, Data Structures, and Software Engineering.
-  - If the trade is Landsurvey, focus on Surveying Computations, Instrument Operations (Total Station), and GIS.
-  - Use the detailed subject requirements: ${teachings || 'General curriculum'}.
-  
-  CRITICAL - Educational Standards:
-  - Use professional terminology specific to ${trade} (e.g., if Masonry, use terms like "pointing," "course," "mortar mix"; if Coding, use "refactoring," "concurrency," "asynchrony").
-  - Ensure questions cover three levels of Bloom’s Taxonomy: Knowledge (recall), Application (using info in new situations), and Synthesis (drawing connections/creating).
-  - Include exactly one 'Scenario-Based' question in the set (e.g., "A client reports X problem, what is the first step?").
-  
-  CRITICAL - Level Appropriateness:
-  - The student is at the "${level || 'General'}" education level.
-  - If the level is "Pre-Primary" or "Primary", use simple language, focus on basic concepts, but still maintain technical relevance to the trade introductory concepts if applicable.
-  
-  Focus on:
-  - Technical accuracy for ${subject}.
-  - Practical, industry-standard safety protocols.
-  - High-quality distractors for MCQ.
-  
+  const systemPrompt = `You are a professional Exam Generator for a TVET learning app.
+  Your task is to generate high-quality exams STRICTLY based on the provided Trade and Subject.
+
+  RULES:
+  - DO NOT include any content outside the given trade and subject.
+  - All questions MUST be Multiple Choice Questions (MCQs).
+  - Questions must match the learner's level: ${level || 'Beginner'}.
+  - ADAPTIVITY: ${performanceSummary || 'No previous history'}. 
+    If performance is low, generate easier questions. If high, increase difficulty and complexity.
+  - Use clear, professional, and trade-specific language.
+  - Ensure all questions are accurate and relevant to real-world applications.
+  - Provide a brief explanation for each correct answer.
+
+  EXAM STRUCTURE:
+  - Title: ${trade} - ${subject} - ${level || 'General'}
+  - Total Questions: ${numQuestions}
+  - Include professional terminology specific to ${trade}.
+  - Ensure Bloom's Taxonomy coverage (Knowledge, Application, Synthesis).
+  - Include exactly one 'Scenario-Based' MCQ question.
+
   Return ONLY a valid JSON object. No markdown, no preamble.`;
 
-  const userPrompt = `Generate a quiz based on the following TVET course module: ${subject}. 
-  The student is studying ${trade} at the "${level || 'General'}" level.
-  
-  Requirements:
-  1. Generate 10 questions total.
-  2. Mix of Multiple Choice (MCQ) and Short Answer questions.
-  3. Ensure Bloom's Taxonomy coverage (Knowledge, Application, Synthesis).
-  4. Include ONE 'Scenario-Based' question.
-  5. Use professional ${trade} terminology.
+  const userPrompt = `Generate a ${numQuestions}-question MCQ exam for:
+  Trade: ${trade}
+  Subject: ${subject}
+  Level: ${level || 'Beginner'}
   
   JSON Structure:
   {
-    "title": "${subject} Mastery Assessment",
+    "title": "${trade} - ${subject} - ${level || 'General'}",
+    "instructions": "Please select the best answer for each question. All questions are multiple choice.",
     "questions": [
       {
         "id": "uuid-string",
-        "type": "MCQ" | "ShortAnswer",
+        "type": "MCQ",
         "taxonomyLevel": "Knowledge" | "Application" | "Synthesis",
         "isScenarioBased": boolean,
         "text": "Question text using professional ${trade} terms",
-        "options": ["Option A", "Option B", "Option C", "Option D"], // Only for MCQ
-        "correctAnswer": "Detailed answer",
-        "points": number
+        "options": ["Option A", "Option B", "Option C", "Option D"],
+        "correctAnswer": "The exact text of the correct option",
+        "explanation": "Brief explanation of why this is correct",
+        "points": 10
       }
     ]
   }`;
@@ -90,7 +92,7 @@ export async function generateQuiz(subject: string, trade: string, level?: strin
   if (geminiKey && !geminiKey.includes('your_gemini_api_key_here')) {
     try {
       const model = genAI.getGenerativeModel({ 
-        model: 'gemini-2.5-flash',
+        model: 'gemini-1.5-flash',
         systemInstruction: systemPrompt
       });
       const result = await model.generateContent(userPrompt);
@@ -104,7 +106,7 @@ export async function generateQuiz(subject: string, trade: string, level?: strin
       console.error(`[AI] Gemini fallback failed: ${e.message}`);
       // Try even simpler if systemInstruction fails
       try {
-        const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash' });
+        const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
         const result = await model.generateContent(`${systemPrompt}\n\n${userPrompt}`);
         const text = result.response.text();
         const jsonMatch = text.match(/\{[\s\S]*\}/);
@@ -165,7 +167,7 @@ export async function detectStudyLevel(fileBuffer: Buffer, mimeType: string): Pr
 
   try {
     const genAI = new GoogleGenerativeAI(geminiKey);
-    const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash' });
+    const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
     const generationResult = await model.generateContent([
       "Analyze this certificate or educational document and identify the specific level of study (e.g., Primary, Senior 1-3, TVET Level 3-5, University, etc.). Return ONLY the level name.",
       {
@@ -247,7 +249,7 @@ export async function gradeQuiz(quiz: any, userAnswers: Record<string, string>) 
 
   try {
     const genAI = new GoogleGenerativeAI(geminiKey);
-    const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash' });
+    const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
     const result = await model.generateContent(prompt);
     const text = result.response.text();
     const jsonMatch = text.match(/\{[\s\S]*\}/);
@@ -267,8 +269,15 @@ export async function chatTutor(message: string, context: { trade?: string, leve
     return "Hello! I am your AI Tutor. Since I'm running in offline/mock mode, I can just cheer you on. Keep up the great work in your studies!";
   }
 
-  const systemPrompt = `You are a friendly, highly intelligent AI TVET Tutor for the TVET Mastery Pro platform. 
+  const systemPrompt = `You are a friendly, highly intelligent AI TVET Tutor and Exam Generator for the TVET Mastery Pro platform. 
   Your job is to help a student who is studying ${context.trade || 'general topics'} at the ${context.level || 'General'} level.
+  
+  If the student asks for an exam or quiz:
+  - You MUST strictly follow the trade and subject they specify.
+  - All questions must be Multiple Choice.
+  - Include brief explanations for correct answers.
+  - Follow the format: Title, Instructions, Numbered Questions, Answer Key, Explanations.
+  
   Keep your answers relatively concise, encouraging, and use formatting like bolding or bullet points where appropriate.
   If relevant, tie their question back to their listed competencies: ${context.competencies || 'N/A'}.
   Always maintain a professional yet supportive educational tone.`;
@@ -280,7 +289,7 @@ export async function chatTutor(message: string, context: { trade?: string, leve
     const genAI = new GoogleGenerativeAI(geminiKey);
     try {
       const model = genAI.getGenerativeModel({ 
-        model: 'gemini-2.5-flash',
+        model: 'gemini-1.5-flash',
         systemInstruction: systemPrompt
       });
 
@@ -288,7 +297,7 @@ export async function chatTutor(message: string, context: { trade?: string, leve
       const chat = model.startChat({
         history: history,
         generationConfig: {
-          maxOutputTokens: 1000,
+          maxOutputTokens: 2048,
         },
       });
 
@@ -305,7 +314,7 @@ export async function chatTutor(message: string, context: { trade?: string, leve
       } else {
         // Only try fallback for other types of errors
         try {
-          const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash' });
+          const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
           const result = await model.generateContent(`${systemPrompt}\n\nStudent Message: ${message}`);
           const response = await result.response;
           return response.text();

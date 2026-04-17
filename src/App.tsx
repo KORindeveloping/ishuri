@@ -191,14 +191,15 @@ const RAGBadge = ({ status, progress }: { status: CompetencyStatus, progress: nu
 
 // --- Views ---
 
-const DashboardView = ({ user, onStartQuiz, onLogout, history, onNavigate, showToast, onCourseAI }: {
+const DashboardView = ({ user, onStartQuiz, onLogout, history, onNavigate, showToast, onCourseAI, onViewPDF }: {
   user: User,
   onStartQuiz: (quiz: Assessment) => void,
   onLogout: () => void,
   history: QuizHistoryItem[],
   onNavigate: (tab: string) => void,
   showToast: (m: string, t?: 'success' | 'error' | 'info') => void,
-  onCourseAI: (course: string) => void
+  onCourseAI: (course: string) => void,
+  onViewPDF: (fileName: string, courseName: string) => void
 }) => {
   const [tasks, setTasks] = useState<{ id: any, text: string, completed: boolean }[]>([]);
   useEffect(() => {
@@ -626,25 +627,39 @@ const DashboardView = ({ user, onStartQuiz, onLogout, history, onNavigate, showT
                 <BookOpen className="w-6 h-6 text-zinc-400 dark:text-zinc-500" /> Course Lessons
               </h2>
             </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {subjects.slice(0, 4).map((subject, idx) => (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 h-96 overflow-y-auto pr-2 custom-scrollbar">
+              {[
+                { name: 'Biology', file: 'Biology S1 SB.pdf' },
+                { name: 'Computer Skills', file: 'CCMCS401 COMPUTER SKILLS.pdf' },
+                { name: 'English', file: 'English S1 SB.pdf' },
+                { name: 'Entrepreneurship', file: 'Entrepreuneurship S1 SB.pdf' },
+                { name: 'Geography', file: 'Geograpgy  S1 SB.pdf' },
+                { name: 'History', file: 'History S1 SB.pdf' },
+                { name: 'ICT', file: 'ICT S1 SB.pdf' },
+                { name: 'Kinyarwanda', file: 'Kinyarwanda S1 SB.pdf' },
+                { name: 'Maths', file: 'Maths S1 SB.pdf' },
+                { name: 'Physics', file: 'Physics S1 SB.pdf' },
+                { name: 'Windows Server', file: '770484843-L4SWD-WINDOWS-SERVER-Full-Notes.pdf' }
+              ].map((doc, idx) => (
                 <div 
                   key={idx} 
-                  onClick={() => onCourseAI(subject.name)}
-                  className="p-6 bg-zinc-50 dark:bg-black rounded-3xl border border-zinc-200 dark:border-zinc-800 hover:border-zinc-900 dark:hover:border-white transition-all group cursor-pointer"
+                  onClick={() => onViewPDF(doc.file, doc.name)}
+                  className="p-6 bg-zinc-50 dark:bg-black rounded-3xl border border-zinc-200 dark:border-zinc-800 hover:border-zinc-900 dark:hover:border-white transition-all group cursor-pointer flex flex-col justify-between"
                 >
-                  <div className="flex items-center justify-between mb-4">
-                    <div className="w-10 h-10 rounded-xl bg-white dark:bg-zinc-900 flex items-center justify-center border border-zinc-200 dark:border-zinc-800 group-hover:bg-zinc-900 dark:group-hover:bg-white group-hover:text-white dark:group-hover:text-black transition-colors">
-                      <GraduationCap className="w-5 h-5" />
+                  <div>
+                    <div className="flex items-center justify-between mb-4">
+                      <div className="w-10 h-10 rounded-xl bg-white dark:bg-zinc-900 flex items-center justify-center border border-zinc-200 dark:border-zinc-800 group-hover:bg-zinc-900 dark:group-hover:bg-white group-hover:text-white dark:group-hover:text-black transition-colors">
+                        <FileText className="w-5 h-5" />
+                      </div>
+                      <span className="text-[10px] font-black text-zinc-400 dark:text-zinc-600 uppercase tracking-widest">Official PDF</span>
                     </div>
-                    <span className="text-[10px] font-black text-zinc-400 dark:text-zinc-600 uppercase tracking-widest">Module {idx + 1}</span>
+                    <h3 className="font-black text-zinc-900 dark:text-white text-lg tracking-tight mb-2 line-clamp-1 uppercase">{doc.name}</h3>
+                    <p className="text-xs text-zinc-500 dark:text-zinc-500 mb-6 line-clamp-2">Click to view official course materials for {doc.name}.</p>
                   </div>
-                  <h3 className="font-black text-zinc-900 dark:text-white text-lg tracking-tight mb-2 line-clamp-1 uppercase">{subject.name}</h3>
-                  <p className="text-xs text-zinc-500 dark:text-zinc-500 mb-6">Learn the core concepts of {subject.name.split(' ')[0]} and prepare for your competency test.</p>
                   <div 
-                    className="w-full py-3 bg-zinc-100 dark:bg-zinc-900 text-zinc-900 dark:text-white rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-zinc-900 dark:hover:bg-white hover:text-white dark:hover:text-black transition-all text-center"
+                    className="w-full py-3 bg-zinc-100 dark:bg-zinc-900 text-zinc-900 dark:text-white rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-zinc-900 dark:hover:border-white hover:text-white dark:hover:text-black transition-all text-center flex items-center justify-center gap-2"
                   >
-                    Start AI Lesson Planning
+                    <Download className="w-3.5 h-3.5" /> View Lesson PDF
                   </div>
                 </div>
               ))}
@@ -2588,6 +2603,18 @@ const AssessmentView = ({
                             </p>
                          </div>
                        )}
+
+                       {q.explanation && (
+                         <div className="p-4 bg-zinc-800 rounded-xl border border-zinc-700">
+                            <div className="flex items-center gap-2 mb-2">
+                              <Info className="w-3 h-3 text-zinc-400" />
+                              <p className="text-[9px] font-black text-zinc-400 uppercase tracking-widest">Expert Explanation</p>
+                            </div>
+                            <p className="text-sm text-zinc-300 font-medium leading-relaxed">
+                              {q.explanation}
+                            </p>
+                         </div>
+                       )}
                     </div>
                   )}
                 </div>
@@ -3956,10 +3983,16 @@ export default function App() {
   const [selectedCourse, setSelectedCourse] = useState<string | null>(null);
 
   const handleOpenCourseAI = (courseName: string) => {
-    setSelectedCourse(courseName);
-    setShowCourseAI(true);
+   setSelectedCourse(courseName);
+   setShowCourseAI(true);
   };
 
+  const handleViewCoursePDF = (fileName: string, courseName: string) => {
+    // Open the PDF in a new tab
+    window.open(`/Courselesson/${fileName}`, '_blank');
+    // Also open the AI Study Hub (Syllabus)
+    handleOpenCourseAI(courseName);
+  };
   // --- UI System State ---
   const [toast, setToast] = useState<{ message: string, type: 'success' | 'error' | 'info' } | null>(null);
   const [modal, setModal] = useState<{ 
@@ -4175,7 +4208,7 @@ export default function App() {
 
     const view = (() => {
       switch (activeTab) {
-        case 'dashboard': return <DashboardView user={user} onStartQuiz={handleStartCustomQuiz} onLogout={handleLogout} history={history} onNavigate={handleTabChange} showToast={showToast} onCourseAI={handleOpenCourseAI} />;
+        case 'dashboard': return <DashboardView user={user} onStartQuiz={handleStartCustomQuiz} onLogout={handleLogout} history={history} onNavigate={handleTabChange} showToast={showToast} onCourseAI={handleOpenCourseAI} onViewPDF={handleViewCoursePDF} />;
         case 'assessments': return (
           <AssessmentView 
             assessments={MOCK_ASSESSMENTS} 
@@ -4209,19 +4242,19 @@ export default function App() {
           />
         );
         default: return (
-          <DashboardView 
-            user={user} 
-            onStartQuiz={handleStartCustomQuiz} 
-            onLogout={handleLogout} 
-            history={history} 
-            onNavigate={handleTabChange} 
-            showToast={showToast} 
+          <DashboardView
+            user={user}
+            onStartQuiz={handleStartCustomQuiz}
+            onLogout={handleLogout}
+            history={history}
+            onNavigate={handleTabChange}
+            showToast={showToast}
             onCourseAI={(course) => {
               setSelectedCourse(course);
               setShowCourseAI(true);
             }}
-          />
-        );
+            onViewPDF={handleViewCoursePDF}
+          />        );
       }
     })();
 

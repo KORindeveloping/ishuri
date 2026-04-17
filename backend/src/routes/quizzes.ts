@@ -28,7 +28,7 @@ router.post('/grade', requireAuth, async (req: AuthRequest, res: Response) => {
 
 // Generate a NEW practice quiz via AI
 router.post('/generate', requireAuth, async (req: AuthRequest, res: Response) => {
-  const { subject, trade: bodyTrade } = req.body;
+  const { subject, trade: bodyTrade, level: bodyLevel, numQuestions } = req.body;
   const userId = req.user?.id;
 
   if (!subject) {
@@ -36,15 +36,35 @@ router.post('/generate', requireAuth, async (req: AuthRequest, res: Response) =>
   }
 
   try {
-    const user = await prisma.user.findUnique({ where: { id: userId } });
+    const user = await prisma.user.findUnique({ 
+      where: { id: userId },
+      include: {
+        quizHistory: {
+          take: 5,
+          orderBy: { completedAt: 'desc' },
+          include: { quiz: true }
+        }
+      }
+    });
+
     const trade = bodyTrade || user?.trade || 'General';
+    const level = bodyLevel || user?.educationLevel || 'Beginner';
     
+    // Create a performance summary for the AI
+    let performanceSummary = "New user, no history.";
+    if (user?.quizHistory && user.quizHistory.length > 0) {
+      const avgScore = user.quizHistory.reduce((acc, curr) => acc + (curr.score / curr.totalPoints), 0) / user.quizHistory.length;
+      performanceSummary = `User has completed ${user.quizHistory.length} recent quizzes. Average score: ${(avgScore * 100).toFixed(1)}%. Recent topics: ${user.quizHistory.map(h => h.quiz.title).join(', ')}.`;
+    }
+
     const aiQuiz = await generateQuiz(
       subject, 
       trade, 
-      user?.educationLevel || undefined, 
+      level, 
       user?.combination || undefined,
-      user?.subjects || undefined
+      user?.subjects || undefined,
+      performanceSummary,
+      numQuestions || 10
     );
     
     // Save generated quiz to DB
@@ -53,7 +73,7 @@ router.post('/generate', requireAuth, async (req: AuthRequest, res: Response) =>
         title: aiQuiz.title || `${subject} Mastery`,
         trade: trade,
         questions: JSON.stringify(aiQuiz.questions || []),
-        timeLimit: 15
+        timeLimit: Math.round(Math.max(10, (numQuestions || 10) * 1.5)) // Approx 1.5 min per question
       }
     });
 

@@ -118,12 +118,12 @@ export const api = {
   },
 
   // --- Quizzes ---
-  generateQuiz: async (subject: string, trade: string) => {
+  generateQuiz: async (subject: string, trade: string, numQuestions?: number, level?: string) => {
     try {
       const res = await fetch(`${API_URL}/quizzes/generate`, {
         method: 'POST',
         headers: getHeaders(),
-        body: JSON.stringify({ subject, trade })
+        body: JSON.stringify({ subject, trade, numQuestions, level })
       });
       
       if (!res.ok) {

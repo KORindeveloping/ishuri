@@ -1,4 +1,4 @@
-export type Trade = 'Automotive' | 'Plumbing' | 'IT' | 'Electrical' | 'Welding' | 'Sciences' | 'General' | 'Rwanda' | 'Uganda' | 'Kenya' | 'Tanzania' | 'Burundi' | 'Nigeria';
+export type Trade = 'Automotive' | 'Plumbing' | 'IT' | 'Electrical' | 'Welding' | 'Sciences' | 'General' | 'Rwanda' | 'Uganda' | 'Kenya' | 'Tanzania' | 'Burundi' | 'Nigeria' | 'Construction' | 'Mechanical';
 
 export type CompetencyStatus = 'Not Yet Competent' | 'Competent' | 'Advanced';
 
@@ -23,6 +23,7 @@ export interface Question {
   mediaType?: 'image' | 'video';
   options?: string[];
   correctAnswer?: string | string[];
+  explanation?: string;
   points: number;
 }
 

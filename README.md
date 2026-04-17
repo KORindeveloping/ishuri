@@ -1,20 +1,58 @@
-<div align="center">
-<img width="1200" height="475" alt="GHBanner" src="https://github.com/user-attachments/assets/0aa67016-6eaf-458a-adb2-6e31a0763ed6" />
-</div>
+# TVET Mastery Pro
 
-# Run and deploy your AI Studio app
+A comprehensive learning platform for TVET students, featuring AI-powered tutors, course planners, and quiz generation.
 
-This contains everything you need to run your app locally.
+## Project Structure
 
-View your app in AI Studio: https://ai.studio/apps/8634e67f-a71c-40ba-9ef4-610eea6c4271
+- `/` - Frontend (React + Vite + TypeScript)
+- `/backend` - Backend (Node.js + Express + Prisma + PostgreSQL)
+- `/public/Courselesson` - Library of official course documents (PDFs)
 
-## Run Locally
+## Getting Started
 
-**Prerequisites:**  Node.js
+### Prerequisites
 
+- Node.js (>= 18.0.0)
+- PostgreSQL (or any database supported by Prisma)
 
-1. Install dependencies:
-   `npm install`
-2. Set the `GEMINI_API_KEY` in [.env.local](.env.local) to your Gemini API key
-3. Run the app:
-   `npm run dev`
+### Local Setup
+
+1. **Install all dependencies** (Frontend & Backend):
+   ```bash
+   npm run install:all
+   ```
+
+2. **Environment Variables**:
+   - Create a `.env` file in the **root** directory (see `.env.example`).
+   - Create a `.env` file in the **backend** directory (see `backend/.env.example`).
+   - Ensure you set `DATABASE_URL` and `GEMINI_API_KEY`.
+
+3. **Database Setup**:
+   ```bash
+   cd backend
+   npx prisma db push
+   ```
+
+4. **Run the application**:
+   - To run both frontend and backend together:
+     ```bash
+     npm run dev:full
+     ```
+   - Or run them separately:
+     - Frontend: `npm run dev`
+     - Backend: `npm run dev:backend`
+
+## Features
+
+- **AI Academic Planner**: Generates personalized study roadmaps and syllabi.
+- **AI Tutor (Copilot)**: Real-time assistance and deep dives into specific topics.
+- **Dynamic Quiz Generation**: AI-generated MCQs based on trade and subject.
+- **Portfolio Management**: Upload and manage evidence of learning.
+- **Official Library**: Access to Level 1 course documents for various subjects.
+
+## Technologies
+
+- **Frontend**: React 19, Vite, TailwindCSS, Framer Motion, Lucide React.
+- **Backend**: Node.js, Express, Prisma ORM, Socket.IO.
+- **AI**: Google Gemini API, Anthropic Claude API (optional).
+- **Database**: PostgreSQL.

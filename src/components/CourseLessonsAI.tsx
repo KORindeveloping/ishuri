@@ -30,20 +30,35 @@ interface LessonPlan {
 
 type InteractionMode = 'EXPLORE' | 'EXPLAIN' | 'QUIZ' | 'TUTOR';
 
+const SUBJECT_DOC_MAP: Record<string, string> = {
+  'Biology': 'Biology S1 SB.pdf',
+  'Computer Skills': 'CCMCS401 COMPUTER SKILLS.pdf',
+  'English': 'English S1 SB.pdf',
+  'Entrepreneurship': 'Entrepreneurship S1 SB.pdf',
+  'Geography': 'Geography S1 SB.pdf',
+  'History': 'History S1 SB.pdf',
+  'ICT': 'ICT S1 SB.pdf',
+  'Kinyarwanda': 'Kinyarwanda S1 SB.pdf',
+  'Maths': 'Maths S1 SB.pdf',
+  'Physics': 'Physics S1 SB.pdf',
+  'Windows Server': '770484843-L4SWD-WINDOWS-SERVER-Full-Notes.pdf'
+};
+
 export const CourseLessonsAI = ({ user, onClose, initialCourse }: { user: User; onClose: () => void; initialCourse?: string | null }) => {
   const [activeMode, setActiveMode] = useState<InteractionMode>('EXPLORE');
   const [selectedChapter, setSelectedChapter] = useState<string | null>(null);
   const [interactionContent, setInteractionModeContent] = useState<string | null>(null);
   const [isInteracting, setIsInteracting] = useState(false);
+  const [stage, setStage] = useState<'LEVEL_SELECTION' | 'CONSULTING'>(initialCourse ? 'LEVEL_SELECTION' : 'CONSULTING');
 
   const [messages, setMessages] = useState<{ id: string, text: string, sender: 'user' | 'ai', options?: string[] }[]>([
     {
       id: 'ai-initial',
       text: initialCourse 
-        ? `Hello ${user?.name?.split(' ')?.[0] || 'Student'}! I see you want to study **${initialCourse}**. Based on your level (${user.educationLevel || 'General'}), let me prepare a lesson plan for you. Shall we begin?`
+        ? `Hello ${user?.name?.split(' ')?.[0] || 'Student'}! I see you want to study **${initialCourse}**. **Which level you want to test in?**`
         : `Hello ${user?.name?.split(' ')?.[0] || 'Student'}! I'm your Course Consultant. Which course or subject would you like to study today? Based on your level (${user.educationLevel || 'General'}), I can help you find the best path.`,
       sender: 'ai',
-      options: initialCourse ? ['Yes, generate roadmap', 'Suggest another course'] : (user.subjects || '').split(',').map(s => s.trim()).filter(Boolean).slice(0, 4)
+      options: initialCourse ? ['1', 'Suggest another course'] : (user.subjects || '').split(',').map(s => s.trim()).filter(Boolean).slice(0, 4)
     }
   ]);
   const [input, setInput] = useState('');
@@ -80,16 +95,21 @@ export const CourseLessonsAI = ({ user, onClose, initialCourse }: { user: User; 
       - Do NOT mention exams, grades, or study tips.
       - End with one sentence that summarises the core idea in the simplest possible terms.`;
     } else if (mode === 'QUIZ') {
-      systemPrompt = `You are an exam question generator. You will be given syllabus text for ONE topic.
-      Generate exactly 4 questions from this text only. Use this mix:
-      - 2 multiple-choice questions (4 options each, one correct, label them A B C D)
-      - 2 fill-in-the-blank questions (replace the key term with a blank line ___)
-      Rules:
-      - Every question must be answerable using only the provided text — no outside knowledge.
-      - Questions must test understanding, not just memory.
-      - After all 4 questions, output a separator line (---) then provide the answer key.
-      - Do NOT explain the answers — just list the correct letter or missing word.
-      - Difficulty level: challenging but fair for a high school student.`;
+      systemPrompt = `You are a professional Exam Generator. You will be given syllabus text for ONE topic.
+      Generate exactly 4 Multiple Choice Questions (MCQs) from this text only.
+      
+      RULES:
+      - All questions must be MCQ with 4 options (A, B, C, D).
+      - Every question must be answerable using only the provided text.
+      - Questions must match the learner's level.
+      - Provide a brief explanation for each correct answer.
+
+      STRUCTURE:
+      1. Exam Title (Topic + Level)
+      2. Instructions
+      3. Questions (numbered)
+      4. Answer Key (clearly separated with ---)
+      5. Explanations (brief)`;
     } else if (mode === 'TUTOR') {
       systemPrompt = `You are a focused study tutor. A student is studying ONE specific topic and wants to go deeper.
       The topic is: ${chapter}
@@ -122,13 +142,58 @@ export const CourseLessonsAI = ({ user, onClose, initialCourse }: { user: User; 
     setIsLoading(true);
 
     const firstUserIndex = currentMessages.findIndex(m => m.sender === 'user');
+    const normalizedText = messageText.trim().toLowerCase();
+
+    if (stage === 'LEVEL_SELECTION') {
+      const isLevel1 = normalizedText === '1' || normalizedText.includes('level 1') || normalizedText === 'one';
+      
+      if (isLevel1) {
+        const searchName = (initialCourse || '').toLowerCase();
+        const docFile = SUBJECT_DOC_MAP[initialCourse || ''] || 
+                       SUBJECT_DOC_MAP[Object.keys(SUBJECT_DOC_MAP).find(k => 
+                         k.toLowerCase().includes(searchName) || searchName.includes(k.toLowerCase())) || ''];
+        
+        const aiResponse = {
+          id: `ai-${Date.now()}`,
+          text: docFile 
+            ? `Perfect choice! Here is the official **Level 1** document for **${initialCourse}**:\n\n### 📄 [Click here to open ${docFile}](/Courselesson/${encodeURIComponent(docFile)})\n\nI can now generate a detailed study roadmap and syllabus based on these official materials. Shall we begin?`
+            : `I've registered your interest in Level 1 for **${initialCourse}**. While I prepare the specific document link, let me build your personalized study roadmap based on adapting national curriculum standards.`,
+          sender: 'ai' as const,
+          options: ['Yes, generate roadmap', 'Suggest another course']
+        };
+        
+        setMessages(prev => [...prev, aiResponse]);
+        setStage('CONSULTING');
+        setIsLoading(false);
+        return;
+      } else if (normalizedText.includes('suggest another')) {
+        setStage('CONSULTING');
+        // Continue to normal AI flow to suggest another course
+      } else {
+        setMessages(prev => [...prev, {
+          id: `ai-${Date.now()}`,
+          text: "Currently, our digital library has the most comprehensive materials for **Level 1**. Would you like to proceed with the Level 1 curriculum, or should I suggest a different subject?",
+          sender: 'ai' as const,
+          options: ['1', 'Suggest another course']
+        }]);
+        setIsLoading(false);
+        return;
+      }
+    }
+
+    // Special handling for functional selections to guide the AI
+    let contextMessage = messageText;
+    if (normalizedText.includes('generate roadmap') && initialCourse) {
+      contextMessage = `I want to generate a study roadmap for my selected course: ${initialCourse}. Please list the key chapters.`;
+    }
+
     const history = (firstUserIndex === -1 ? [] : currentMessages.slice(firstUserIndex, -1)).map(msg => ({
       role: msg.sender === 'user' ? 'user' as const : 'model' as const,
       parts: [{ text: msg.text }]
     }));
 
     try {
-      const prompt = `The student wants to study: "${messageText}". 
+      const prompt = `The student wants to study: "${contextMessage}". 
       Student context: Level ${user.educationLevel || 'General'}, Trade: ${user.trade || 'General'}.
       
       Act as an expert TVET instructor.
@@ -137,29 +202,41 @@ export const CourseLessonsAI = ({ user, onClose, initialCourse }: { user: User; 
       
       Format your response as a friendly message. If you are listing chapters, include them in a clear list.
       
-      CRITICAL: If you have identified a clear course and its chapters, also provide a JSON block at the end of your message (within markdown code blocks) like this:
+      CRITICAL: If you have identified a clear course and its chapters, also provide a JSON block at the end of your message (within markdown code blocks).
+      Keep the JSON concise to avoid truncation.
+      
+      JSON Structure Example:
       \`\`\`json
       {
-        "courseName": "Name of the course",
-        "chapters": ["Chapter 1", "Chapter 2", ...],
-        "recommendation": "Why this is good for them"
+        "courseName": "Name",
+        "chapters": ["Ch1", "Ch2", "Ch3", "Ch4"],
+        "recommendation": "Short reason"
       }
       \`\`\`
       `;
 
       const response = await api.sendChatMessage(`${prompt}\n\nStudent: ${messageText}`, history);
       
-      const jsonMatch = response.reply.match(/```json\s*([\s\S]*?)\s*```/);
+      // Improved JSON extraction that handles potential truncation or multiple blocks
+      const jsonMatch = response.reply.match(/```json\s*([\s\S]*?)(\s*```|$)/);
       if (jsonMatch) {
         try {
-          const plan = JSON.parse(jsonMatch[1]);
-          setLessonPlan(plan);
+          let jsonStr = jsonMatch[1].trim();
+          // If the block is truncated (missing closing brace), try to close it
+          if (jsonStr.startsWith('{') && !jsonStr.endsWith('}')) {
+             if (!jsonStr.includes(']')) jsonStr += ']}';
+             else jsonStr += '}';
+          }
+          const plan = JSON.parse(jsonStr);
+          if (plan.courseName && plan.chapters) {
+            setLessonPlan(plan);
+          }
         } catch (e) {
-          console.error("Failed to parse lesson plan JSON");
+          console.error("Failed to parse lesson plan JSON:", e);
         }
       }
 
-      setMessages(prev => [...prev, { id: `ai-${Date.now()}`, text: response.reply.replace(/```json\s*[\s\S]*?\s*```/, ''), sender: 'ai' }]);
+      setMessages(prev => [...prev, { id: `ai-${Date.now()}`, text: response.reply.replace(/```json\s*[\s\S]*?(\s*```|$)/, ''), sender: 'ai' }]);
     } catch (error) {
       setMessages(prev => [...prev, { id: `ai-err-${Date.now()}`, text: "I'm having trouble connecting. Please try again.", sender: 'ai' }]);
     } finally {

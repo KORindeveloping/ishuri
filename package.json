@@ -8,9 +8,12 @@
   },
   "scripts": {
     "dev": "vite --port=3000 --host=0.0.0.0",
+    "dev:backend": "npm run dev --prefix backend",
+    "dev:full": "npx concurrently \"npm run dev\" \"npm run dev --prefix backend\"",
+    "install:all": "npm install && npm install --prefix backend",
     "build": "npx vite build",
     "preview": "npx vite preview",
-    "clean": "rm -rf dist",
+    "clean": "npx rimraf dist",
     "lint": "tsc --noEmit",
     "build:gh-pages": "npx vite build",
     "predeploy": "npm run build",

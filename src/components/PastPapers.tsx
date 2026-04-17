@@ -122,30 +122,24 @@ export const PastPapers = ({ user, onStartQuiz }: { user: User, onStartQuiz?: (q
     }
   };
 
-  const handleGenerate = () => {
+  const handleGenerate = async () => {
     setIsGenerating(true);
-    setTimeout(() => {
-      const generatedQuiz: Assessment = {
-        id: `custom-${Date.now()}`,
-        title: `AI generated: ${config.subject} (${config.year})`,
-        trade: 'General',
-        timeLimit: config.questions * 2,
-        questions: Array.from({ length: config.questions }).map((_, i) => {
-          const type = i % 2 === 0 ? 'MCQ' : 'ShortAnswer';
-          return {
-            id: `q-${i}`,
-            type: type as any,
-            text: `Sample AI-extracted question ${i + 1} for ${config.subject}...`,
-            options: type === 'MCQ' ? ['Option A', 'Option B', 'Option C', 'Option D'] : undefined,
-            correctAnswer: 'Option A',
-            points: 10
-          };
-        })
-      };
+    try {
+      const generatedQuiz = await api.generateQuiz(
+        config.subject, 
+        user.trade || 'General', 
+        config.questions,
+        user.educationLevel || 'Beginner'
+      );
+      
       setIsGenerating(false);
       setShowGenerator(false);
       if (onStartQuiz) onStartQuiz(generatedQuiz);
-    }, 2000);
+    } catch (error) {
+      console.error('Failed to generate quiz:', error);
+      alert('Failed to generate AI quiz. Please try again.');
+      setIsGenerating(false);
+    }
   };
 
   return (

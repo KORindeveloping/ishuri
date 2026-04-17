@@ -14,15 +14,17 @@ import chatRoutes from './routes/chat';
 
 const app = express();
 const httpServer = createServer(app);
+const clientUrl = process.env.CLIENT_URL || "http://localhost:3000";
+
 const io = new Server(httpServer, {
   cors: {
-    origin: process.env.CLIENT_URL || "http://localhost:3000",
+    origin: clientUrl,
     methods: ["GET", "POST"]
   }
 });
 
 app.use(cors({
-  origin: '*', // Allow all during dev for simplicity
+  origin: clientUrl,
   credentials: true
 }));
 app.use(express.json());
