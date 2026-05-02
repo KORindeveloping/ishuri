@@ -154,6 +154,8 @@ router.post('/login', async (req: Request, res: Response) => {
     // --- Robust Streak Logic ---
     console.log('[Login] Calculating streak...');
     let newStreak = user.streak || 1;
+    let newLongestStreak = user.longestStreak || 0;
+    let newLastLostStreak = user.lastLostStreak || 0;
     const now = new Date();
     const last = user.lastLogin ? new Date(user.lastLogin) : null;
     
@@ -170,12 +172,18 @@ router.post('/login', async (req: Request, res: Response) => {
       const yesterdayDay = yesterday.toISOString().split('T')[0];
 
       if (lastDay === yesterdayDay) {
-        // Consecutive calendar day
+        // Consecutive calendar day — grow streak
         newStreak++;
       } else {
-        // Streak broken (more than 1 day gap)
+        // Streak broken (more than 1 day gap) — save lost streak before resetting
+        newLastLostStreak = user.streak || 0;
         newStreak = 1;
       }
+    }
+
+    // Update longest streak if current beats it
+    if (newStreak > newLongestStreak) {
+      newLongestStreak = newStreak;
     }
 
     console.log('[Login] Updating user streak and lastLogin...');
@@ -183,7 +191,12 @@ router.post('/login', async (req: Request, res: Response) => {
     try {
       updatedUser = await prisma.user.update({
         where: { id: user.id },
-        data: { streak: newStreak, lastLogin: now }
+        data: { 
+          streak: newStreak, 
+          longestStreak: newLongestStreak,
+          lastLostStreak: newLastLostStreak,
+          lastLogin: now 
+        }
       });
     } catch (dbError) {
       console.error('[Login] Database update failed:', dbError);
@@ -301,6 +314,8 @@ router.get('/profile', requireAuth, async (req: AuthRequest, res: Response) => {
 
     // --- Robust Streak Logic ---
     let newStreak = user.streak || 1;
+    let newLongestStreak = user.longestStreak || 0;
+    let newLastLostStreak = user.lastLostStreak || 0;
     const now = new Date();
     const last = user.lastLogin ? new Date(user.lastLogin) : null;
     
@@ -317,13 +332,25 @@ router.get('/profile', requireAuth, async (req: AuthRequest, res: Response) => {
       if (lastDay === yesterdayDay) {
         newStreak++;
       } else {
+        // Streak broken — record it before resetting
+        newLastLostStreak = user.streak || 0;
         newStreak = 1;
       }
     }
 
+    // Update longest streak if current beats it
+    if (newStreak > newLongestStreak) {
+      newLongestStreak = newStreak;
+    }
+
     const updatedUser = await prisma.user.update({
       where: { id: userId },
-      data: { streak: newStreak, lastLogin: now }
+      data: { 
+        streak: newStreak, 
+        longestStreak: newLongestStreak,
+        lastLostStreak: newLastLostStreak,
+        lastLogin: now 
+      }
     });
 
     const { password: _, ...userWithoutPassword } = updatedUser as any;

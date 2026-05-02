@@ -21,6 +21,8 @@ model User {
   restDay     String?  @default("Sunday") // Added field
   role        String   @default("Student")
   streak      Int      @default(0)
+  longestStreak Int      @default(0)
+  lastLostStreak Int      @default(0)
   lastLogin   DateTime?
   competencies String?  // JSON string of competencies
   createdAt   DateTime @default(now())

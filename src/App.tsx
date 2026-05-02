@@ -295,7 +295,8 @@ const DashboardView = ({ user, onStartQuiz, onLogout, history, onNavigate, showT
     ? Math.round(history.reduce((a, b) => a + (b.score / b.totalPoints), 0) / history.length * 100)
     : 0;
 
-  const isStreakLost = user.streak <= 1;
+  const isStreakLost = user.streak <= 1 && (user.lastLostStreak || 0) > 1;
+  const lastLostStreak = user.lastLostStreak || 0;
 
   const stats = [
     { label: 'Study Streak', value: `${user.streak || 0} Days`, icon: Flame, color: 'text-white' },
@@ -463,10 +464,20 @@ const DashboardView = ({ user, onStartQuiz, onLogout, history, onNavigate, showT
               <TrendingUp className="w-5 h-5 text-zinc-300 dark:text-zinc-800 group-hover:text-zinc-900 dark:group-hover:text-white transition-colors" />
             </div>
             <p className="text-[10px] font-black text-zinc-500 dark:text-zinc-600 uppercase tracking-[0.3em] mb-1">{stat.label}</p>
-            <p className="text-4xl font-black text-zinc-900 dark:text-white tracking-tighter flex items-end gap-2">
+            <p className="text-4xl font-black text-zinc-900 dark:text-white tracking-tighter flex items-center gap-3 flex-wrap">
               {stat.value}
               {stat.label === 'Study Streak' && isStreakLost && (
-                <span className="text-red-500 line-through text-xs ml-2">Streak Lost</span>
+                <span
+                  className="text-sm font-black text-red-500 line-through decoration-red-500 decoration-2"
+                  title="Your previous streak before it broke"
+                >
+                  {lastLostStreak} Days
+                </span>
+              )}
+              {stat.label === 'Study Streak' && !isStreakLost && (user.longestStreak || 0) > (user.streak || 0) && (
+                <span className="text-[9px] font-black text-zinc-400 dark:text-zinc-600 uppercase tracking-widest">
+                  Best: {user.longestStreak}d
+                </span>
               )}
               {stat.label === 'Current Rank' && (
                 <span className="text-[8px] font-black text-emerald-500 bg-emerald-500/10 px-1 rounded uppercase tracking-widest mb-1.5 leading-none px-1.5 py-1 animate-pulse">Live</span>
@@ -3134,7 +3145,19 @@ const SettingsView = ({
           </div>
           <div>
             <p className="text-[9px] font-black text-zinc-500 dark:text-zinc-400 uppercase tracking-widest mb-2">Current Streak</p>
-            <p className="text-4xl md:text-5xl font-black tabular-nums">{user.streak || 0}</p>
+            <p className="text-4xl md:text-5xl font-black tabular-nums flex items-baseline gap-3">
+              {user.streak || 0}
+              {(user.lastLostStreak || 0) > 1 && (user.streak || 0) <= 1 && (
+                <span className="text-xl font-black text-red-500 line-through decoration-red-500 decoration-2" title="Last lost streak">
+                  {user.lastLostStreak} Days
+                </span>
+              )}
+            </p>
+            {(user.longestStreak || 0) > 0 && (
+              <p className="text-[9px] font-black text-zinc-500 dark:text-zinc-400 uppercase tracking-widest mt-1">
+                Best: {user.longestStreak} Days
+              </p>
+            )}
           </div>
           <div>
             <p className="text-[9px] font-black text-zinc-500 dark:text-zinc-400 uppercase tracking-widest mb-2">Verification Rank</p>

@@ -58,6 +58,8 @@ export interface User {
   competencies: TradeCompetency[];
   goals?: SkillGoal[];
   streak?: number;
+  longestStreak?: number;
+  lastLostStreak?: number;
   lastSeen?: string;
 }
 
