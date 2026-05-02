@@ -175,8 +175,12 @@ router.post('/login', async (req: Request, res: Response) => {
         // Consecutive calendar day — grow streak
         newStreak++;
       } else {
-        // Streak broken (more than 1 day gap) — save lost streak before resetting
-        newLastLostStreak = user.streak || 0;
+        // Streak broken (more than 1 day gap)
+        // Only record lastLostStreak if we're breaking a REAL streak (>1)
+        // This preserves the strikethrough display across multiple missed days
+        if ((user.streak || 0) > 1) {
+          newLastLostStreak = user.streak;
+        }
         newStreak = 1;
       }
     }
@@ -332,8 +336,11 @@ router.get('/profile', requireAuth, async (req: AuthRequest, res: Response) => {
       if (lastDay === yesterdayDay) {
         newStreak++;
       } else {
-        // Streak broken — record it before resetting
-        newLastLostStreak = user.streak || 0;
+        // Streak broken — only record lastLostStreak when breaking a real streak (>1)
+        // Prevents overwriting meaningful value with 1 on subsequent missed days
+        if ((user.streak || 0) > 1) {
+          newLastLostStreak = user.streak;
+        }
         newStreak = 1;
       }
     }
