@@ -295,6 +295,8 @@ const DashboardView = ({ user, onStartQuiz, onLogout, history, onNavigate, showT
     ? Math.round(history.reduce((a, b) => a + (b.score / b.totalPoints), 0) / history.length * 100)
     : 0;
 
+  const isStreakLost = user.streak <= 1;
+
   const stats = [
     { label: 'Study Streak', value: `${user.streak || 0} Days`, icon: Flame, color: 'text-white' },
     { label: 'Avg. Quiz Score', value: `${avgDashboardScore}%`, icon: BarChart3, color: 'text-white' },
@@ -463,6 +465,9 @@ const DashboardView = ({ user, onStartQuiz, onLogout, history, onNavigate, showT
             <p className="text-[10px] font-black text-zinc-500 dark:text-zinc-600 uppercase tracking-[0.3em] mb-1">{stat.label}</p>
             <p className="text-4xl font-black text-zinc-900 dark:text-white tracking-tighter flex items-end gap-2">
               {stat.value}
+              {stat.label === 'Study Streak' && isStreakLost && (
+                <span className="text-red-500 line-through text-xs ml-2">Streak Lost</span>
+              )}
               {stat.label === 'Current Rank' && (
                 <span className="text-[8px] font-black text-emerald-500 bg-emerald-500/10 px-1 rounded uppercase tracking-widest mb-1.5 leading-none px-1.5 py-1 animate-pulse">Live</span>
               )}
