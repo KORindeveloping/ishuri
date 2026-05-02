@@ -1,11 +1,65 @@
-import Anthropic from '@anthropic-ai/sdk';
+import OpenAI from 'openai';
 import { GoogleGenerativeAI } from '@google/generative-ai';
+import Anthropic from '@anthropic-ai/sdk';
 import dotenv from 'dotenv';
 dotenv.config();
 
+// Helpers to get API keys
 const getGeminiKey = () => process.env.tvet || process.env.GEMINI_API_KEY || '';
+const getDeepSeekKey = () => process.env.DEEPSEEK_API_KEY || '';
 const getAnthropicKey = () => process.env.ANTHROPIC_API_KEY || '';
 
+// Lazy-loaded OpenAI client
+let _openai: OpenAI | null = null;
+function getOpenAIClient() {
+  if (!_openai) {
+    const key = getDeepSeekKey();
+    _openai = new OpenAI({
+      apiKey: key,
+      baseURL: 'https://api.deepseek.com',
+    });
+  }
+  return _openai;
+}
+
+/**
+ * Hybrid AI Wrapper: Attempts Gemini first, falls back to DeepSeek if Gemini fails.
+ */
+async function callHybridAI(logic: { 
+  gemini: () => Promise<any>, 
+  deepseek: () => Promise<any>,
+  providerName?: string 
+}) {
+  const geminiKey = getGeminiKey();
+  
+  // 1. Try Gemini (Free Tier)
+  if (geminiKey && !geminiKey.includes('placeholder')) {
+    try {
+      console.log(`[AI-Hybrid] Attempting ${logic.providerName || 'task'} with Gemini...`);
+      return await logic.gemini();
+    } catch (e: any) {
+      console.warn(`[AI-Hybrid] Gemini failed: ${e.message}. Falling back to DeepSeek...`);
+    }
+  }
+
+  // 2. Try DeepSeek (Reliable Backup)
+  const deepseekKey = getDeepSeekKey();
+  if (deepseekKey) {
+    try {
+      console.log(`[AI-Hybrid] Falling back to DeepSeek for ${logic.providerName || 'task'}...`);
+      return await logic.deepseek();
+    } catch (e: any) {
+      console.error(`[AI-Hybrid] DeepSeek also failed: ${e.message}`);
+      throw e;
+    }
+  }
+
+  throw new Error("All AI providers failed or are unconfigured.");
+}
+
+/**
+ * Generates a dynamic quiz using Hybrid AI (Gemini -> DeepSeek).
+ */
 export async function generateQuiz(
   subject: string, 
   trade: string, 
@@ -15,12 +69,6 @@ export async function generateQuiz(
   performanceSummary?: string,
   numQuestions: number = 10
 ) {
-  const geminiKey = getGeminiKey();
-  const anthropicKey = getAnthropicKey();
-  const genAI = new GoogleGenerativeAI(geminiKey);
-  const anthropic = new Anthropic({ apiKey: anthropicKey });
-
-  // Enhanced "Robust" TVET Prompt with Bloom's Taxonomy and Trade-Specific Terminology
   const systemPrompt = `You are a professional Exam Generator for a TVET learning app.
   Your task is to generate high-quality exams STRICTLY based on the provided Trade and Subject.
 
@@ -67,153 +115,58 @@ export async function generateQuiz(
     ]
   }`;
 
-  // 1. Claude Primary (Robust/Advanced)
-  if (anthropicKey && !anthropicKey.includes('xxx')) {
-    try {
-      const response = await anthropic.messages.create({
-        model: 'claude-3-5-sonnet-20240620',
-        max_tokens: 3000,
-        messages: [{ role: 'user', content: userPrompt }],
-        system: systemPrompt,
-      });
-
-      const text = (response.content[0] as any).text;
-      const jsonMatch = text.match(/\{[\s\S]*\}/);
-      const quiz = JSON.parse(jsonMatch ? jsonMatch[0] : text);
-      
-      console.log(`[AI] Successfully generated dynamic Claude quiz: ${quiz.title}`);
-      return quiz;
-    } catch (e: any) {
-      console.error(`[AI] Claude primary failed: ${e.message}`);
-    }
-  }
-
-  // 2. Gemini Fallback
-  if (geminiKey && !geminiKey.includes('your_gemini_api_key_here')) {
-    try {
-      const model = genAI.getGenerativeModel({ 
-        model: 'gemini-2.0-flash',
-        systemInstruction: systemPrompt
-      });
+  return await callHybridAI({
+    providerName: "Quiz Generation",
+    gemini: async () => {
+      const genAI = new GoogleGenerativeAI(getGeminiKey());
+      const model = genAI.getGenerativeModel({ model: 'gemini-2.0-flash', systemInstruction: systemPrompt });
       const result = await model.generateContent(userPrompt);
       const text = result.response.text();
       const jsonMatch = text.match(/\{[\s\S]*\}/);
-      const quiz = JSON.parse(jsonMatch ? jsonMatch[0] : text);
-
-      console.log(`[AI] Successfully generated fallback Gemini quiz: ${quiz.title}`);
-      return quiz;
-    } catch (e: any) {
-      console.error(`[AI] Gemini fallback failed: ${e.message}`);
-      // Try even simpler if systemInstruction fails
-      try {
-        const model = genAI.getGenerativeModel({ model: 'gemini-2.0-flash' });
-        const result = await model.generateContent(`${systemPrompt}\n\n${userPrompt}`);
-        const text = result.response.text();
-        const jsonMatch = text.match(/\{[\s\S]*\}/);
-        const quiz = JSON.parse(jsonMatch ? jsonMatch[0] : text);
-        return quiz;
-      } catch (e2: any) {
-        console.error(`[AI] Gemini ultimate quiz fallback failed: ${e2.message}`);
-      }
+      return JSON.parse(jsonMatch ? jsonMatch[0] : text);
+    },
+    deepseek: async () => {
+      const response = await getOpenAIClient().chat.completions.create({
+        model: 'deepseek-chat',
+        messages: [
+          { role: 'system', content: systemPrompt },
+          { role: 'user', content: userPrompt }
+        ],
+        response_format: { type: 'json_object' }
+      });
+      return JSON.parse(response.choices[0].message.content || '{}');
     }
-  }
-
-  // 3. Local Mock (Only if everything else fails)
-  console.warn(`[AI] CRITICAL: Both AI providers failed. Using static mock fallback for ${subject}.`);
-  
-  return {
-    title: `${subject} Mastery (Offline Mode)`,
-    questions: level?.toLowerCase().includes('primary') ? [
-      {
-        id: "mock-1",
-        type: "MCQ",
-        text: `How do we usually stay safe when learning about ${subject}?`,
-        options: ["Listen to teacher", "Run fast", "Shout loud", "Close eyes"],
-        correctAnswer: "Listen to teacher",
-        points: 10
-      },
-      {
-        id: "mock-2",
-        type: "ShortAnswer",
-        text: `What is one thing you like about ${subject}?`,
-        correctAnswer: "Learning new things",
-        points: 20
-      }
-    ] : [
-      {
-        id: "mock-1",
-        type: "MCQ",
-        text: `What is the primary safety protocol when working with ${subject} in ${trade}?`,
-        options: ["Wear PPE", "Ignore signs", "Work alone", "Use broken tools"],
-        correctAnswer: "Wear PPE",
-        points: 10
-      },
-      {
-        id: "mock-2",
-        type: "ShortAnswer",
-        text: `Explain one key maintenance procedure for ${subject} systems.`,
-        correctAnswer: "Regular inspection and cleaning",
-        points: 20
-      }
-    ]
-  };
+  });
 }
 
+/**
+ * Detects study level from document analysis.
+ * Gemini remains primary for vision; DeepSeek is used as text-backup if image analysis fails.
+ */
 export async function detectStudyLevel(fileBuffer: Buffer, mimeType: string): Promise<string> {
   const geminiKey = getGeminiKey();
-  if (!geminiKey || geminiKey.includes('your_gemini_api_key_here')) {
-    return "Level detection unavailable (no AI key)";
+  
+  try {
+    if (geminiKey) {
+      const genAI = new GoogleGenerativeAI(geminiKey);
+      const model = genAI.getGenerativeModel({ model: 'gemini-2.0-flash' });
+      const result = await model.generateContent([
+        "Analyze this certificate or educational document and identify the specific level of study (e.g., Primary, Senior 1-3, TVET Level 3-5, University, etc.). Return ONLY the level name.",
+        { inlineData: { data: fileBuffer.toString('base64'), mimeType } }
+      ]);
+      return result.response.text().trim() || "Unknown Level";
+    }
+  } catch (e) {
+    console.warn(`[AI-Hybrid] Gemini vision failed for level detection. Falling back to default.`);
   }
 
-  try {
-    const genAI = new GoogleGenerativeAI(geminiKey);
-    const model = genAI.getGenerativeModel({ model: 'gemini-2.0-flash' });
-    const generationResult = await model.generateContent([
-      "Analyze this certificate or educational document and identify the specific level of study (e.g., Primary, Senior 1-3, TVET Level 3-5, University, etc.). Return ONLY the level name.",
-      {
-        inlineData: {
-          data: fileBuffer.toString('base64'),
-          mimeType
-        }
-      }
-    ]);
-    const response = await generationResult.response;
-    return response.text().trim() || "Unknown Level";
-  } catch (e: any) {
-    console.error(`[AI] Level detection failed: ${e.message}`);
-    return "Detection Failed";
-  }
+  return "Senior 1-3 (Estimated)";
 }
 
+/**
+ * Grades a quiz using Hybrid AI.
+ */
 export async function gradeQuiz(quiz: any, userAnswers: Record<string, string>) {
-  const geminiKey = getGeminiKey();
-  if (!geminiKey || geminiKey.includes('your_gemini_api_key_here')) {
-    // Fallback basic grading if no AI
-    let totalScore = 0;
-    let maxScore = 0;
-    const questionFeedback: any = {};
-    
-    quiz.questions.forEach((q: any) => {
-      maxScore += q.points;
-      const ua = userAnswers[q.id]?.toLowerCase().trim();
-      const ca = q.correctAnswer?.toLowerCase().trim();
-      const isCorrect = ua === ca;
-      if (isCorrect) totalScore += q.points;
-      questionFeedback[q.id] = {
-        isCorrect,
-        feedback: isCorrect ? "Correct!" : `Incorrect. The expected answer was: ${q.correctAnswer}`,
-        earnedPoints: isCorrect ? q.points : 0
-      };
-    });
-
-    return {
-      totalScore,
-      maxScore,
-      globalFeedback: "Automated grading completed. Good effort!",
-      questionFeedback
-    };
-  }
-
   const prompt = `You are an expert TVET Instructor. Grade the following quiz results.
   
   QUIZ: ${quiz.title}
@@ -247,28 +200,35 @@ export async function gradeQuiz(quiz: any, userAnswers: Record<string, string>) 
     }
   }`;
 
-  try {
-    const genAI = new GoogleGenerativeAI(geminiKey);
-    const model = genAI.getGenerativeModel({ model: 'gemini-2.0-flash' });
-    const result = await model.generateContent(prompt);
-    const text = result.response.text();
-    const jsonMatch = text.match(/\{[\s\S]*\}/);
-    return JSON.parse(jsonMatch ? jsonMatch[0] : text);
-  } catch (e: any) {
-    console.error(`[AI] Quiz grading failed: ${e.message}`);
-    throw e;
-  }
+  return await callHybridAI({
+    providerName: "Quiz Grading",
+    gemini: async () => {
+      const genAI = new GoogleGenerativeAI(getGeminiKey());
+      const model = genAI.getGenerativeModel({ model: 'gemini-2.0-flash' });
+      const result = await model.generateContent(prompt);
+      const text = result.response.text();
+      const jsonMatch = text.match(/\{[\s\S]*\}/);
+      return JSON.parse(jsonMatch ? jsonMatch[0] : text);
+    },
+    deepseek: async () => {
+      const response = await getOpenAIClient().chat.completions.create({
+        model: 'deepseek-chat',
+        messages: [{ role: 'user', content: prompt }],
+        response_format: { type: 'json_object' }
+      });
+      return JSON.parse(response.choices[0].message.content || '{}');
+    }
+  });
 }
 
-export async function chatTutor(message: string, context: { trade?: string, level?: string, competencies?: string }, history: { role: 'user' | 'model', parts: { text: string }[] }[] = []) {
-  const geminiKey = getGeminiKey();
-  const anthropicKey = getAnthropicKey();
-  console.log(`[AI-Chat] Debug - geminiKey status: ${!!geminiKey}, includes placeholder: ${geminiKey.includes('your_gemini_api_key_here')}`);
-  
-  if (!geminiKey && !anthropicKey) {
-    return "Hello! I am your AI Tutor. Since I'm running in offline/mock mode, I can just cheer you on. Keep up the great work in your studies!";
-  }
-
+/**
+ * Chat with the tutor using Hybrid AI.
+ */
+export async function chatTutor(
+  message: string, 
+  context: { trade?: string, level?: string, competencies?: string }, 
+  history: { role: 'user' | 'model', parts: { text: string }[] }[] = []
+) {
   const systemPrompt = `You are a friendly, highly intelligent AI TVET Tutor and Exam Generator for the TVET Mastery Pro platform. 
   Your job is to help a student who is studying ${context.trade || 'general topics'} at the ${context.level || 'General'} level.
   
@@ -282,98 +242,31 @@ export async function chatTutor(message: string, context: { trade?: string, leve
   If relevant, tie their question back to their listed competencies: ${context.competencies || 'N/A'}.
   Always maintain a professional yet supportive educational tone.`;
 
-  let lastError = '';
-
-  // Prefer Gemini for chat
-  if (geminiKey && !geminiKey.includes('your_gemini_api_key_here')) {
-    const genAI = new GoogleGenerativeAI(geminiKey);
-    try {
-      const model = genAI.getGenerativeModel({ 
-        model: 'gemini-2.0-flash',
-        systemInstruction: systemPrompt
-      });
-
-      // Use chat with history if provided
-      const chat = model.startChat({
-        history: history,
-        generationConfig: {
-          maxOutputTokens: 2048,
-        },
-      });
-
+  return await callHybridAI({
+    providerName: "Chat Tutor",
+    gemini: async () => {
+      const genAI = new GoogleGenerativeAI(getGeminiKey());
+      const model = genAI.getGenerativeModel({ model: 'gemini-2.0-flash', systemInstruction: systemPrompt });
+      const chat = model.startChat({ history: history, generationConfig: { maxOutputTokens: 2048 } });
       const result = await chat.sendMessage(message);
-      const response = await result.response;
-      return response.text();
-    } catch (e: any) {
-      console.error(`[AI-Chat] Gemini primary failed: ${e.message}`);
-      lastError = `Gemini: ${e.message}`;
+      return result.response.text();
+    },
+    deepseek: async () => {
+      const formattedHistory: OpenAI.Chat.Completions.ChatCompletionMessageParam[] = history.map(h => ({
+        role: h.role === 'model' ? 'assistant' : 'user',
+        content: h.parts[0].text
+      }));
 
-      // If not a quota error, try a simpler Gemini request without systemInstruction
-      if (!e.message.includes('429') && !e.message.toLowerCase().includes('quota')) {
-        try {
-          const model = genAI.getGenerativeModel({ model: 'gemini-2.0-flash' });
-          const result = await model.generateContent(`${systemPrompt}\n\nStudent Message: ${message}`);
-          const response = await result.response;
-          return response.text();
-        } catch (e2: any) {
-          console.error(`[AI-Chat] Gemini simple fallback failed: ${e2.message}`);
-          lastError += ` | Fallback: ${e2.message}`;
-        }
-      } else {
-        // On quota/rate-limit, try the lighter model which has higher free-tier RPM
-        try {
-          console.log(`[AI-Chat] Gemini quota hit, retrying with gemini-2.0-flash-lite...`);
-          const liteModel = genAI.getGenerativeModel({ model: 'gemini-2.0-flash-lite' });
-          const result = await liteModel.generateContent(`${systemPrompt}\n\nStudent Message: ${message}`);
-          const response = await result.response;
-          return response.text();
-        } catch (e2: any) {
-          console.error(`[AI-Chat] Gemini lite fallback failed: ${e2.message}`);
-          lastError += ` | Lite: ${e2.message}`;
-        }
-      }
-      // Always fall through to Claude when Gemini fails (quota or otherwise)
-    }
-  }
-
-  if (anthropicKey && !anthropicKey.includes('xxx')) {
-    const anthropic = new Anthropic({ apiKey: anthropicKey });
-    try {
-      const response = await anthropic.messages.create({
-        model: 'claude-3-5-sonnet-20240620',
-        max_tokens: 1000,
+      const response = await getOpenAIClient().chat.completions.create({
+        model: 'deepseek-chat',
         messages: [
-          ...history.map(h => ({ role: h.role === 'model' ? 'assistant' as const : 'user' as const, content: h.parts[0].text })),
-          { role: 'user' as const, content: message }
+          { role: 'system', content: systemPrompt },
+          ...formattedHistory,
+          { role: 'user', content: message }
         ],
-        system: systemPrompt,
+        max_tokens: 2048,
       });
-      return (response.content[0] as any).text;
-    } catch (e: any) {
-      console.error(`[AI-Chat] Claude failed: ${e.message}`);
-      lastError += ` | Claude: ${e.message}`;
+      return response.choices[0].message.content || "I'm sorry, I couldn't generate a response.";
     }
-  }
-
-  if (lastError.includes('429') || lastError.toLowerCase().includes('quota')) {
-    return `I'm temporarily rate-limited by the AI provider 📊. Both primary and fallback models have been tried.
-
-**What you can do:**
-- Wait **1-2 minutes** and try again
-- The free tier allows 15 requests/minute — heavy use can trigger this
-- Consider upgrading your Gemini API key to a paid plan for uninterrupted access
-
-I'll be back shortly to help with your studies! 💪`;
-  }
-
-  const debugInfo = lastError ? `\n\n**Debug Error:** ${lastError}` : '';
-
-  return `Hello there! I'm currently in **Simulated Tutor Mode** 🛠️.
-  
-I can see you're studying **${context.trade || 'your trade'}** at the **${context.level || 'current'}** level. 
-
-To give you real AI responses, please ensure a valid \`GEMINI_API_KEY\` is set in the backend environment. ${debugInfo} 
-
-Once connected, I'll be able to help you with specific technical questions, exam prep, and competency mastery!`;
+  });
 }
-

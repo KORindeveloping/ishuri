@@ -9,6 +9,9 @@ import {
   Bell, 
   Search, 
   ChevronRight, 
+  ChevronLeft,
+  ChevronUp,
+  ChevronDown,
   CheckCircle2, 
   AlertCircle, 
   Clock, 
@@ -81,6 +84,7 @@ import { jsPDF } from 'jspdf';
 import 'jspdf-autotable';
 import { AICopilot } from './components/AICopilot';
 
+import { PlannerView } from './components/PlannerView';
 import { CourseLessonsAI } from './components/CourseLessonsAI';
 
 
@@ -312,6 +316,7 @@ const DashboardView = ({ user, onStartQuiz, onLogout, history, onNavigate, showT
   const [newGoalDate, setNewGoalDate] = useState('');
 
   const [isAiDashboard, setIsAiDashboard] = useState(false);
+  const [isSubjectsExpanded, setIsSubjectsExpanded] = useState(true);
   const [aiSubjects, setAiSubjects] = useState<{ name: string, progress: number }[]>([]);
 
   const generateAiDashboard = async () => {
@@ -505,19 +510,32 @@ const DashboardView = ({ user, onStartQuiz, onLogout, history, onNavigate, showT
                 >
                   Stats
                 </button>
+                <button 
+                  onClick={() => setIsSubjectsExpanded(!isSubjectsExpanded)}
+                  className="p-2 text-zinc-400 dark:text-zinc-500 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-xl transition-all"
+                >
+                  {isSubjectsExpanded ? <ChevronUp className="w-5 h-5" /> : <ChevronDown className="w-5 h-5" />}
+                </button>
               </div>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 relative z-10">
+            <AnimatePresence>
+              {isSubjectsExpanded && (
+                <motion.div 
+                  initial={{ height: 0, opacity: 0 }}
+                  animate={{ height: 'auto', opacity: 1 }}
+                  exit={{ height: 0, opacity: 0 }}
+                  transition={{ duration: 0.3 }}
+                  className="grid grid-cols-1 md:grid-cols-2 gap-6 relative z-10 overflow-hidden"
+                >
               {displaySubjects.map((subject, idx) => (
                 <motion.div 
                   key={subject.name}
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: idx * 0.1 }}
-                  onClick={() => !generatingQuiz && startPracticeQuiz(subject.name)}
                   className={cn(
-                    "group relative bg-white dark:bg-zinc-900 rounded-[2.5rem] p-8 border border-zinc-200 dark:border-zinc-800 shadow-sm hover:shadow-2xl transition-all cursor-pointer overflow-hidden",
+                    "group relative bg-white dark:bg-zinc-900 rounded-[2.5rem] p-8 border border-zinc-200 dark:border-zinc-800 shadow-sm transition-all overflow-hidden",
                     isAiDashboard ? "border-indigo-500/10 dark:border-indigo-500/20" : `dashboard-card-${(idx + 4) % 10}`,
                     generatingQuiz === subject.name && "opacity-60 cursor-wait"
                   )}
@@ -560,11 +578,22 @@ const DashboardView = ({ user, onStartQuiz, onLogout, history, onNavigate, showT
                       {generatingQuiz === subject.name ? (
                         <div className="w-8 h-8 border-2 border-zinc-900 dark:border-white border-t-transparent rounded-full animate-spin" />
                       ) : (
-                        <div className={cn(
-                          "px-4 py-2 rounded-xl text-[9px] font-black uppercase tracking-widest hover:scale-105 transition-all shadow-lg",
-                          isAiDashboard ? "bg-indigo-500 text-white" : "bg-zinc-900 dark:bg-white text-white dark:text-black"
-                        )}>
-                          Start Quiz
+                        <div className="flex items-center gap-2">
+                           <button 
+                             onClick={(e) => { e.stopPropagation(); onCourseAI(subject.name); }}
+                             className="px-4 py-2 rounded-xl text-[9px] font-black uppercase tracking-widest hover:scale-105 transition-all shadow-sm bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-300 border border-zinc-200 dark:border-zinc-700"
+                           >
+                             View Lesson
+                           </button>
+                           <button 
+                             onClick={(e) => { e.stopPropagation(); if (!generatingQuiz) startPracticeQuiz(subject.name); }}
+                             className={cn(
+                               "px-4 py-2 rounded-xl text-[9px] font-black uppercase tracking-widest hover:scale-105 transition-all shadow-lg",
+                               isAiDashboard ? "bg-indigo-500 text-white" : "bg-zinc-900 dark:bg-white text-white dark:text-black"
+                             )}
+                           >
+                             Start Quiz
+                           </button>
                         </div>
                       )}
                     </div>
@@ -582,7 +611,9 @@ const DashboardView = ({ user, onStartQuiz, onLogout, history, onNavigate, showT
                   </div>
                 </motion.div>
               ))}
-            </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
           </section>
 
           {/* Upcoming Exams */}
@@ -614,52 +645,6 @@ const DashboardView = ({ user, onStartQuiz, onLogout, history, onNavigate, showT
                     "bg-green-500/10 text-green-600 dark:text-green-500 border-green-500/20"
                   )}>
                     {exam.urgency === 'critical' ? 'Very Soon' : exam.urgency === 'soon' ? 'Coming Up' : 'Still Time'}
-                  </div>
-                </div>
-              ))}
-            </div>
-          </section>
-
-          {/* Course Lessons */}
-          <section className="bg-white dark:bg-zinc-900 p-5 sm:p-6 md:p-8 rounded-[2rem] border border-zinc-200 dark:border-zinc-800 shadow-sm">
-            <div className="flex items-center justify-between mb-8">
-              <h2 className="text-xl font-black text-zinc-900 dark:text-white flex items-center gap-3 uppercase tracking-tight">
-                <BookOpen className="w-6 h-6 text-zinc-400 dark:text-zinc-500" /> Course Lessons
-              </h2>
-            </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 h-96 overflow-y-auto pr-2 custom-scrollbar">
-              {[
-                { name: 'Biology', file: 'Biology S1 SB.pdf' },
-                { name: 'Computer Skills', file: 'CCMCS401 COMPUTER SKILLS.pdf' },
-                { name: 'English', file: 'English S1 SB.pdf' },
-                { name: 'Entrepreneurship', file: 'Entrepreuneurship S1 SB.pdf' },
-                { name: 'Geography', file: 'Geograpgy  S1 SB.pdf' },
-                { name: 'History', file: 'History S1 SB.pdf' },
-                { name: 'ICT', file: 'ICT S1 SB.pdf' },
-                { name: 'Kinyarwanda', file: 'Kinyarwanda S1 SB.pdf' },
-                { name: 'Maths', file: 'Maths S1 SB.pdf' },
-                { name: 'Physics', file: 'Physics S1 SB.pdf' },
-                { name: 'Windows Server', file: '770484843-L4SWD-WINDOWS-SERVER-Full-Notes.pdf' }
-              ].map((doc, idx) => (
-                <div 
-                  key={idx} 
-                  onClick={() => onViewPDF(doc.file, doc.name)}
-                  className="p-6 bg-zinc-50 dark:bg-black rounded-3xl border border-zinc-200 dark:border-zinc-800 hover:border-zinc-900 dark:hover:border-white transition-all group cursor-pointer flex flex-col justify-between"
-                >
-                  <div>
-                    <div className="flex items-center justify-between mb-4">
-                      <div className="w-10 h-10 rounded-xl bg-white dark:bg-zinc-900 flex items-center justify-center border border-zinc-200 dark:border-zinc-800 group-hover:bg-zinc-900 dark:group-hover:bg-white group-hover:text-white dark:group-hover:text-black transition-colors">
-                        <FileText className="w-5 h-5" />
-                      </div>
-                      <span className="text-[10px] font-black text-zinc-400 dark:text-zinc-600 uppercase tracking-widest">Official PDF</span>
-                    </div>
-                    <h3 className="font-black text-zinc-900 dark:text-white text-lg tracking-tight mb-2 line-clamp-1 uppercase">{doc.name}</h3>
-                    <p className="text-xs text-zinc-500 dark:text-zinc-500 mb-6 line-clamp-2">Click to view official course materials for {doc.name}.</p>
-                  </div>
-                  <div 
-                    className="w-full py-3 bg-zinc-100 dark:bg-zinc-900 text-zinc-900 dark:text-white rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-zinc-900 dark:hover:border-white hover:text-white dark:hover:text-black transition-all text-center flex items-center justify-center gap-2"
-                  >
-                    <Download className="w-3.5 h-3.5" /> View Lesson PDF
                   </div>
                 </div>
               ))}
@@ -1424,262 +1409,6 @@ const FlashcardsView = ({ user, showToast }: { user: User, showToast: (m: string
                   className="w-full py-6 bg-white text-black rounded-[2rem] font-black uppercase tracking-widest text-xs shadow-xl shadow-white/10 hover:bg-zinc-200 transition-all mt-4"
                 >
                   Authorize & Store Card
-                </button>
-              </div>
-            </motion.div>
-          </div>
-        )}
-      </AnimatePresence>
-    </div>
-  );
-};
-
-const PlannerView = ({ user, showToast }: { 
-  user: User,
-  showToast: (m: string, t?: 'success' | 'error' | 'info') => void
-}) => {
-  const [schedule, setSchedule] = useState(() => {
-    const saved = localStorage.getItem(`tvet_planner_${user.id}`);
-    const defaultTasks = {
-      "Monday": [], "Tuesday": [], "Wednesday": [], "Thursday": [], "Friday": []
-    };
-    return saved ? JSON.parse(saved) : Object.entries(defaultTasks).map(([day, tasks]) => ({ day, tasks }));
-  });
-
-  const [showAddModal, setShowAddModal] = useState<string | null>(null);
-  const [newTask, setNewTask] = useState({ text: '', category: 'Theory' as 'Theory' | 'Practice' | 'Revision' | 'Portfolio' });
-
-  useEffect(() => {
-    localStorage.setItem(`tvet_planner_${user.id}`, JSON.stringify(schedule));
-  }, [schedule, user.id]);
-
-  const addTask = () => {
-    if (!showAddModal || !newTask.text) return;
-    setSchedule(schedule.map((s: any) => 
-      s.day === showAddModal ? { ...s, tasks: [...s.tasks, newTask] } : s
-    ));
-    setNewTask({ text: '', category: 'Theory' });
-    setShowAddModal(null);
-  };
-
-  const removeTask = (day: string, taskIdx: number) => {
-    setSchedule(schedule.map((s: any) => 
-      s.day === day ? { ...s, tasks: s.tasks.filter((_: any, i: number) => i !== taskIdx) } : s
-    ));
-  };
-
-  const toggleTask = (day: string, taskIdx: number) => {
-    setSchedule(schedule.map((s: any) => 
-      s.day === day ? { 
-        ...s, 
-        tasks: s.tasks.map((t: any, i: number) => i === taskIdx ? { ...t, completed: !t.completed } : t)
-      } : s
-    ));
-  };
-
-  const categoryColors = {
-    Theory: 'bg-blue-500',
-    Practice: 'bg-emerald-500',
-    Revision: 'bg-amber-500',
-    Portfolio: 'bg-purple-500'
-  };
-
-  const generateAIPlan = () => {
-    const isNursery = user.educationLevel === 'Pre Primary';
-    const trade = user.trade || 'General';
-    
-    const tradeTasksMap: Record<string, string[]> = {
-      'Automotive': ["Engine Diagnostics Lab", "Brake System Maintenance", "Shop Safety Audit"],
-      'Hospitality': ["Front Desk Simulator", "Kitchen Safety Check", "Menu Planning"],
-      'General': ["Review Past Papers", "Group Study Session", "Subject Module 1 Review"]
-    };
-    
-    const tasksForTrade = tradeTasksMap[trade] || tradeTasksMap.General;
-
-    const newSchedule = schedule.map((s: any) => {
-      let dailyTasks = [];
-      if (isNursery) {
-         dailyTasks = [
-           { text: `Drawing ${s.day} Theme`, category: 'Practice' },
-           { text: 'Counting and Games', category: 'Revision' }
-         ];
-      } else {
-         dailyTasks = [
-           { text: `${trade} Module Review`, category: 'Theory' },
-           { text: tasksForTrade[Math.floor(Math.random() * tasksForTrade.length)], category: 'Practice' },
-           { text: 'Mock MCQ Practice', category: 'Revision' }
-         ];
-      }
-      return { ...s, tasks: dailyTasks.slice(0, 3) };
-    });
-
-    setSchedule(newSchedule);
-    showToast("AI has generated your optimal study plan!", "success");
-  };
-
-  return (
-    <div className="space-y-8 pb-12">
-      <header className="flex flex-col md:flex-row md:items-end justify-between gap-5 sm:p-6 md:p-8">
-        <div>
-          <div className="flex items-center gap-2 mb-3">
-             <div className="px-3 py-1 bg-zinc-900 dark:bg-white text-white dark:text-black text-[10px] font-black uppercase tracking-widest rounded-lg">
-               Smart Study Engine
-             </div>
-             <p className="text-[10px] font-black text-zinc-400 uppercase tracking-widest">v2.0 Professional</p>
-          </div>
-          <h1 className="text-4xl font-black text-zinc-900 dark:text-white tracking-tighter uppercase mb-2">Weekly Learning Planner</h1>
-          <p className="text-zinc-500 font-medium">Strategize your {user.trade || 'academic'} journey with precision.</p>
-        </div>
-        <div className="flex items-center gap-3">
-           <button 
-             onClick={generateAIPlan}
-             className="relative px-6 py-3 bg-zinc-900 dark:bg-zinc-950 overflow-hidden text-white rounded-2xl text-[10px] font-black uppercase tracking-widest hover:scale-105 transition-all shadow-xl shadow-indigo-500/20 flex items-center gap-2 group border border-indigo-500/30"
-           >
-             <div className="absolute inset-0 bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 opacity-20 group-hover:opacity-40 transition-opacity" />
-             <div className="relative z-10 flex items-center gap-2 text-white">
-                <Sparkles className="w-4 h-4 text-indigo-400 group-hover:animate-pulse" /> Ask AI For Best Plan
-             </div>
-           </button>
-           <button 
-             onClick={() => {
-               if (window.confirm('Clear all tasks?')) setSchedule(schedule.map((s: any) => ({ ...s, tasks: [] })));
-             }}
-             className="px-6 py-3 bg-zinc-100 dark:bg-zinc-800 text-zinc-500 dark:text-zinc-400 rounded-2xl text-[10px] font-black uppercase tracking-widest hover:text-red-500 transition-all border border-zinc-200 dark:border-zinc-700"
-           >
-             Reset Board
-           </button>
-        </div>
-      </header>
-
-      <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
-        {schedule.map((s: any) => (
-          <div key={s.day} className="bg-white dark:bg-zinc-900/40 backdrop-blur-3xl p-6 rounded-[2.5rem] border border-zinc-200 dark:border-white/[0.05] flex flex-col min-h-[500px] shadow-xl group">
-            <div className="flex items-center justify-between mb-8">
-              <div className="flex items-center gap-2">
-                 <div className="w-1.5 h-6 bg-zinc-900 dark:bg-white rounded-full" />
-                 <h3 className="font-black text-zinc-900 dark:text-white uppercase tracking-widest text-xs">{s.day}</h3>
-              </div>
-              <button 
-                onClick={() => setShowAddModal(s.day)}
-                className="w-8 h-8 rounded-xl bg-zinc-100 dark:bg-zinc-800 text-zinc-400 dark:text-zinc-500 hover:bg-zinc-900 dark:hover:bg-white hover:text-white dark:hover:text-black transition-all flex items-center justify-center border border-zinc-200 dark:border-zinc-800"
-              >
-                <Plus className="w-4 h-4" />
-              </button>
-            </div>
-
-            <div className="space-y-4 flex-1">
-              {s.tasks.map((t: any, i: number) => (
-                <div 
-                  key={i} 
-                  className={cn(
-                    "group p-5 bg-white dark:bg-black rounded-3xl border transition-all relative",
-                    t.completed 
-                      ? "border-emerald-500/20 opacity-60 bg-emerald-500/[0.02]" 
-                      : "border-zinc-200 dark:border-zinc-800 hover:border-zinc-400 dark:hover:border-zinc-700 shadow-sm"
-                  )}
-                >
-                  <div className="flex items-start gap-4">
-                     <button 
-                       onClick={() => toggleTask(s.day, i)}
-                       className={cn(
-                         "mt-1 w-5 h-5 rounded-full border-2 transition-all flex items-center justify-center shrink-0",
-                         t.completed ? "bg-emerald-500 border-emerald-500" : "border-zinc-300 dark:border-zinc-700 hover:border-zinc-400"
-                       )}
-                     >
-                       {t.completed && <Check className="w-3 h-3 text-white" />}
-                     </button>
-                     <div className="flex-1 min-w-0">
-                        <div className={cn(
-                          "px-2 py-0.5 rounded-lg text-[8px] font-black uppercase tracking-widest inline-block text-white mb-2 shadow-lg shadow-black/5",
-                          categoryColors[t.category as keyof typeof categoryColors]
-                        )}>
-                          {t.category}
-                        </div>
-                        <p className={cn(
-                          "text-[11px] font-black leading-tight",
-                          t.completed ? "text-zinc-400 line-through" : "text-zinc-900 dark:text-white"
-                        )}>{t.text}</p>
-                     </div>
-                  </div>
-
-                  <button 
-                    onClick={() => removeTask(s.day, i)}
-                    className="absolute top-4 right-4 opacity-0 group-hover:opacity-100 p-1.5 text-zinc-300 dark:text-zinc-700 hover:text-red-500 transition-all"
-                  >
-                    <X className="w-3.5 h-3.5" />
-                  </button>
-                </div>
-              ))}
-              
-              {s.tasks.length === 0 && (
-                <div className="h-full flex flex-col items-center justify-center py-20 text-center border-2 border-dashed border-zinc-100 dark:border-zinc-800 rounded-[2rem]">
-                  <p className="text-[10px] font-black text-zinc-300 dark:text-zinc-800 uppercase tracking-widest">Deep Focus Day</p>
-                </div>
-              )}
-            </div>
-          </div>
-        ))}
-      </div>
-
-      {/* Add Task Modal */}
-      <AnimatePresence>
-        {showAddModal && (
-          <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/80 backdrop-blur-md">
-            <motion.div 
-              initial={{ opacity: 0, scale: 0.9, y: 20 }}
-              animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.9, y: 20 }}
-              className="bg-white dark:bg-zinc-950 p-10 rounded-[3rem] border border-zinc-200 dark:border-white/10 w-full max-w-lg shadow-2xl relative overflow-hidden"
-            >
-              <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-blue-500 via-emerald-500 to-purple-500" />
-              <h3 className="text-2xl font-black text-zinc-900 dark:text-white mb-2 uppercase tracking-tighter">New Learning Task</h3>
-              <p className="text-zinc-500 text-xs font-medium mb-8">Scheduling task for <span className="text-zinc-900 dark:text-white font-black">{showAddModal}</span></p>
-              
-              <div className="space-y-6">
-                <div>
-                  <label className="block text-[10px] font-black text-zinc-400 dark:text-zinc-500 uppercase tracking-widest mb-3 ml-1">Task Description</label>
-                  <input 
-                    autoFocus
-                    value={newTask.text}
-                    onChange={(e) => setNewTask({...newTask, text: e.target.value})}
-                    onKeyDown={(e) => e.key === 'Enter' && addTask()}
-                    className="w-full bg-zinc-50 dark:bg-black border border-zinc-200 dark:border-zinc-800 rounded-2xl py-5 px-8 text-zinc-900 dark:text-white font-bold outline-none focus:ring-2 focus:ring-zinc-900/10 dark:focus:ring-white/10 text-sm"
-                    placeholder="e.g. Complete Automotive Lab Report"
-                  />
-                </div>
-                <div>
-                  <label className="block text-[10px] font-black text-zinc-400 dark:text-zinc-500 uppercase tracking-widest mb-3 ml-1">Category</label>
-                  <div className="grid grid-cols-2 gap-3">
-                    {['Theory', 'Practice', 'Revision', 'Portfolio'].map((cat) => (
-                      <button 
-                        key={cat}
-                        onClick={() => setNewTask({...newTask, category: cat as any})}
-                        className={cn(
-                          "py-4 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all border",
-                          newTask.category === cat 
-                            ? "bg-zinc-900 dark:bg-white text-white dark:text-black border-transparent shadow-lg" 
-                            : "bg-white dark:bg-zinc-950 text-zinc-500 border-zinc-200 dark:border-zinc-800 hover:border-zinc-400 dark:hover:border-zinc-600"
-                        )}
-                      >
-                        {cat}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              </div>
-
-              <div className="flex gap-4 mt-12">
-                <button 
-                  onClick={() => setShowAddModal(null)}
-                  className="flex-1 py-5 bg-zinc-100 dark:bg-zinc-800 text-zinc-500 dark:text-zinc-400 rounded-[1.5rem] font-black uppercase tracking-widest text-[10px] hover:bg-zinc-200 dark:hover:bg-zinc-700 transition-all"
-                >
-                  Discard
-                </button>
-                <button 
-                  onClick={addTask}
-                  className="flex-1 py-5 bg-zinc-900 dark:bg-white text-white dark:text-black rounded-[1.5rem] font-black uppercase tracking-widest text-[10px] hover:scale-[1.02] active:scale-95 transition-all shadow-xl shadow-black/20 dark:shadow-white/10"
-                >
-                  Save Task
                 </button>
               </div>
             </motion.div>
