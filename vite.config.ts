@@ -7,7 +7,7 @@ export default defineConfig(({mode}) => {
   const env = loadEnv(mode, '.', '');
   const isGitHubPages = process.env.DEPLOY_TARGET === 'gh-pages';
   return {
-    base: isGitHubPages ? '/ishuri/' : '/',
+    base: isGitHubPages ? './' : '/',
     plugins: [react(), tailwindcss()],
     define: {
       'process.env.GEMINI_API_KEY': JSON.stringify(env.GEMINI_API_KEY),

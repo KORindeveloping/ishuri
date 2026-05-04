@@ -231,16 +231,23 @@ export const api = {
 
   // --- AI Chat ---
   sendChatMessage: async (message: string, history: any[] = []) => {
-    const res = await fetch(`${API_URL}/chat`, {
-      method: 'POST',
-      headers: getHeaders(),
-      body: JSON.stringify({ message, history })
-    });
-    if (!res.ok) {
-      const errorData = await res.json().catch(() => ({}));
-      throw new Error(errorData.error || 'Chat failed');
+    try {
+      const res = await fetch(`${API_URL}/chat`, {
+        method: 'POST',
+        headers: getHeaders(),
+        body: JSON.stringify({ message, history })
+      });
+      if (!res.ok) {
+        const errorData = await res.json().catch(() => ({}));
+        throw new Error(errorData.error || 'Chat failed');
+      }
+      return res.json();
+    } catch (e: any) {
+      if (e instanceof TypeError && e.message === 'Failed to fetch') {
+        throw new Error('Server connection failed. Please check your internet or try again later.');
+      }
+      throw e;
     }
-    return res.json();
   },
 
   gradeQuiz: async (quiz: any, userAnswers: any) => {

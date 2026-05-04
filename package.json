@@ -11,11 +11,11 @@
     "dev:backend": "npm run dev --prefix backend",
     "dev:full": "npx concurrently \"npm run dev\" \"npm run dev --prefix backend\"",
     "install:all": "npm install && npm install --prefix backend",
-    "build": "cross-env DEPLOY_TARGET=production npx vite build",
+    "build": "npx cross-env DEPLOY_TARGET=production npx vite build",
     "preview": "npx vite preview",
     "clean": "npx rimraf dist",
     "lint": "tsc --noEmit",
-    "build:gh-pages": "cross-env DEPLOY_TARGET=gh-pages npx vite build",
+    "build:gh-pages": "npx cross-env DEPLOY_TARGET=gh-pages npx vite build",
     "predeploy": "npm run build:gh-pages",
     "deploy": "gh-pages -d dist"
   },
@@ -44,6 +44,7 @@
   "devDependencies": {
     "@types/express": "^4.17.21",
     "@types/node": "^22.14.0",
+    "cross-env": "^10.1.0",
     "gh-pages": "^6.3.0",
     "tsx": "^4.21.0",
     "typescript": "~5.8.2"
