@@ -1,4 +1,5 @@
 const API_URL = (import.meta as any).env.VITE_API_URL || 'http://localhost:5000/api';
+console.log('[API] Initialized with URL:', API_URL);
 
 const getHeaders = () => {
   const token = localStorage.getItem('tvet_token');
@@ -133,7 +134,7 @@ export const api = {
       return res.json();
     } catch (e: any) {
       if (e instanceof TypeError && e.message === 'Failed to fetch') {
-        throw new Error('Server connection failed. Please check your internet or try again later.');
+        throw new Error(`Server connection failed to ${API_URL}. Please check your internet or ensures your backend is running.`);
       }
       console.error(`[API] Quiz generation error: ${e.message}`);
       throw e;
