@@ -132,6 +132,9 @@ export const api = {
       }
       return res.json();
     } catch (e: any) {
+      if (e instanceof TypeError && e.message === 'Failed to fetch') {
+        throw new Error('Server connection failed. Please check your internet or try again later.');
+      }
       console.error(`[API] Quiz generation error: ${e.message}`);
       throw e;
     }

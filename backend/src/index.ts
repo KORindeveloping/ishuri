@@ -27,6 +27,7 @@ const allowedOrigins = [
   process.env.CLIENT_URL || "http://localhost:3000",
   "http://localhost:5173",
   "https://ishuri.vercel.app",
+  "https://korindeveloping.github.io",
 ];
 
 app.use(cors({
