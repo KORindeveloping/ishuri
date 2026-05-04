@@ -49,7 +49,7 @@ export const CourseLessonsAI = ({ user, onClose, initialCourse }: { user: User; 
   const [selectedChapter, setSelectedChapter] = useState<string | null>(null);
   const [interactionContent, setInteractionModeContent] = useState<string | null>(null);
   const [isInteracting, setIsInteracting] = useState(false);
-  const [stage, setStage] = useState<'LEVEL_SELECTION' | 'CONSULTING'>(initialCourse ? 'LEVEL_SELECTION' : 'CONSULTING');
+  const [stage, setStage] = useState<'BOOK_SELECTION' | 'LEVEL_SELECTION' | 'CONSULTING'>(initialCourse ? 'BOOK_SELECTION' : 'CONSULTING');
 
   const [messages, setMessages] = useState<{ id: string, text: string, sender: 'user' | 'ai', options?: string[] }[]>([
     {
@@ -295,6 +295,8 @@ export const CourseLessonsAI = ({ user, onClose, initialCourse }: { user: User; 
                 setActiveMode('EXPLORE');
               } else if (syllabus) {
                 setSyllabus(null);
+              } else if (stage === 'CONSULTING' && initialCourse) {
+                setStage('BOOK_SELECTION');
               } else {
                 onClose();
               }
@@ -399,7 +401,91 @@ export const CourseLessonsAI = ({ user, onClose, initialCourse }: { user: User; 
               <div className="flex-1 flex flex-col min-w-0 bg-white dark:bg-black">
                 <div className="flex-1 overflow-y-auto p-5 sm:p-6 md:p-8 space-y-8 scrollbar-hide">
                   <div className="max-w-4xl mx-auto space-y-8">
-                    {messages.map((msg) => (
+                    {stage === 'BOOK_SELECTION' && initialCourse ? (
+                      <motion.div 
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        className="space-y-12 py-10"
+                      >
+                        <div className="text-center space-y-4">
+                          <h3 className="text-3xl font-black text-zinc-900 dark:text-white uppercase tracking-tighter">
+                            Select Study Material for {initialCourse}
+                          </h3>
+                          <p className="text-zinc-500 dark:text-zinc-400 text-xs font-bold uppercase tracking-[0.2em]">
+                            Choose a book to begin your mastery journey
+                          </p>
+                        </div>
+
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                          {Array.from({ length: 6 }).map((_, i) => {
+                            const bookNum = i + 1;
+                            const isAvailable = bookNum === 1 && SUBJECT_DOC_MAP[initialCourse || ''];
+                            
+                            return (
+                              <motion.div
+                                key={i}
+                                whileHover={{ y: -5, scale: 1.02 }}
+                                className="group relative bg-zinc-50 dark:bg-zinc-900 rounded-[2.5rem] p-8 border border-zinc-200 dark:border-zinc-800 shadow-sm transition-all overflow-hidden cursor-pointer"
+                                onClick={() => {
+                                  if (isAvailable) {
+                                    window.open(`/Courselesson/${SUBJECT_DOC_MAP[initialCourse || '']}`, '_blank');
+                                  } else {
+                                    handleSend(`I want to study ${initialCourse} Book ${bookNum}`);
+                                    setStage('CONSULTING');
+                                  }
+                                }}
+                              >
+                                <div className="absolute top-0 right-0 w-24 h-24 bg-zinc-900/5 dark:bg-white/5 blur-3xl -mr-12 -mt-12 group-hover:scale-150 transition-transform" />
+                                
+                                <div className="relative z-10 space-y-6">
+                                  <div className="flex justify-between items-start">
+                                    <span className="text-[10px] font-black text-zinc-400 dark:text-zinc-500 uppercase tracking-widest">
+                                      Volume 0{bookNum}
+                                    </span>
+                                    {isAvailable ? (
+                                      <div className="px-2 py-0.5 bg-green-500/10 text-green-600 dark:text-green-500 text-[8px] font-black uppercase rounded-full border border-green-500/20">
+                                        Available
+                                      </div>
+                                    ) : (
+                                      <div className="px-2 py-0.5 bg-zinc-100 dark:bg-zinc-800 text-zinc-400 text-[8px] font-black uppercase rounded-full border border-zinc-200 dark:border-zinc-700">
+                                        AI Tutor
+                                      </div>
+                                    )}
+                                  </div>
+
+                                  <div>
+                                    <h4 className="text-xl font-black text-zinc-900 dark:text-white uppercase tracking-tight leading-tight">
+                                      Book {bookNum}
+                                    </h4>
+                                    <p className="text-[10px] text-zinc-500 font-bold uppercase tracking-widest mt-1">
+                                      {bookNum === 1 ? 'Foundations' : bookNum === 2 ? 'Core Concepts' : bookNum === 3 ? 'Intermediate' : bookNum === 4 ? 'Advanced' : bookNum === 5 ? 'Professional' : 'Mastery'}
+                                    </p>
+                                  </div>
+
+                                  <div className="pt-4 border-t border-zinc-200 dark:border-zinc-800 flex items-center justify-between">
+                                    <span className="text-[9px] font-black text-zinc-400 group-hover:text-zinc-900 dark:group-hover:text-white transition-colors uppercase tracking-widest">
+                                      {isAvailable ? 'Read PDF' : 'Start Chat'}
+                                    </span>
+                                    <div className="w-8 h-8 rounded-full bg-zinc-900 dark:bg-white flex items-center justify-center shadow-lg group-hover:translate-x-1 transition-transform">
+                                      <ChevronRight className="w-4 h-4 text-white dark:text-black" />
+                                    </div>
+                                  </div>
+                                </div>
+                              </motion.div>
+                            );
+                          })}
+                        </div>
+                        
+                        <div className="flex justify-center pt-8">
+                          <button 
+                            onClick={() => setStage('CONSULTING')}
+                            className="text-[10px] font-black text-zinc-400 hover:text-zinc-900 dark:hover:text-white uppercase tracking-[0.3em] transition-colors border-b border-zinc-200 dark:border-zinc-800 pb-1"
+                          >
+                            Skip to AI Consultant
+                          </button>
+                        </div>
+                      </motion.div>
+                    ) : messages.map((msg) => (
                       <motion.div 
                         initial={{ opacity: 0, y: 10 }}
                         animate={{ opacity: 1, y: 0 }}

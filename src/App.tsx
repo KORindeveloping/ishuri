@@ -550,8 +550,9 @@ const DashboardView = ({ user, onStartQuiz, onLogout, history, onNavigate, showT
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: idx * 0.1 }}
+                  onClick={() => onCourseAI(subject.name)}
                   className={cn(
-                    "group relative bg-white dark:bg-zinc-900 rounded-[2.5rem] p-8 border border-zinc-200 dark:border-zinc-800 shadow-sm transition-all overflow-hidden",
+                    "group relative bg-white dark:bg-zinc-900 rounded-[2.5rem] p-8 border border-zinc-200 dark:border-zinc-800 shadow-sm transition-all overflow-hidden cursor-pointer",
                     isAiDashboard ? "border-indigo-500/10 dark:border-indigo-500/20" : `dashboard-card-${(idx + 4) % 10}`,
                     generatingQuiz === subject.name && "opacity-60 cursor-wait"
                   )}
@@ -599,7 +600,7 @@ const DashboardView = ({ user, onStartQuiz, onLogout, history, onNavigate, showT
                              onClick={(e) => { e.stopPropagation(); onCourseAI(subject.name); }}
                              className="px-4 py-2 rounded-xl text-[9px] font-black uppercase tracking-widest hover:scale-105 transition-all shadow-sm bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-300 border border-zinc-200 dark:border-zinc-700"
                            >
-                             View Lesson
+                             Learn
                            </button>
                            <button 
                              onClick={(e) => { e.stopPropagation(); if (!generatingQuiz) startPracticeQuiz(subject.name); }}
