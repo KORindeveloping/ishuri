@@ -51,16 +51,16 @@ export const CourseLessonsAI = ({ user, onClose, initialCourse }: { user: User; 
   const [isInteracting, setIsInteracting] = useState(false);
   const [stage, setStage] = useState<'BOOK_SELECTION' | 'LEVEL_SELECTION' | 'CONSULTING'>(initialCourse ? 'BOOK_SELECTION' : 'CONSULTING');
 
-  const [messages, setMessages] = useState<{ id: string, text: string, sender: 'user' | 'ai', options?: string[] }[]>([
-    {
-      id: 'ai-initial',
-      text: initialCourse 
-        ? `Hello ${user?.name?.split(' ')?.[0] || 'Student'}! I see you want to study **${initialCourse}**. **Which level you want to test in?**`
-        : `Hello ${user?.name?.split(' ')?.[0] || 'Student'}! I'm your Course Consultant. Which course or subject would you like to study today? Based on your level (${user.educationLevel || 'General'}), I can help you find the best path.`,
-      sender: 'ai',
-      options: initialCourse ? ['1', 'Suggest another course'] : (user.subjects || '').split(',').map(s => s.trim()).filter(Boolean).slice(0, 4)
-    }
-  ]);
+  const [messages, setMessages] = useState<{ id: string, text: string, sender: 'user' | 'ai', options?: string[] }[]>(
+    initialCourse ? [] : [
+      {
+        id: 'ai-initial',
+        text: `Hello ${user?.name?.split(' ')?.[0] || 'Student'}! I'm your Course Consultant. Which course or subject would you like to study today? Based on your level (${user.educationLevel || 'General'}), I can help you find the best path.`,
+        sender: 'ai',
+        options: (user.subjects || '').split(',').map(s => s.trim()).filter(Boolean).slice(0, 4)
+      }
+    ]
+  );
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [lessonPlan, setLessonPlan] = useState<LessonPlan | null>(null);
@@ -478,7 +478,12 @@ export const CourseLessonsAI = ({ user, onClose, initialCourse }: { user: User; 
                         
                         <div className="flex justify-center pt-8">
                           <button 
-                            onClick={() => setStage('CONSULTING')}
+                            onClick={() => {
+                              if (messages.length === 0) {
+                                handleSend(`I want to explore ${initialCourse} and see a roadmap`);
+                              }
+                              setStage('CONSULTING');
+                            }}
                             className="text-[10px] font-black text-zinc-400 hover:text-zinc-900 dark:hover:text-white uppercase tracking-[0.3em] transition-colors border-b border-zinc-200 dark:border-zinc-800 pb-1"
                           >
                             Skip to AI Consultant
