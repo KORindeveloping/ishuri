@@ -11,7 +11,10 @@ router.post('/chat', async (req: Request, res: Response) => {
 
   try {
     const HF_API_KEY = process.env.HF_API_KEY;
-    // Use the user's recommended Mistral-7B-Instruct or fallback Llama model
+    
+    if (!HF_API_KEY) {
+       console.warn('[AI Chat] No HF_API_KEY found in environment. Please set it in Render dashboard.');
+    }
     const HF_URL = 'https://api-inference.huggingface.co/models/mistralai/Mistral-7B-Instruct';
     
     console.log('[AI Chat] Forwarding request to Hugging Face...');
