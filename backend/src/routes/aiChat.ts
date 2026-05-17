@@ -22,11 +22,13 @@ router.post('/chat', async (req: Request, res: Response) => {
        });
     }
     
-    // CORRECT URL for Hugging Face Inference API
-    const HF_URL = 'https://api-inference.huggingface.co/models/mistralai/Mistral-7B-Instruct-v0.3';
+    // Use a unique variable name to avoid any environment collisions
+    const REMOTE_HF_ENDPOINT = 'https://api-inference.huggingface.co/models/mistralai/Mistral-7B-Instruct-v0.3';
     
+    console.log(`[AI Chat] Target Endpoint: ${REMOTE_HF_ENDPOINT}`);
     console.log('[AI Chat] Forwarding request to Hugging Face Inference API...');
-    const response = await fetch(HF_URL, {
+    
+    const response = await fetch(REMOTE_HF_ENDPOINT, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
