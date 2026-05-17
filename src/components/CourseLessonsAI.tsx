@@ -15,32 +15,45 @@ import {
   ArrowLeft,
   FileText,
   Download,
-  CheckCircle2
+  CheckCircle2,
+  Lock,
+  Unlock
 } from 'lucide-react';
 import { api } from '../lib/api';
 import ReactMarkdown from 'react-markdown';
 import { Book, User } from '../types';
-import { api } from '../lib/api';
-import ReactMarkdown from 'react-markdown';
 import { cn } from '../lib/utils';
+
+// Helper to extract unit number from title
+function getUnitNumber(title?: string): number {
+  if (!title) return 999;
+  const match = title.match(/unit\s*(\d+)/i);
+  return match ? parseInt(match[1], 10) : 999;
+}
 
 // ─── PDF Viewer modal ─────────────────────────────────────────────────────────
 function PdfViewer({ book, onClose }: { book: Book; onClose: () => void }) {
   return (
     <div className="fixed inset-0 z-[300] bg-black/80 flex items-center justify-center p-4" role="dialog" aria-modal="true" aria-label={`Reading: ${book.title}`}>
-      <div className="bg-white w-full max-w-5xl h-[90vh] rounded-3xl overflow-hidden flex flex-col">
-        <div className="flex items-center justify-between p-4 border-b">
+      <div className="bg-white dark:bg-black w-full max-w-5xl h-[90vh] rounded-3xl overflow-hidden flex flex-col">
+        <div className="flex items-center justify-between p-4 border-b dark:border-zinc-800">
           <div className="flex flex-col">
-            <span className="font-bold text-lg">{book.title}</span>
+            <span className="font-bold text-lg dark:text-white">{book.title}</span>
             <span className="text-xs text-zinc-500">by {book.author}</span>
           </div>
-          <button className="p-2 hover:bg-zinc-100 rounded-full" onClick={onClose} aria-label="Close reader">✕</button>
+          <button 
+            className="px-6 py-2.5 bg-red-500 hover:bg-red-600 text-white rounded-xl font-black uppercase tracking-widest text-[10px] flex items-center gap-2 transition-colors shadow-lg shadow-red-500/20" 
+            onClick={onClose} 
+            aria-label="Close reader"
+          >
+            <X className="w-4 h-4" /> Close Book
+          </button>
         </div>
-        <div className="flex-1">
+        <div className="flex-1 bg-zinc-100 dark:bg-zinc-900">
           <iframe
             src={`${book.pdfUrl}#toolbar=1&navpanes=1`}
             title={book.title}
-            className="w-full h-full"
+            className="w-full h-full border-none"
             allow="fullscreen"
           />
         </div>
@@ -81,9 +94,40 @@ export const CourseLessonsAI = ({ user, onClose, initialCourse }: { user: User; 
   const [books, setBooks] = useState<Book[]>([]);
   const [openBook, setOpenBook] = useState<Book | null>(null);
 
+  const [maxUnlockedUnit, setMaxUnlockedUnit] = useState<number>(() => {
+    return parseInt(localStorage.getItem(`maxUnlockedUnit_${initialCourse}`) || '1', 10);
+  });
+
   useEffect(() => {
     api.getBooks().then(setBooks).catch(console.error);
   }, []);
+
+  const handleOpenBook = (book: Book) => {
+    const unitNum = getUnitNumber(book.title);
+    if (unitNum !== 999 && unitNum > maxUnlockedUnit) {
+      alert(`Unit Locked! Please read and complete Unit ${unitNum - 1} first to unlock this unit.`);
+      return;
+    }
+    setOpenBook(book);
+  };
+
+  const handleCloseBook = () => {
+    if (openBook) {
+      const unitNum = getUnitNumber(openBook.title);
+      if (unitNum !== 999) {
+        const nextUnlocked = Math.max(maxUnlockedUnit, unitNum + 1);
+        setMaxUnlockedUnit(nextUnlocked);
+        localStorage.setItem(`maxUnlockedUnit_${initialCourse}`, nextUnlocked.toString());
+      }
+    }
+    setOpenBook(null);
+  };
+
+  const courseBooks = initialCourse 
+    ? books.filter(b => b.title.toLowerCase().includes(initialCourse.split(' ')[0].toLowerCase()))
+    : books;
+  
+  const sortedCourseBooks = [...courseBooks].sort((a, b) => getUnitNumber(a.title) - getUnitNumber(b.title));
 
   const [messages, setMessages] = useState<{ id: string, text: string, sender: 'user' | 'ai', options?: string[] }[]>(
     initialCourse ? [] : [
@@ -451,45 +495,49 @@ export const CourseLessonsAI = ({ user, onClose, initialCourse }: { user: User; 
                         </div>
 
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                          {books.length > 0 ? books.map((book) => (
-                              <motion.div
-                                key={book.id}
-                                whileHover={{ y: -5, scale: 1.02 }}
-                                className="group relative bg-zinc-50 dark:bg-zinc-900 rounded-[2.5rem] p-8 border border-zinc-200 dark:border-zinc-800 shadow-sm transition-all overflow-hidden cursor-pointer"
-                                onClick={() => setOpenBook(book)}
-                              >
-                                <div className="absolute top-0 right-0 w-24 h-24 bg-zinc-900/5 dark:bg-white/5 blur-3xl -mr-12 -mt-12 group-hover:scale-150 transition-transform" />
-                                
-                                <div className="relative z-10 space-y-6">
-                                  <div className="flex justify-between items-start">
-                                    <span className="text-[10px] font-black text-zinc-400 dark:text-zinc-500 uppercase tracking-widest">
-                                      {book.subject || 'Resource'}
-                                    </span>
-                                    <div className="px-2 py-0.5 bg-green-500/10 text-green-600 dark:text-green-500 text-[8px] font-black uppercase rounded-full border border-green-500/20">
-                                      Available
+                          {sortedCourseBooks.length > 0 ? sortedCourseBooks.map((book) => {
+                              const unitNum = getUnitNumber(book.title);
+                              const isLocked = unitNum !== 999 && unitNum > maxUnlockedUnit;
+                              return (
+                                <motion.div
+                                  key={book.id}
+                                  whileHover={isLocked ? {} : { y: -5, scale: 1.02 }}
+                                  className={`group relative bg-zinc-50 dark:bg-zinc-900 rounded-[2.5rem] p-8 border border-zinc-200 dark:border-zinc-800 shadow-sm transition-all overflow-hidden ${isLocked ? 'opacity-75 grayscale-[0.3] cursor-not-allowed' : 'cursor-pointer'}`}
+                                  onClick={() => handleOpenBook(book)}
+                                >
+                                  <div className="absolute top-0 right-0 w-24 h-24 bg-zinc-900/5 dark:bg-white/5 blur-3xl -mr-12 -mt-12 group-hover:scale-150 transition-transform" />
+                                  
+                                  <div className="relative z-10 space-y-6">
+                                    <div className="flex justify-between items-start">
+                                      <span className="text-[10px] font-black text-zinc-400 dark:text-zinc-500 uppercase tracking-widest">
+                                        {unitNum !== 999 ? `Unit ${unitNum}` : (book.subject || 'Resource')}
+                                      </span>
+                                      <div className={`px-2 py-0.5 text-[8px] font-black uppercase rounded-full border ${isLocked ? 'bg-red-500/10 text-red-600 dark:text-red-500 border-red-500/20' : 'bg-green-500/10 text-green-600 dark:text-green-500 border-green-500/20'}`}>
+                                        {isLocked ? 'Locked' : 'Available'}
+                                      </div>
+                                    </div>
+
+                                    <div>
+                                      <h4 className="text-xl font-black text-zinc-900 dark:text-white uppercase tracking-tight leading-tight">
+                                        {book.title}
+                                      </h4>
+                                      <p className="text-[10px] text-zinc-500 font-bold uppercase tracking-widest mt-1">
+                                        {book.author}
+                                      </p>
+                                    </div>
+
+                                    <div className="pt-4 border-t border-zinc-200 dark:border-zinc-800 flex items-center justify-between">
+                                      <span className="text-[9px] font-black text-zinc-400 group-hover:text-zinc-900 dark:group-hover:text-white transition-colors uppercase tracking-widest">
+                                        {isLocked ? 'Complete Previous Unit' : 'Read PDF'}
+                                      </span>
+                                      <div className="w-8 h-8 rounded-full bg-zinc-900 dark:bg-white flex items-center justify-center shadow-lg group-hover:translate-x-1 transition-transform">
+                                        {isLocked ? <Lock className="w-4 h-4 text-white dark:text-black" /> : <ChevronRight className="w-4 h-4 text-white dark:text-black" />}
+                                      </div>
                                     </div>
                                   </div>
-
-                                  <div>
-                                    <h4 className="text-xl font-black text-zinc-900 dark:text-white uppercase tracking-tight leading-tight">
-                                      {book.title}
-                                    </h4>
-                                    <p className="text-[10px] text-zinc-500 font-bold uppercase tracking-widest mt-1">
-                                      {book.author}
-                                    </p>
-                                  </div>
-
-                                  <div className="pt-4 border-t border-zinc-200 dark:border-zinc-800 flex items-center justify-between">
-                                    <span className="text-[9px] font-black text-zinc-400 group-hover:text-zinc-900 dark:group-hover:text-white transition-colors uppercase tracking-widest">
-                                      Read PDF
-                                    </span>
-                                    <div className="w-8 h-8 rounded-full bg-zinc-900 dark:bg-white flex items-center justify-center shadow-lg group-hover:translate-x-1 transition-transform">
-                                      <ChevronRight className="w-4 h-4 text-white dark:text-black" />
-                                    </div>
-                                  </div>
-                                </div>
-                              </motion.div>
-                            )) : (
+                                </motion.div>
+                              );
+                            }) : (
                               <p className="text-center col-span-full py-10 text-zinc-500">No books found for this course.</p>
                             )}
                         </div>
@@ -615,7 +663,9 @@ export const CourseLessonsAI = ({ user, onClose, initialCourse }: { user: User; 
                   )}
                 </AnimatePresence>
               </div>
-              {openBook && <PdfViewer book={openBook} onClose={() => setOpenBook(null)} />}
+              <AnimatePresence>
+                {openBook && <PdfViewer book={openBook} onClose={handleCloseBook} />}
+              </AnimatePresence>
             </motion.div>
           ) : (
             <motion.div 
