@@ -154,7 +154,7 @@ export async function generateQuiz(
     providerName: "Quiz Generation",
     openrouter: async () => {
       const response = await getOpenRouterClient().chat.completions.create({
-        model: 'google/gemini-2.0-flash-lite-preview-02-05:free',
+        model: 'openrouter/free',
         messages: [
           { role: 'system', content: systemPrompt },
           { role: 'user', content: userPrompt }
@@ -270,7 +270,7 @@ export async function gradeQuiz(quiz: any, userAnswers: Record<string, string>) 
     providerName: "Quiz Grading",
     openrouter: async () => {
       const response = await getOpenRouterClient().chat.completions.create({
-        model: 'google/gemini-2.0-flash-lite-preview-02-05:free',
+        model: 'openrouter/free',
         messages: [{ role: 'user', content: prompt }]
       });
       const text = response.choices[0].message.content || '{}';
@@ -342,7 +342,7 @@ export async function chatTutor(
       }));
 
       const response = await getOpenRouterClient().chat.completions.create({
-        model: 'google/gemini-2.0-flash-lite-preview-02-05:free',
+        model: 'openrouter/free',
         messages: [
           { role: 'system', content: systemPrompt },
           ...formattedHistory,
