@@ -49,8 +49,9 @@ export const AICopilot = ({ user }: { user: User }) => {
     try {
       const response = await api.sendChatMessage(userMessage.text, history);
       setMessages(prev => [...prev, { id: `ai-${Date.now()}`, text: response.reply, sender: 'ai' }]);
-    } catch (error) {
-      setMessages(prev => [...prev, { id: `ai-err-${Date.now()}`, text: "Sorry, I'm having trouble connecting right now. Let's try again in a moment.", sender: 'ai' }]);
+    } catch (error: any) {
+      const errorMsg = error.message || "Sorry, I'm having trouble connecting right now. Let's try again in a moment.";
+      setMessages(prev => [...prev, { id: `ai-err-${Date.now()}`, text: `Error: ${errorMsg}`, sender: 'ai' }]);
     } finally {
       setIsLoading(false);
     }

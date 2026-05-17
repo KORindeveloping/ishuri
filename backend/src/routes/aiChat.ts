@@ -25,7 +25,8 @@ router.post('/chat', async (req: Request, res: Response) => {
     });
 
     if (!response.ok) {
-      throw new Error(`Ollama API error: ${response.statusText}`);
+      const errorData = await response.text();
+      throw new Error(`Ollama API error: ${response.status} ${errorData}`);
     }
 
     const data = await response.json();
