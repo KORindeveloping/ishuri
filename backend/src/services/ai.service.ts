@@ -15,7 +15,7 @@ function getOpenAIClient() {
   if (!_openai) {
     const key = getDeepSeekKey();
     _openai = new OpenAI({
-      apiKey: key,
+      apiKey: key || 'placeholder-key', // Prevent crash if key is missing completely
       baseURL: 'https://api.deepseek.com',
     });
   }
@@ -23,11 +23,12 @@ function getOpenAIClient() {
 }
 
 /**
- * Hybrid AI Wrapper: Attempts Gemini first, falls back to DeepSeek if Gemini fails.
+ * Hybrid AI Wrapper: Attempts Gemini first, falls back to DeepSeek, then to local Ollama.
  */
 async function callHybridAI(logic: { 
   gemini: () => Promise<any>, 
   deepseek: () => Promise<any>,
+  ollama: () => Promise<any>,
   providerName?: string 
 }) {
   const geminiKey = getGeminiKey();
@@ -44,21 +45,27 @@ async function callHybridAI(logic: {
 
   // 2. Try DeepSeek (Reliable Backup)
   const deepseekKey = getDeepSeekKey();
-  if (deepseekKey) {
+  if (deepseekKey && !deepseekKey.includes('placeholder')) {
     try {
-      console.log(`[AI-Hybrid] Falling back to DeepSeek for ${logic.providerName || 'task'}...`);
+      console.log(`[AI-Hybrid] Attempting ${logic.providerName || 'task'} with DeepSeek...`);
       return await logic.deepseek();
     } catch (e: any) {
-      console.error(`[AI-Hybrid] DeepSeek also failed: ${e.message}`);
-      throw e;
+      console.warn(`[AI-Hybrid] DeepSeek also failed: ${e.message}. Falling back to local Ollama...`);
     }
   }
 
-  throw new Error("All AI providers failed or are unconfigured.");
+  // 3. Try Ollama (Local/Self-hosted Free Fallback)
+  try {
+    console.log(`[AI-Hybrid] Attempting ${logic.providerName || 'task'} with local Ollama...`);
+    return await logic.ollama();
+  } catch (e: any) {
+    console.error(`[AI-Hybrid] Ollama also failed: ${e.message}`);
+    throw new Error("All AI providers (Gemini, DeepSeek, and Ollama) failed or are unconfigured.");
+  }
 }
 
 /**
- * Generates a dynamic quiz using Hybrid AI (Gemini -> DeepSeek).
+ * Generates a dynamic quiz using Hybrid AI (Gemini -> DeepSeek -> Ollama).
  */
 export async function generateQuiz(
   subject: string, 
@@ -135,6 +142,25 @@ export async function generateQuiz(
         response_format: { type: 'json_object' }
       });
       return JSON.parse(response.choices[0].message.content || '{}');
+    },
+    ollama: async () => {
+      const OLLAMA_URL = process.env.OLLAMA_URL || 'http://127.0.0.1:11434';
+      const response = await fetch(`${OLLAMA_URL}/api/chat`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          model: 'gemma3:4b',
+          messages: [
+            { role: 'system', content: systemPrompt },
+            { role: 'user', content: userPrompt }
+          ],
+          format: 'json',
+          stream: false
+        })
+      });
+      if (!response.ok) throw new Error(`Ollama failed: ${response.statusText}`);
+      const data = await response.json();
+      return JSON.parse(data.message.content || '{}');
     }
   });
 }
@@ -217,6 +243,22 @@ export async function gradeQuiz(quiz: any, userAnswers: Record<string, string>) 
         response_format: { type: 'json_object' }
       });
       return JSON.parse(response.choices[0].message.content || '{}');
+    },
+    ollama: async () => {
+      const OLLAMA_URL = process.env.OLLAMA_URL || 'http://127.0.0.1:11434';
+      const response = await fetch(`${OLLAMA_URL}/api/chat`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          model: 'gemma3:4b',
+          messages: [{ role: 'user', content: prompt }],
+          format: 'json',
+          stream: false
+        })
+      });
+      if (!response.ok) throw new Error(`Ollama failed: ${response.statusText}`);
+      const data = await response.json();
+      return JSON.parse(data.message.content || '{}');
     }
   });
 }
@@ -267,6 +309,30 @@ export async function chatTutor(
         max_tokens: 2048,
       });
       return response.choices[0].message.content || "I'm sorry, I couldn't generate a response.";
+    },
+    ollama: async () => {
+      const formattedHistory = history.map(h => ({
+        role: h.role === 'model' ? 'assistant' : 'user',
+        content: h.parts[0].text
+      }));
+      
+      const OLLAMA_URL = process.env.OLLAMA_URL || 'http://127.0.0.1:11434';
+      const response = await fetch(`${OLLAMA_URL}/api/chat`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          model: 'gemma3:4b',
+          messages: [
+            { role: 'system', content: systemPrompt },
+            ...formattedHistory,
+            { role: 'user', content: message }
+          ],
+          stream: false
+        })
+      });
+      if (!response.ok) throw new Error(`Ollama failed: ${response.statusText}`);
+      const data = await response.json();
+      return data.message.content || "I'm sorry, I couldn't generate a response.";
     }
   });
 }
