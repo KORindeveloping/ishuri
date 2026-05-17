@@ -11,7 +11,7 @@ import historyRoutes from './routes/history';
 import portfolioRoutes from './routes/portfolio';
 import goalsRoutes from './routes/goals';
 import chatRoutes from './routes/chat';
-
+import aiChatRoutes from './routes/aiChat';
 const app = express();
 const httpServer = createServer(app);
 const clientUrl = process.env.CLIENT_URL || "http://localhost:3000";
@@ -53,6 +53,7 @@ app.use('/api/history', historyRoutes);
 app.use('/api/portfolio', portfolioRoutes);
 app.use('/api/goals', goalsRoutes);
 app.use('/api/chat', chatRoutes);
+app.use('/api/ai', aiChatRoutes);
 
 // Global Error Handler
 app.use((err: any, req: express.Request, res: express.Response, next: express.NextFunction) => {
@@ -77,7 +78,7 @@ io.on('connection', (socket) => {
   });
 });
 
-const PORT = process.env.PORT || 5000;
+const PORT = process.env.PORT || 10000;
 httpServer.listen(PORT, () => {
   console.log(`TVET Mastery Server running on port ${PORT}`);
 });

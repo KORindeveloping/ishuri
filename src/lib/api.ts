@@ -233,10 +233,10 @@ export const api = {
   // --- AI Chat ---
   sendChatMessage: async (message: string, history: any[] = []) => {
     try {
-      const res = await fetch(`${API_URL}/chat`, {
+      const res = await fetch(`${API_URL}/ai/chat`, {
         method: 'POST',
         headers: getHeaders(),
-        body: JSON.stringify({ message, history })
+        body: JSON.stringify({ message })
       });
       if (!res.ok) {
         const errorData = await res.json().catch(() => ({}));
