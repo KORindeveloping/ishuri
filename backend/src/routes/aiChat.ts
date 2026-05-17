@@ -35,17 +35,30 @@ router.post('/chat', async (req: Request, res: Response) => {
       body: JSON.stringify({
         inputs: message,
         parameters: {
-          max_new_tokens: 300
+          max_new_tokens: 300,
+          return_full_text: false
         }
       }),
     });
 
+    console.log(`[AI Chat] HF Response Status: ${response.status}`);
+
     if (!response.ok) {
       const errorText = await response.text();
+      console.error(`[AI Chat] HF Error Body: ${errorText}`);
+      
       let errorMessage = `HF API error: ${response.status}`;
       try {
         const errorJson = JSON.parse(errorText);
         errorMessage = errorJson.error || errorJson.message || errorMessage;
+        
+        // Handle model loading state
+        if (response.status === 503 || errorMessage.toLowerCase().includes('loading')) {
+          return res.status(503).json({ 
+            error: 'AI is warming up', 
+            details: 'The AI model is currently loading. Please try again in 30 seconds.' 
+          });
+        }
       } catch (e) {
         errorMessage = errorText || errorMessage;
       }
