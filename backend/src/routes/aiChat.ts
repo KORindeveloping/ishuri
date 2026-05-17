@@ -11,91 +11,69 @@ router.post('/chat', async (req: Request, res: Response) => {
   }
 
   try {
-    const HF_API_KEY = process.env.HF_API_KEY;
+    // GROQ_API_KEY from environment
+    const GROQ_API_KEY = process.env.GROQ_API_KEY;
     
-    console.log('[AI Chat V1.3-PRODUCTION] Processing request...');
-    
-    if (!HF_API_KEY) {
-       console.warn('[AI Chat] No HF_API_KEY found in environment.');
+    if (!GROQ_API_KEY) {
+       console.warn('[AI Chat] No GROQ_API_KEY found in environment.');
        return res.status(500).json({ 
          error: 'AI Chat failed', 
-         details: 'Hugging Face API Key is missing. Please set it in Render dashboard.' 
+         details: 'Groq API Key is missing. Please set it in Render dashboard.' 
        });
     }
-    
-    // Using the original model ID
-    const modelId = 'mistralai/Mistral-7B-Instruct';
     const postData = JSON.stringify({
-      inputs: message,
-      parameters: {
-        max_new_tokens: 300,
-        return_full_text: false
-      }
+      model: 'llama-3.3-70b-versatile',
+      messages: [
+        { role: 'system', content: 'You are a helpful TVET education assistant.' },
+        { role: 'user', content: message }
+      ],
+      max_tokens: 500
     });
 
     const options = {
-      hostname: 'api-inference.huggingface.co',
-      path: `/models/${modelId}`,
+      hostname: 'api.groq.com',
+      path: '/openai/v1/chat/completions',
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${HF_API_KEY}`,
+        'Authorization': `Bearer ${GROQ_API_KEY}`,
         'Content-Length': Buffer.byteLength(postData)
       }
     };
 
-    console.log(`[AI Chat] Forwarding request to Hugging Face: ${modelId}`);
+    console.log('[AI Chat] Forwarding request to Groq (Llama 3.3)...');
 
-    const hfReq = https.request(options, (hfRes) => {
+    const groqReq = https.request(options, (groqRes) => {
       let data = '';
-      hfRes.on('data', (chunk) => { data += chunk; });
-      hfRes.on('end', () => {
+      groqRes.on('data', (chunk) => { data += chunk; });
+      groqRes.on('end', () => {
         try {
-          if (hfRes.statusCode !== 200) {
-            console.error(`[AI Chat] HF Error (${hfRes.statusCode}):`, data);
-            
-            // Handle loading state
-            if (hfRes.statusCode === 503 || data.toLowerCase().includes('loading')) {
-               return res.status(503).json({ error: 'AI is warming up', details: 'Model is loading. Try again in 30s.' });
-            }
-            
-            return res.status(500).json({ error: 'AI Chat failed', details: `HF API error: ${hfRes.statusCode}` });
+          if (groqRes.statusCode !== 200) {
+            console.error(`[AI Chat] Groq Error (${groqRes.statusCode}):`, data);
+            return res.status(500).json({ error: 'Groq AI Chat failed', details: `Status: ${groqRes.statusCode}` });
           }
-
-          if (!data) {
-            console.error('[AI Chat] Empty response from HF');
-            return res.status(500).json({ error: 'AI Chat failed', details: 'Empty response from AI engine' });
-          }
-
-          console.log('[AI Chat] Raw HF Response:', data);
 
           const responseData = JSON.parse(data);
-          let reply = '';
-          if (Array.isArray(responseData)) {
-            const genText = responseData[0]?.generated_text || '';
-            reply = genText.startsWith(message) ? genText.substring(message.length).trim() : genText;
-            reply = reply.replace(/^(Assistant:|AI:|Tutor:)\s*/i, '');
-          } else {
-            reply = responseData.choices?.[0]?.message?.content || responseData.reply || JSON.stringify(responseData);
-          }
-          res.status(200).json({ reply, version: '1.3-PRODUCTION' });
+          const reply = responseData.choices?.[0]?.message?.content || 'No response from AI.';
+          
+          res.status(200).json({ reply, provider: 'Groq', version: '2.0-GROQ' });
         } catch (e: any) {
           console.error('[AI Chat] Parse error:', e);
-          res.status(500).json({ error: 'Failed to parse AI response', details: e.message, version: '1.3-PRODUCTION' });
+          res.status(500).json({ error: 'Failed to parse Groq response', details: e.message });
         }
       });
     });
 
-    hfReq.on('error', (error) => {
-      console.error('[AI Chat] Request error:', error);
-      res.status(500).json({ error: 'AI Chat connection failed' });
+    groqReq.on('error', (error) => {
+      console.error('[AI Chat] Groq connection error:', error);
+      res.status(500).json({ error: 'Groq connection failed' });
     });
 
-    hfReq.write(postData);
-    hfReq.end();
+    groqReq.write(postData);
+    groqReq.end();
 
   } catch (error: any) {
-    console.error('HF Chat error:', error);
+    console.error('Groq Chat error:', error);
     res.status(500).json({ error: 'AI Chat failed', details: error.message });
   }
 });
