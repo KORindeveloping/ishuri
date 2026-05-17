@@ -11,7 +11,7 @@ router.post('/chat', async (req: Request, res: Response) => {
 
   try {
     const HF_API_KEY = process.env.HF_API_KEY;
-    const HF_URL = 'https://api-inference.huggingface.co/models/meta-llama/Llama-3.2-3B-Instruct/v1/chat/completions';
+    const HF_URL = 'https://router.huggingface.co/v1/chat/completions';
     
     const response = await fetch(HF_URL, {
       method: 'POST',
@@ -20,7 +20,7 @@ router.post('/chat', async (req: Request, res: Response) => {
         'Authorization': `Bearer ${HF_API_KEY}`
       },
       body: JSON.stringify({
-        model: 'meta-llama/Llama-3.2-3B-Instruct',
+        model: 'meta-llama/Llama-3.1-8B-Instruct',
         messages: [{ role: 'user', content: message }],
         stream: false,
         max_tokens: 512
