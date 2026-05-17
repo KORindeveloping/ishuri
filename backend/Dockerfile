@@ -40,8 +40,8 @@ while ! curl -s http://127.0.0.1:11434/api/tags > /dev/null; do\n\
   sleep 2\n\
 done\n\
 \n\
-echo "Ollama is ready. Pulling gemma3:4b model..."\n\
-ollama pull gemma3:4b\n\
+echo "Ollama is ready. Pulling qwen2.5:0.5b model..."\n\
+ollama pull qwen2.5:0.5b\n\
 \n\
 echo "Starting Node.js application..."\n\
 npm start\n\
