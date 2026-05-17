@@ -33,7 +33,10 @@ router.get('/', async (req: Request, res: Response) => {
       queryParams.append('grade', `eq.${grade}`);
     }
 
-    if (!SUPABASE_URL) throw new Error('SUPABASE_URL is not configured');
+    if (!SUPABASE_URL) {
+      console.warn('[Supabase] SUPABASE_URL is not configured. Please set it in your environment variables.');
+      return res.json([]);
+    }
 
     const response = await fetch(`${SUPABASE_URL}/rest/v1/documents?${queryParams.toString()}`, {
       headers: getSupabaseHeaders()
@@ -72,7 +75,9 @@ router.get('/', async (req: Request, res: Response) => {
 router.get('/:id', async (req: Request, res: Response) => {
   const { id } = req.params;
   try {
-    if (!SUPABASE_URL) throw new Error('SUPABASE_URL is not configured');
+    if (!SUPABASE_URL) {
+      return res.status(503).json({ error: 'Supabase is not configured' });
+    }
     
     const response = await fetch(`${SUPABASE_URL}/rest/v1/documents?id=eq.${id}&select=*`, {
       headers: getSupabaseHeaders()
@@ -111,7 +116,9 @@ router.post('/', async (req: Request, res: Response) => {
   }
 
   try {
-    if (!SUPABASE_URL) throw new Error('SUPABASE_URL is not configured');
+    if (!SUPABASE_URL) {
+      return res.status(503).json({ error: 'Supabase is not configured' });
+    }
 
     const response = await fetch(`${SUPABASE_URL}/rest/v1/documents`, {
       method: 'POST',
@@ -148,7 +155,9 @@ router.post('/', async (req: Request, res: Response) => {
 router.delete('/:id', async (req: Request, res: Response) => {
   const { id } = req.params;
   try {
-    if (!SUPABASE_URL) throw new Error('SUPABASE_URL is not configured');
+    if (!SUPABASE_URL) {
+      return res.status(503).json({ error: 'Supabase is not configured' });
+    }
 
     const response = await fetch(`${SUPABASE_URL}/rest/v1/documents?id=eq.${id}`, {
       method: 'DELETE',

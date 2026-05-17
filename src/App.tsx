@@ -1037,7 +1037,7 @@ const AnalyticsView = ({ history, user, onStartQuiz, showToast }: {
         <div className="lg:col-span-2 bg-white dark:bg-zinc-900 p-5 sm:p-6 md:p-8 rounded-[2.5rem] border border-zinc-200 dark:border-zinc-800 shadow-sm">
           <h2 className="text-xl font-black text-zinc-900 dark:text-white mb-8 uppercase tracking-tight">Skill Mastery Breakdown</h2>
           <div className="h-80 w-full">
-            <ResponsiveContainer width="100%" height="100%">
+            <ResponsiveContainer width="100%" height="100%" minWidth={0}>
               <BarChart data={chartData}>
                 <CartesianGrid strokeDasharray="3 3" stroke="currentColor" className="text-zinc-100 dark:text-zinc-800" vertical={false} />
                 <XAxis dataKey="name" stroke="currentColor" className="text-zinc-400 dark:text-zinc-600" fontSize={12} tickLine={false} axisLine={false} />
