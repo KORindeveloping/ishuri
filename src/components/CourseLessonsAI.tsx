@@ -93,15 +93,45 @@ export const CourseLessonsAI = ({ user, onClose, initialCourse }: { user: User; 
   
   const [books, setBooks] = useState<Book[]>([]);
   const [openBook, setOpenBook] = useState<Book | null>(null);
+  const [loadingBooks, setLoadingBooks] = useState(true);
 
   const [maxUnlockedUnit, setMaxUnlockedUnit] = useState<number>(() => {
     return parseInt(localStorage.getItem(`maxUnlockedUnit_${initialCourse}`) || '1', 10);
   });
 
-  useEffect(() => {
-    api.getBooks().then(setBooks).catch(console.error);
-  }, []);
+  const [messages, setMessages] = useState<{ id: string, text: string, sender: 'user' | 'ai', options?: string[] }[]>(
+    initialCourse ? [] : [
+      {
+        id: 'ai-initial',
+        text: `Hello ${user?.name?.split(' ')?.[0] || 'Student'}! I'm your Course Consultant. Which course or subject would you like to study today? Based on your level (${user.educationLevel || 'General'}), I can help you find the best path.`,
+        sender: 'ai',
+        options: (user.subjects || '').split(',').map(s => s.trim()).filter(Boolean).slice(0, 4)
+      }
+    ]
+  );
 
+  useEffect(() => {
+    api.getBooks()
+      .then(fetchedBooks => {
+        setBooks(fetchedBooks);
+        if (initialCourse && stage === 'BOOK_SELECTION') {
+          const matching = fetchedBooks.filter(b => b.title.toLowerCase().includes(initialCourse.split(' ')[0].toLowerCase()));
+          if (matching.length === 0) {
+            setStage('CONSULTING');
+            if (messages.length === 0) {
+              setMessages([{
+                id: 'ai-initial',
+                text: `Hello ${user?.name?.split(' ')?.[0] || 'Student'}! I see you want to study **${initialCourse}**. How can I help you master this topic today?`,
+                sender: 'ai',
+                options: ['Explain a concept', 'Generate a quiz', 'Build a study roadmap']
+              }]);
+            }
+          }
+        }
+      })
+      .catch(console.error)
+      .finally(() => setLoadingBooks(false));
+  }, []);
   const handleOpenBook = (book: Book) => {
     const unitNum = getUnitNumber(book.title);
     if (unitNum !== 999 && unitNum > maxUnlockedUnit) {
@@ -129,16 +159,6 @@ export const CourseLessonsAI = ({ user, onClose, initialCourse }: { user: User; 
   
   const sortedCourseBooks = [...courseBooks].sort((a, b) => getUnitNumber(a.title) - getUnitNumber(b.title));
 
-  const [messages, setMessages] = useState<{ id: string, text: string, sender: 'user' | 'ai', options?: string[] }[]>(
-    initialCourse ? [] : [
-      {
-        id: 'ai-initial',
-        text: `Hello ${user?.name?.split(' ')?.[0] || 'Student'}! I'm your Course Consultant. Which course or subject would you like to study today? Based on your level (${user.educationLevel || 'General'}), I can help you find the best path.`,
-        sender: 'ai',
-        options: (user.subjects || '').split(',').map(s => s.trim()).filter(Boolean).slice(0, 4)
-      }
-    ]
-  );
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [lessonPlan, setLessonPlan] = useState<LessonPlan | null>(null);
@@ -495,7 +515,11 @@ export const CourseLessonsAI = ({ user, onClose, initialCourse }: { user: User; 
                         </div>
 
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                          {sortedCourseBooks.length > 0 ? sortedCourseBooks.map((book) => {
+                          {loadingBooks ? (
+                            <div className="col-span-full py-10 flex justify-center">
+                              <Loader2 className="w-8 h-8 animate-spin text-zinc-500" />
+                            </div>
+                          ) : sortedCourseBooks.length > 0 ? sortedCourseBooks.map((book) => {
                               const unitNum = getUnitNumber(book.title);
                               const isLocked = unitNum !== 999 && unitNum > maxUnlockedUnit;
                               return (
