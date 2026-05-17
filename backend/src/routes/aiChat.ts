@@ -76,10 +76,10 @@ router.post('/chat', async (req: Request, res: Response) => {
           } else {
             reply = responseData.choices?.[0]?.message?.content || responseData.reply || JSON.stringify(responseData);
           }
-          res.status(200).json({ reply });
-        } catch (e) {
+          res.status(200).json({ reply, version: '1.1-debug' });
+        } catch (e: any) {
           console.error('[AI Chat] Parse error:', e);
-          res.status(500).json({ error: 'Failed to parse AI response' });
+          res.status(500).json({ error: 'Failed to parse AI response', details: e.message, version: '1.1-debug' });
         }
       });
     });
