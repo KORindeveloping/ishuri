@@ -2,8 +2,14 @@ import { Router, Request, Response } from 'express';
 
 const router = Router();
 
-const SUPABASE_URL = process.env.SUPABASE_URL;
-const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
+const SUPABASE_URL = process.env.SUPABASE_URL || '';
+const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY || '';
+
+const getSupabaseHeaders = () => ({
+  'apikey': SUPABASE_SERVICE_ROLE_KEY,
+  'Authorization': `Bearer ${SUPABASE_SERVICE_ROLE_KEY}`,
+  'Content-Type': 'application/json'
+});
 
 // ─── GET /api/books ────────────────────────────────────────────────────────────
 router.get('/', async (req: Request, res: Response) => {
@@ -27,12 +33,10 @@ router.get('/', async (req: Request, res: Response) => {
       queryParams.append('grade', `eq.${grade}`);
     }
 
+    if (!SUPABASE_URL) throw new Error('SUPABASE_URL is not configured');
+
     const response = await fetch(`${SUPABASE_URL}/rest/v1/documents?${queryParams.toString()}`, {
-      headers: {
-        'apikey': SUPABASE_SERVICE_ROLE_KEY,
-        'Authorization': `Bearer ${SUPABASE_SERVICE_ROLE_KEY}`,
-        'Content-Type': 'application/json'
-      }
+      headers: getSupabaseHeaders()
     });
 
     if (!response.ok) {
@@ -68,11 +72,10 @@ router.get('/', async (req: Request, res: Response) => {
 router.get('/:id', async (req: Request, res: Response) => {
   const { id } = req.params;
   try {
+    if (!SUPABASE_URL) throw new Error('SUPABASE_URL is not configured');
+    
     const response = await fetch(`${SUPABASE_URL}/rest/v1/documents?id=eq.${id}&select=*`, {
-      headers: {
-        'apikey': SUPABASE_SERVICE_ROLE_KEY,
-        'Authorization': `Bearer ${SUPABASE_SERVICE_ROLE_KEY}`,
-      }
+      headers: getSupabaseHeaders()
     });
     
     const data = await response.json();
@@ -108,12 +111,12 @@ router.post('/', async (req: Request, res: Response) => {
   }
 
   try {
+    if (!SUPABASE_URL) throw new Error('SUPABASE_URL is not configured');
+
     const response = await fetch(`${SUPABASE_URL}/rest/v1/documents`, {
       method: 'POST',
       headers: {
-        'apikey': SUPABASE_SERVICE_ROLE_KEY,
-        'Authorization': `Bearer ${SUPABASE_SERVICE_ROLE_KEY}`,
-        'Content-Type': 'application/json',
+        ...getSupabaseHeaders(),
         'Prefer': 'return=representation'
       },
       body: JSON.stringify({
@@ -145,12 +148,11 @@ router.post('/', async (req: Request, res: Response) => {
 router.delete('/:id', async (req: Request, res: Response) => {
   const { id } = req.params;
   try {
+    if (!SUPABASE_URL) throw new Error('SUPABASE_URL is not configured');
+
     const response = await fetch(`${SUPABASE_URL}/rest/v1/documents?id=eq.${id}`, {
       method: 'DELETE',
-      headers: {
-        'apikey': SUPABASE_SERVICE_ROLE_KEY,
-        'Authorization': `Bearer ${SUPABASE_SERVICE_ROLE_KEY}`,
-      }
+      headers: getSupabaseHeaders()
     });
 
     if (!response.ok) {
