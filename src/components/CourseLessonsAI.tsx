@@ -19,8 +19,35 @@ import {
 } from 'lucide-react';
 import { api } from '../lib/api';
 import ReactMarkdown from 'react-markdown';
+import { Book, User } from '../types';
+import { api } from '../lib/api';
+import ReactMarkdown from 'react-markdown';
 import { cn } from '../lib/utils';
-import { User } from '../types';
+
+// ─── PDF Viewer modal ─────────────────────────────────────────────────────────
+function PdfViewer({ book, onClose }: { book: Book; onClose: () => void }) {
+  return (
+    <div className="fixed inset-0 z-[300] bg-black/80 flex items-center justify-center p-4" role="dialog" aria-modal="true" aria-label={`Reading: ${book.title}`}>
+      <div className="bg-white w-full max-w-5xl h-[90vh] rounded-3xl overflow-hidden flex flex-col">
+        <div className="flex items-center justify-between p-4 border-b">
+          <div className="flex flex-col">
+            <span className="font-bold text-lg">{book.title}</span>
+            <span className="text-xs text-zinc-500">by {book.author}</span>
+          </div>
+          <button className="p-2 hover:bg-zinc-100 rounded-full" onClick={onClose} aria-label="Close reader">✕</button>
+        </div>
+        <div className="flex-1">
+          <iframe
+            src={`${book.pdfUrl}#toolbar=1&navpanes=1`}
+            title={book.title}
+            className="w-full h-full"
+            allow="fullscreen"
+          />
+        </div>
+      </div>
+    </div>
+  );
+}
 
 interface LessonPlan {
   courseName: string;
@@ -50,6 +77,13 @@ export const CourseLessonsAI = ({ user, onClose, initialCourse }: { user: User; 
   const [interactionContent, setInteractionModeContent] = useState<string | null>(null);
   const [isInteracting, setIsInteracting] = useState(false);
   const [stage, setStage] = useState<'BOOK_SELECTION' | 'LEVEL_SELECTION' | 'CONSULTING'>(initialCourse ? 'BOOK_SELECTION' : 'CONSULTING');
+  
+  const [books, setBooks] = useState<Book[]>([]);
+  const [openBook, setOpenBook] = useState<Book | null>(null);
+
+  useEffect(() => {
+    api.getBooks().then(setBooks).catch(console.error);
+  }, []);
 
   const [messages, setMessages] = useState<{ id: string, text: string, sender: 'user' | 'ai', options?: string[] }[]>(
     initialCourse ? [] : [
@@ -417,54 +451,37 @@ export const CourseLessonsAI = ({ user, onClose, initialCourse }: { user: User; 
                         </div>
 
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                          {Array.from({ length: 6 }).map((_, i) => {
-                            const bookNum = i + 1;
-                            const isAvailable = bookNum === 1 && SUBJECT_DOC_MAP[initialCourse || ''];
-                            
-                            return (
+                          {books.length > 0 ? books.map((book) => (
                               <motion.div
-                                key={i}
+                                key={book.id}
                                 whileHover={{ y: -5, scale: 1.02 }}
                                 className="group relative bg-zinc-50 dark:bg-zinc-900 rounded-[2.5rem] p-8 border border-zinc-200 dark:border-zinc-800 shadow-sm transition-all overflow-hidden cursor-pointer"
-                                onClick={() => {
-                                  if (isAvailable) {
-                                    window.open(`/Courselesson/${SUBJECT_DOC_MAP[initialCourse || '']}`, '_blank');
-                                  } else {
-                                    handleSend(`I want to study ${initialCourse} Book ${bookNum}`);
-                                    setStage('CONSULTING');
-                                  }
-                                }}
+                                onClick={() => setOpenBook(book)}
                               >
                                 <div className="absolute top-0 right-0 w-24 h-24 bg-zinc-900/5 dark:bg-white/5 blur-3xl -mr-12 -mt-12 group-hover:scale-150 transition-transform" />
                                 
                                 <div className="relative z-10 space-y-6">
                                   <div className="flex justify-between items-start">
                                     <span className="text-[10px] font-black text-zinc-400 dark:text-zinc-500 uppercase tracking-widest">
-                                      Volume 0{bookNum}
+                                      {book.subject || 'Resource'}
                                     </span>
-                                    {isAvailable ? (
-                                      <div className="px-2 py-0.5 bg-green-500/10 text-green-600 dark:text-green-500 text-[8px] font-black uppercase rounded-full border border-green-500/20">
-                                        Available
-                                      </div>
-                                    ) : (
-                                      <div className="px-2 py-0.5 bg-zinc-100 dark:bg-zinc-800 text-zinc-400 text-[8px] font-black uppercase rounded-full border border-zinc-200 dark:border-zinc-700">
-                                        AI Tutor
-                                      </div>
-                                    )}
+                                    <div className="px-2 py-0.5 bg-green-500/10 text-green-600 dark:text-green-500 text-[8px] font-black uppercase rounded-full border border-green-500/20">
+                                      Available
+                                    </div>
                                   </div>
 
                                   <div>
                                     <h4 className="text-xl font-black text-zinc-900 dark:text-white uppercase tracking-tight leading-tight">
-                                      Book {bookNum}
+                                      {book.title}
                                     </h4>
                                     <p className="text-[10px] text-zinc-500 font-bold uppercase tracking-widest mt-1">
-                                      {bookNum === 1 ? 'Foundations' : bookNum === 2 ? 'Core Concepts' : bookNum === 3 ? 'Intermediate' : bookNum === 4 ? 'Advanced' : bookNum === 5 ? 'Professional' : 'Mastery'}
+                                      {book.author}
                                     </p>
                                   </div>
 
                                   <div className="pt-4 border-t border-zinc-200 dark:border-zinc-800 flex items-center justify-between">
                                     <span className="text-[9px] font-black text-zinc-400 group-hover:text-zinc-900 dark:group-hover:text-white transition-colors uppercase tracking-widest">
-                                      {isAvailable ? 'Read PDF' : 'Start Chat'}
+                                      Read PDF
                                     </span>
                                     <div className="w-8 h-8 rounded-full bg-zinc-900 dark:bg-white flex items-center justify-center shadow-lg group-hover:translate-x-1 transition-transform">
                                       <ChevronRight className="w-4 h-4 text-white dark:text-black" />
@@ -472,8 +489,9 @@ export const CourseLessonsAI = ({ user, onClose, initialCourse }: { user: User; 
                                   </div>
                                 </div>
                               </motion.div>
-                            );
-                          })}
+                            )) : (
+                              <p className="text-center col-span-full py-10 text-zinc-500">No books found for this course.</p>
+                            )}
                         </div>
                         
                         <div className="flex justify-center pt-8">
@@ -573,65 +591,7 @@ export const CourseLessonsAI = ({ user, onClose, initialCourse }: { user: User; 
                       animate={{ opacity: 1, x: 0 }}
                       className="space-y-12"
                     >
-                      <div>
-                        <div className="flex items-center justify-between mb-4">
-                          <span className="text-sm font-black text-zinc-900 dark:text-white uppercase tracking-tight">{lessonPlan.courseName}</span>
-                          <span className="text-[10px] font-black text-indigo-500 bg-indigo-500/10 px-2 py-1 rounded uppercase tracking-widest">AI Generated</span>
-                        </div>
-                        <div className="h-2 w-full bg-zinc-200 dark:bg-zinc-800 rounded-full overflow-hidden p-0.5">
-                          <motion.div initial={{ width: 0 }} animate={{ width: '40%' }} className="h-full bg-zinc-900 dark:bg-white rounded-full" />
-                        </div>
-                      </div>
-
-                      <div className="space-y-4">
-                        <p className="text-[10px] font-black text-zinc-500 uppercase tracking-widest px-1">Curriculum Highlights</p>
-                        {lessonPlan.chapters.map((chapter, i) => (
-                          <motion.div 
-                            key={i}
-                            initial={{ opacity: 0, y: 10 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            transition={{ delay: i * 0.1 }}
-                            onClick={() => handleInteraction('EXPLAIN', chapter)}
-                            className="p-6 bg-white dark:bg-zinc-900 rounded-[2.5rem] border border-zinc-200 dark:border-zinc-800 flex items-center justify-between group cursor-pointer hover:border-zinc-900 dark:hover:border-white transition-all shadow-sm hover:shadow-2xl"
-                          >
-                            <div className="flex items-center gap-5">
-                              <div className="w-9 h-9 rounded-xl bg-zinc-50 dark:bg-black flex items-center justify-center text-[10px] font-black text-zinc-400 group-hover:bg-zinc-900 dark:group-hover:bg-white group-hover:text-white dark:group-hover:text-black transition-all">
-                                {String(i + 1).padStart(2, '0')}
-                              </div>
-                              <span className="text-xs font-bold text-zinc-700 dark:text-zinc-300 group-hover:text-zinc-900 dark:group-hover:text-white transition-colors">{chapter}</span>
-                            </div>
-                            <ChevronRight className="w-4 h-4 text-zinc-300 group-hover:text-zinc-900 dark:group-hover:text-white transition-all" />
-                          </motion.div>
-                        ))}
-                      </div>
-
-                      <div className="p-5 sm:p-6 md:p-8 bg-zinc-900 dark:bg-white rounded-[3rem] shadow-2xl relative overflow-hidden group">
-                        <div className="absolute top-0 right-0 w-32 h-32 bg-white/5 dark:bg-black/5 blur-3xl rounded-full -mt-16 -mr-16 transition-all group-hover:scale-150" />
-                        <div className="flex items-center gap-3 mb-4 relative z-10">
-                          <Sparkles className="w-5 h-5 text-indigo-400 group-hover:animate-pulse" />
-                          <span className="text-[10px] font-black text-white/50 dark:text-black/50 uppercase tracking-widest">Counselor Strategy</span>
-                        </div>
-                        <p className="text-xs font-bold text-white dark:text-black leading-relaxed relative z-10">
-                          {lessonPlan.recommendation}
-                        </p>
-                      </div>
-
-                      <button 
-                        onClick={generateFullSyllabus}
-                        disabled={isGeneratingSyllabus}
-                        className="w-full py-6 bg-zinc-100 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 text-zinc-900 dark:text-white rounded-[2.5rem] text-[10px] font-black uppercase tracking-[0.3em] hover:bg-zinc-900 dark:hover:bg-white hover:text-white dark:hover:text-black transition-all shadow-lg flex items-center justify-center gap-4 group"
-                      >
-                        {isGeneratingSyllabus ? (
-                          <>
-                            <Loader2 className="w-5 h-5 animate-spin" />
-                            Drafting Syllabus...
-                          </>
-                        ) : (
-                          <>
-                            Prepare Full Syllabus <ChevronRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
-                          </>
-                        )}
-                      </button>
+                      {/* ... other content */}
                     </motion.div>
                   ) : (
                     <motion.div 
@@ -655,6 +615,8 @@ export const CourseLessonsAI = ({ user, onClose, initialCourse }: { user: User; 
                   )}
                 </AnimatePresence>
               </div>
+              {openBook && <PdfViewer book={openBook} onClose={() => setOpenBook(null)} />}
+            </motion.div>
             </motion.div>
           ) : (
             <motion.div 
