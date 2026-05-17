@@ -13,11 +13,13 @@ router.post('/chat', async (req: Request, res: Response) => {
   try {
     const HF_API_KEY = process.env.HF_API_KEY;
     
+    console.log('[AI Chat V1.3-PRODUCTION] Processing request...');
+    
     if (!HF_API_KEY) {
        console.warn('[AI Chat] No HF_API_KEY found in environment.');
        return res.status(500).json({ 
          error: 'AI Chat failed', 
-         details: 'Hugging Face API Key is missing. Please check Render dashboard.' 
+         details: 'Hugging Face API Key is missing. Please set it in Render dashboard.' 
        });
     }
     
@@ -76,10 +78,10 @@ router.post('/chat', async (req: Request, res: Response) => {
           } else {
             reply = responseData.choices?.[0]?.message?.content || responseData.reply || JSON.stringify(responseData);
           }
-          res.status(200).json({ reply, version: '1.1-debug' });
+          res.status(200).json({ reply, version: '1.3-PRODUCTION' });
         } catch (e: any) {
           console.error('[AI Chat] Parse error:', e);
-          res.status(500).json({ error: 'Failed to parse AI response', details: e.message, version: '1.1-debug' });
+          res.status(500).json({ error: 'Failed to parse AI response', details: e.message, version: '1.3-PRODUCTION' });
         }
       });
     });
