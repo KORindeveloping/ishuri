@@ -12,8 +12,14 @@ router.post('/chat', async (req: Request, res: Response) => {
   try {
     const HF_API_KEY = process.env.HF_API_KEY;
     
+    console.log(`[AI Chat] HF_API_KEY length: ${HF_API_KEY ? HF_API_KEY.length : 0}`);
+    
     if (!HF_API_KEY) {
-       console.warn('[AI Chat] No HF_API_KEY found in environment. Please set it in Render dashboard.');
+       console.warn('[AI Chat] No HF_API_KEY found in environment.');
+       return res.status(500).json({ 
+         error: 'AI Chat failed', 
+         details: 'Hugging Face API Key is missing in server environment variables. Please check Render dashboard.' 
+       });
     }
     const HF_URL = 'https://api-inference.huggingface.co/models/mistralai/Mistral-7B-Instruct';
     
@@ -33,8 +39,15 @@ router.post('/chat', async (req: Request, res: Response) => {
     });
 
     if (!response.ok) {
-      const errorData = await response.text();
-      throw new Error(`HF API error: ${response.status} ${errorData}`);
+      const errorText = await response.text();
+      let errorMessage = `HF API error: ${response.status}`;
+      try {
+        const errorJson = JSON.parse(errorText);
+        errorMessage = errorJson.error || errorJson.message || errorMessage;
+      } catch (e) {
+        errorMessage = errorText || errorMessage;
+      }
+      throw new Error(errorMessage);
     }
 
     const data = await response.json();
