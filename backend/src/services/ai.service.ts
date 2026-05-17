@@ -5,35 +5,63 @@ import dotenv from 'dotenv';
 dotenv.config();
 
 // Helpers to get API keys
+const getOpenRouterKey = () => process.env.OPENROUTER_API_KEY || '';
 const getGeminiKey = () => process.env.tvet || process.env.GEMINI_API_KEY || '';
 const getDeepSeekKey = () => process.env.DEEPSEEK_API_KEY || '';
-const getAnthropicKey = () => process.env.ANTHROPIC_API_KEY || '';
 
-// Lazy-loaded OpenAI client
-let _openai: OpenAI | null = null;
-function getOpenAIClient() {
-  if (!_openai) {
-    const key = getDeepSeekKey();
-    _openai = new OpenAI({
-      apiKey: key || 'placeholder-key', // Prevent crash if key is missing completely
+// Lazy-loaded OpenAI clients
+let _deepseek: OpenAI | null = null;
+let _openrouter: OpenAI | null = null;
+
+function getDeepSeekClient() {
+  if (!_deepseek) {
+    _deepseek = new OpenAI({
+      apiKey: getDeepSeekKey() || 'placeholder-key',
       baseURL: 'https://api.deepseek.com',
     });
   }
-  return _openai;
+  return _deepseek;
+}
+
+function getOpenRouterClient() {
+  if (!_openrouter) {
+    _openrouter = new OpenAI({
+      apiKey: getOpenRouterKey() || 'placeholder-key',
+      baseURL: 'https://openrouter.ai/api/v1',
+      defaultHeaders: {
+        'HTTP-Referer': 'https://tvetmastery.com', // Optional but recommended by OpenRouter
+        'X-Title': 'TVET Mastery',
+      }
+    });
+  }
+  return _openrouter;
 }
 
 /**
- * Hybrid AI Wrapper: Attempts Gemini first, falls back to DeepSeek, then to local Ollama.
+ * Hybrid AI Wrapper: Attempts OpenRouter first, then Gemini, then DeepSeek, then local Ollama.
  */
 async function callHybridAI(logic: { 
+  openrouter: () => Promise<any>,
   gemini: () => Promise<any>, 
   deepseek: () => Promise<any>,
   ollama: () => Promise<any>,
   providerName?: string 
 }) {
+  const openRouterKey = getOpenRouterKey();
+  
+  // 1. Try OpenRouter (Free Tier Models)
+  if (openRouterKey && !openRouterKey.includes('placeholder')) {
+    try {
+      console.log(`[AI-Hybrid] Attempting ${logic.providerName || 'task'} with OpenRouter...`);
+      return await logic.openrouter();
+    } catch (e: any) {
+      console.warn(`[AI-Hybrid] OpenRouter failed: ${e.message}. Falling back to Gemini...`);
+    }
+  }
+
   const geminiKey = getGeminiKey();
   
-  // 1. Try Gemini (Free Tier)
+  // 2. Try Gemini (Free Tier)
   if (geminiKey && !geminiKey.includes('placeholder')) {
     try {
       console.log(`[AI-Hybrid] Attempting ${logic.providerName || 'task'} with Gemini...`);
@@ -43,7 +71,7 @@ async function callHybridAI(logic: {
     }
   }
 
-  // 2. Try DeepSeek (Reliable Backup)
+  // 3. Try DeepSeek (Reliable Backup)
   const deepseekKey = getDeepSeekKey();
   if (deepseekKey && !deepseekKey.includes('placeholder')) {
     try {
@@ -54,18 +82,18 @@ async function callHybridAI(logic: {
     }
   }
 
-  // 3. Try Ollama (Local/Self-hosted Free Fallback)
+  // 4. Try Ollama (Local/Self-hosted Free Fallback)
   try {
     console.log(`[AI-Hybrid] Attempting ${logic.providerName || 'task'} with local Ollama...`);
     return await logic.ollama();
   } catch (e: any) {
     console.error(`[AI-Hybrid] Ollama also failed: ${e.message}`);
-    throw new Error("All AI providers (Gemini, DeepSeek, and Ollama) failed or are unconfigured.");
+    throw new Error("All AI providers (OpenRouter, Gemini, DeepSeek, and Ollama) failed or are unconfigured.");
   }
 }
 
 /**
- * Generates a dynamic quiz using Hybrid AI (Gemini -> DeepSeek -> Ollama).
+ * Generates a dynamic quiz using Hybrid AI.
  */
 export async function generateQuiz(
   subject: string, 
@@ -124,6 +152,18 @@ export async function generateQuiz(
 
   return await callHybridAI({
     providerName: "Quiz Generation",
+    openrouter: async () => {
+      const response = await getOpenRouterClient().chat.completions.create({
+        model: 'google/gemini-2.0-flash-lite-preview-02-05:free',
+        messages: [
+          { role: 'system', content: systemPrompt },
+          { role: 'user', content: userPrompt }
+        ]
+      });
+      const text = response.choices[0].message.content || '{}';
+      const jsonMatch = text.match(/\{[\s\S]*\}/);
+      return JSON.parse(jsonMatch ? jsonMatch[0] : text);
+    },
     gemini: async () => {
       const genAI = new GoogleGenerativeAI(getGeminiKey());
       const model = genAI.getGenerativeModel({ model: 'gemini-2.0-flash', systemInstruction: systemPrompt });
@@ -133,7 +173,7 @@ export async function generateQuiz(
       return JSON.parse(jsonMatch ? jsonMatch[0] : text);
     },
     deepseek: async () => {
-      const response = await getOpenAIClient().chat.completions.create({
+      const response = await getDeepSeekClient().chat.completions.create({
         model: 'deepseek-chat',
         messages: [
           { role: 'system', content: systemPrompt },
@@ -228,6 +268,15 @@ export async function gradeQuiz(quiz: any, userAnswers: Record<string, string>) 
 
   return await callHybridAI({
     providerName: "Quiz Grading",
+    openrouter: async () => {
+      const response = await getOpenRouterClient().chat.completions.create({
+        model: 'google/gemini-2.0-flash-lite-preview-02-05:free',
+        messages: [{ role: 'user', content: prompt }]
+      });
+      const text = response.choices[0].message.content || '{}';
+      const jsonMatch = text.match(/\{[\s\S]*\}/);
+      return JSON.parse(jsonMatch ? jsonMatch[0] : text);
+    },
     gemini: async () => {
       const genAI = new GoogleGenerativeAI(getGeminiKey());
       const model = genAI.getGenerativeModel({ model: 'gemini-2.0-flash' });
@@ -237,7 +286,7 @@ export async function gradeQuiz(quiz: any, userAnswers: Record<string, string>) 
       return JSON.parse(jsonMatch ? jsonMatch[0] : text);
     },
     deepseek: async () => {
-      const response = await getOpenAIClient().chat.completions.create({
+      const response = await getDeepSeekClient().chat.completions.create({
         model: 'deepseek-chat',
         messages: [{ role: 'user', content: prompt }],
         response_format: { type: 'json_object' }
@@ -286,6 +335,22 @@ export async function chatTutor(
 
   return await callHybridAI({
     providerName: "Chat Tutor",
+    openrouter: async () => {
+      const formattedHistory: OpenAI.Chat.Completions.ChatCompletionMessageParam[] = history.map(h => ({
+        role: h.role === 'model' ? 'assistant' : 'user',
+        content: h.parts[0].text
+      }));
+
+      const response = await getOpenRouterClient().chat.completions.create({
+        model: 'google/gemini-2.0-flash-lite-preview-02-05:free',
+        messages: [
+          { role: 'system', content: systemPrompt },
+          ...formattedHistory,
+          { role: 'user', content: message }
+        ]
+      });
+      return response.choices[0].message.content || "I'm sorry, I couldn't generate a response.";
+    },
     gemini: async () => {
       const genAI = new GoogleGenerativeAI(getGeminiKey());
       const model = genAI.getGenerativeModel({ model: 'gemini-2.0-flash', systemInstruction: systemPrompt });
@@ -299,7 +364,7 @@ export async function chatTutor(
         content: h.parts[0].text
       }));
 
-      const response = await getOpenAIClient().chat.completions.create({
+      const response = await getDeepSeekClient().chat.completions.create({
         model: 'deepseek-chat',
         messages: [
           { role: 'system', content: systemPrompt },
