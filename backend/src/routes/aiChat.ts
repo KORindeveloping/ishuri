@@ -11,8 +11,10 @@ router.post('/chat', async (req: Request, res: Response) => {
 
   try {
     const HF_API_KEY = process.env.HF_API_KEY;
-    const HF_URL = 'https://router.huggingface.co/v1/chat/completions';
+    // Use the user's recommended Mistral-7B-Instruct or fallback Llama model
+    const HF_URL = 'https://api-inference.huggingface.co/models/mistralai/Mistral-7B-Instruct';
     
+    console.log('[AI Chat] Forwarding request to Hugging Face...');
     const response = await fetch(HF_URL, {
       method: 'POST',
       headers: {
@@ -20,10 +22,10 @@ router.post('/chat', async (req: Request, res: Response) => {
         'Authorization': `Bearer ${HF_API_KEY}`
       },
       body: JSON.stringify({
-        model: 'meta-llama/Llama-3.1-8B-Instruct',
-        messages: [{ role: 'user', content: message }],
-        stream: false,
-        max_tokens: 512
+        inputs: message,
+        parameters: {
+          max_new_tokens: 300
+        }
       }),
     });
 
@@ -33,7 +35,25 @@ router.post('/chat', async (req: Request, res: Response) => {
     }
 
     const data = await response.json();
-    res.status(200).json({ reply: data.choices[0].message.content });
+    console.log('[AI Chat] Hugging Face raw response:', data);
+
+    let reply = '';
+    if (Array.isArray(data)) {
+      const genText = data[0]?.generated_text || '';
+      // Clean up prompt prefix from the generated text if present
+      if (genText.startsWith(message)) {
+        reply = genText.substring(message.length).trim();
+      } else {
+        reply = genText;
+      }
+      
+      // Clean up common chat prefixes if the model generated them (like "Assistant:", "AI:")
+      reply = reply.replace(/^(Assistant:|AI:|Tutor:)\s*/i, '');
+    } else {
+      reply = data.choices?.[0]?.message?.content || data.reply || JSON.stringify(data);
+    }
+
+    res.status(200).json({ reply });
   } catch (error: any) {
     console.error('HF Chat error:', error);
     res.status(500).json({ 

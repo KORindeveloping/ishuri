@@ -262,5 +262,32 @@ export const api = {
       throw new Error(errorData.error || 'Grading failed');
     }
     return res.json();
+  },
+
+  // --- Book Library ---
+  getBooks: async (params?: { search?: string; subject?: string; grade?: string }) => {
+    const query = new URLSearchParams();
+    if (params?.search)  query.set('search',  params.search);
+    if (params?.subject) query.set('subject', params.subject);
+    if (params?.grade)   query.set('grade',   params.grade);
+    const qs = query.toString() ? `?${query.toString()}` : '';
+    const res = await fetch(`${API_URL}/books${qs}`, { headers: getHeaders() });
+    if (!res.ok) {
+      const errorData = await res.json().catch(() => ({}));
+      throw new Error(errorData.error || 'Failed to fetch books');
+    }
+    return res.json();
+  },
+
+  deleteBook: async (id: string) => {
+    const res = await fetch(`${API_URL}/books/${id}`, {
+      method: 'DELETE',
+      headers: getHeaders()
+    });
+    if (!res.ok) {
+      const errorData = await res.json().catch(() => ({}));
+      throw new Error(errorData.error || 'Failed to delete book');
+    }
+    return res.json();
   }
 };

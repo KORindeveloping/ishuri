@@ -57,7 +57,8 @@ import {
   Info,
   FileUp,
   ArrowRight,
-  Sparkles
+  Sparkles,
+  Library
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
@@ -79,6 +80,7 @@ import { MOCK_USER, MOCK_ASSESSMENTS } from './constants';
 import { User, Trade, Skill, CompetencyStatus, Assessment, PortfolioItem, QuizHistoryItem } from './types';
 import { VerificationChecklist } from './components/VerificationChecklist';
 import { PastPapers } from './components/PastPapers';
+import BookLibrary from './components/BookLibrary';
 import { api } from './lib/api';
 import { jsPDF } from 'jspdf';
 import 'jspdf-autotable';
@@ -3987,6 +3989,7 @@ export default function App() {
         case 'planner': return <PlannerView user={user} showToast={showToast} />;
         case 'portfolio': return <PortfolioView user={user} showToast={showToast} />;
         case 'papers': return <PastPapers user={user} onStartQuiz={handleStartCustomQuiz} />;
+        case 'library': return <BookLibrary />;
         case 'settings': return (
           <SettingsView 
             user={user} 
@@ -4086,7 +4089,7 @@ export default function App() {
             <SidebarItem icon={Calendar} label="Planner" active={activeTab === 'planner'} onClick={() => handleTabChange('planner')} />
             <SidebarItem icon={FolderOpen} label="E-Portfolio" active={activeTab === 'portfolio'} onClick={() => handleTabChange('portfolio')} />
             <SidebarItem icon={ClipboardCheck} label="Past Papers" active={activeTab === 'papers'} onClick={() => handleTabChange('papers')} />
-            
+            <SidebarItem icon={Library} label="Book Library" active={activeTab === 'library'} onClick={() => handleTabChange('library')} />
             <div className="mt-10 text-[10px] font-bold text-zinc-500 dark:text-zinc-600 uppercase tracking-widest mb-4 px-2">System</div>
             <SidebarItem icon={Settings} label="Settings" active={activeTab === 'settings'} onClick={() => handleTabChange('settings')} />
           </nav>

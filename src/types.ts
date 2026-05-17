@@ -90,3 +90,18 @@ export interface QuizHistoryItem {
   aiFeedback?: string;
   questionFeedback?: Record<string, { isCorrect: boolean, feedback: string, earnedPoints: number }>;
 }
+
+// ─── Book Library ──────────────────────────────────────────────────────────────
+export interface Book {
+  id: string;
+  title: string;
+  author: string;
+  coverUrl?: string | null;
+  pdfUrl: string;
+  description?: string | null;
+  subject?: string | null;
+  grade?: string | null;
+  uploadedBy?: string | null;
+  createdAt: string;
+  updatedAt: string;
+}

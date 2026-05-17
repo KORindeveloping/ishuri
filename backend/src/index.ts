@@ -12,6 +12,7 @@ import portfolioRoutes from './routes/portfolio';
 import goalsRoutes from './routes/goals';
 import chatRoutes from './routes/chat';
 import aiChatRoutes from './routes/aiChat';
+import booksRoutes from './routes/books';
 const app = express();
 const httpServer = createServer(app);
 const clientUrl = process.env.CLIENT_URL || "http://localhost:3000";
@@ -54,6 +55,7 @@ app.use('/api/portfolio', portfolioRoutes);
 app.use('/api/goals', goalsRoutes);
 app.use('/api/chat', chatRoutes);
 app.use('/api/ai', aiChatRoutes);
+app.use('/api/books', booksRoutes);
 
 // Global Error Handler
 app.use((err: any, req: express.Request, res: express.Response, next: express.NextFunction) => {
