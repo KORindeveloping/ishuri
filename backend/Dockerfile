@@ -1,14 +1,4 @@
-FROM node:20-bookworm-slim
-
-# Install dependencies for Ollama and Prisma
-RUN apt-get update && apt-get install -y curl openssl procps && rm -rf /var/lib/apt/lists/*
-
-# Install Ollama
-RUN curl -fsSL https://ollama.com/install.sh | sh
-
-# Set Ollama host to 0.0.0.0
-ENV OLLAMA_HOST=0.0.0.0
-ENV PORT=10000
+FROM node:20-alpine
 
 WORKDIR /usr/src/app
 
@@ -29,22 +19,5 @@ RUN npm run build
 # Expose Render's default port
 EXPOSE 10000
 
-# Create an entrypoint script to run both Ollama and Node
-RUN echo '#!/bin/bash\n\
-echo "Starting Ollama service..."\n\
-ollama serve &\n\
-OLLAMA_PID=$!\n\
-\n\
-echo "Waiting for Ollama to be ready..."\n\
-while ! curl -s http://127.0.0.1:11434/api/tags > /dev/null; do\n\
-  sleep 2\n\
-done\n\
-\n\
-echo "Ollama is ready. Pulling qwen2.5:0.5b model..."\n\
-ollama pull qwen2.5:0.5b\n\
-\n\
-echo "Starting Node.js application..."\n\
-npm start\n\
-' > start.sh && chmod +x start.sh
-
-CMD ["./start.sh"]
+# Start Node.js application directly
+CMD ["npm", "start"]
