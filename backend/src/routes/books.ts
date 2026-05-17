@@ -33,8 +33,8 @@ router.get('/', async (req: Request, res: Response) => {
       queryParams.append('grade', `eq.${grade}`);
     }
 
-    if (!SUPABASE_URL) {
-      console.warn('[Supabase] SUPABASE_URL is not configured. Please set it in your environment variables.');
+    if (!SUPABASE_URL || !SUPABASE_URL.startsWith('http')) {
+      console.warn('[Supabase] SUPABASE_URL is missing or invalid. Returning empty list.');
       return res.json([]);
     }
 
@@ -43,8 +43,9 @@ router.get('/', async (req: Request, res: Response) => {
     });
 
     if (!response.ok) {
-      const err = await response.json();
-      throw new Error(err.message || 'Supabase fetch failed');
+      const err = await response.json().catch(() => ({}));
+      console.error('[Supabase] Fetch failed:', err);
+      return res.json([]); // Fallback to empty array instead of failing
     }
 
     const data = await response.json();
@@ -67,7 +68,8 @@ router.get('/', async (req: Request, res: Response) => {
     res.json(books);
   } catch (error) {
     console.error('[Books GET]', error);
-    res.status(500).json({ error: 'Failed to fetch books from Supabase' });
+    // Gracefully fallback to empty array so the UI doesn't break
+    res.json([]);
   }
 });
 
