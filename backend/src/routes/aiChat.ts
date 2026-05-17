@@ -1,4 +1,5 @@
 import { Router, Response, Request } from 'express';
+import https from 'https';
 
 const router = Router();
 
@@ -12,87 +13,81 @@ router.post('/chat', async (req: Request, res: Response) => {
   try {
     const HF_API_KEY = process.env.HF_API_KEY;
     
-    console.log(`[AI Chat] HF_API_KEY length: ${HF_API_KEY ? HF_API_KEY.length : 0}`);
-    
     if (!HF_API_KEY) {
        console.warn('[AI Chat] No HF_API_KEY found in environment.');
        return res.status(500).json({ 
          error: 'AI Chat failed', 
-         details: 'Hugging Face API Key is missing in server environment variables. Please check Render dashboard.' 
+         details: 'Hugging Face API Key is missing. Please check Render dashboard.' 
        });
     }
     
-    // Use a unique variable name to avoid any environment collisions
-    const REMOTE_HF_ENDPOINT = 'https://api-inference.huggingface.co/models/mistralai/Mistral-7B-Instruct-v0.3';
-    
-    console.log(`[AI Chat] Target Endpoint: ${REMOTE_HF_ENDPOINT}`);
-    console.log('[AI Chat] Forwarding request to Hugging Face Inference API...');
-    
-    const response = await fetch(REMOTE_HF_ENDPOINT, {
+    // Using the original model ID
+    const modelId = 'mistralai/Mistral-7B-Instruct';
+    const postData = JSON.stringify({
+      inputs: message,
+      parameters: {
+        max_new_tokens: 300,
+        return_full_text: false
+      }
+    });
+
+    const options = {
+      hostname: 'api-inference.huggingface.co',
+      path: `/models/${modelId}`,
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${HF_API_KEY}`
-      },
-      body: JSON.stringify({
-        inputs: message,
-        parameters: {
-          max_new_tokens: 300,
-          return_full_text: false
+        'Authorization': `Bearer ${HF_API_KEY}`,
+        'Content-Length': Buffer.byteLength(postData)
+      }
+    };
+
+    console.log(`[AI Chat] Forwarding request to Hugging Face: ${modelId}`);
+
+    const hfReq = https.request(options, (hfRes) => {
+      let data = '';
+      hfRes.on('data', (chunk) => { data += chunk; });
+      hfRes.on('end', () => {
+        try {
+          if (hfRes.statusCode !== 200) {
+            console.error(`[AI Chat] HF Error (${hfRes.statusCode}):`, data);
+            
+            // Handle loading state
+            if (hfRes.statusCode === 503 || data.toLowerCase().includes('loading')) {
+               return res.status(503).json({ error: 'AI is warming up', details: 'Model is loading. Try again in 30s.' });
+            }
+            
+            return res.status(500).json({ error: 'AI Chat failed', details: `HF API error: ${hfRes.statusCode}` });
+          }
+
+          const responseData = JSON.parse(data);
+          let reply = '';
+          if (Array.isArray(responseData)) {
+            const genText = responseData[0]?.generated_text || '';
+            reply = genText.startsWith(message) ? genText.substring(message.length).trim() : genText;
+            reply = reply.replace(/^(Assistant:|AI:|Tutor:)\s*/i, '');
+          } else {
+            reply = responseData.choices?.[0]?.message?.content || responseData.reply || JSON.stringify(responseData);
+          }
+          res.status(200).json({ reply });
+        } catch (e) {
+          console.error('[AI Chat] Parse error:', e);
+          res.status(500).json({ error: 'Failed to parse AI response' });
         }
-      }),
+      });
     });
 
-    console.log(`[AI Chat] HF Response Status: ${response.status}`);
+    hfReq.on('error', (error) => {
+      console.error('[AI Chat] Request error:', error);
+      res.status(500).json({ error: 'AI Chat connection failed' });
+    });
 
-    if (!response.ok) {
-      const errorText = await response.text();
-      console.error(`[AI Chat] HF Error Body: ${errorText}`);
-      
-      let errorMessage = `HF API error: ${response.status}`;
-      try {
-        const errorJson = JSON.parse(errorText);
-        errorMessage = errorJson.error || errorJson.message || errorMessage;
-        
-        // Handle model loading state
-        if (response.status === 503 || errorMessage.toLowerCase().includes('loading')) {
-          return res.status(503).json({ 
-            error: 'AI is warming up', 
-            details: 'The AI model is currently loading. Please try again in 30 seconds.' 
-          });
-        }
-      } catch (e) {
-        errorMessage = errorText || errorMessage;
-      }
-      throw new Error(errorMessage);
-    }
+    hfReq.write(postData);
+    hfReq.end();
 
-    const data = await response.json();
-    console.log('[AI Chat] Hugging Face raw response:', data);
-
-    let reply = '';
-    if (Array.isArray(data)) {
-      const genText = data[0]?.generated_text || '';
-      // Clean up prompt prefix from the generated text if present
-      if (genText.startsWith(message)) {
-        reply = genText.substring(message.length).trim();
-      } else {
-        reply = genText;
-      }
-      
-      // Clean up common chat prefixes if the model generated them (like "Assistant:", "AI:")
-      reply = reply.replace(/^(Assistant:|AI:|Tutor:)\s*/i, '');
-    } else {
-      reply = data.choices?.[0]?.message?.content || data.reply || JSON.stringify(data);
-    }
-
-    res.status(200).json({ reply });
   } catch (error: any) {
     console.error('HF Chat error:', error);
-    res.status(500).json({ 
-      error: 'AI Chat failed', 
-      details: error.message 
-    });
+    res.status(500).json({ error: 'AI Chat failed', details: error.message });
   }
 });
 
