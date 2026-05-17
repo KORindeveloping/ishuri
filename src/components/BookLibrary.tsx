@@ -1,9 +1,16 @@
 import { useState, useEffect, useCallback } from 'react';
 import { Book } from '../types';
 import { api } from '../lib/api';
+import { Lock, Unlock, X } from 'lucide-react';
 
 // ─── Fallback cover when no coverUrl ─────────────────────────────────────────
 const FALLBACK_COVER = 'https://images.unsplash.com/photo-1512820790803-83ca734da794?auto=format&fit=crop&w=400&q=80';
+
+// Helper to extract unit number from title
+function getUnitNumber(title: string): number {
+  const match = title.match(/unit\s*(\d+)/i);
+  return match ? parseInt(match[1], 10) : 999;
+}
 
 // ─── Skeleton card ────────────────────────────────────────────────────────────
 function SkeletonCard() {
@@ -22,20 +29,26 @@ function SkeletonCard() {
 // ─── PDF Viewer modal ─────────────────────────────────────────────────────────
 function PdfViewer({ book, onClose }: { book: Book; onClose: () => void }) {
   return (
-    <div className="pdf-overlay" role="dialog" aria-modal="true" aria-label={`Reading: ${book.title}`}>
-      <div className="pdf-modal">
-        <div className="pdf-modal__header">
-          <div className="pdf-modal__title-wrap">
-            <span className="pdf-modal__title">{book.title}</span>
-            <span className="pdf-modal__author">by {book.author}</span>
+    <div className="fixed inset-0 z-[300] bg-black/80 flex items-center justify-center p-4" role="dialog" aria-modal="true" aria-label={`Reading: ${book.title}`}>
+      <div className="bg-white dark:bg-[#050505] w-full max-w-5xl h-[90vh] rounded-3xl overflow-hidden flex flex-col">
+        <div className="flex items-center justify-between p-4 border-b border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-900">
+          <div className="flex flex-col">
+            <span className="font-bold text-lg text-zinc-900 dark:text-white">{book.title}</span>
+            <span className="text-xs text-zinc-500">by {book.author}</span>
           </div>
-          <button className="pdf-modal__close" onClick={onClose} aria-label="Close reader">✕</button>
+          <button 
+            className="px-6 py-2.5 bg-red-500 hover:bg-red-600 text-white rounded-xl font-black uppercase tracking-widest text-[10px] flex items-center gap-2 transition-colors shadow-lg shadow-red-500/20" 
+            onClick={onClose} 
+            aria-label="Close reader"
+          >
+            <X className="w-4 h-4" /> Close Book
+          </button>
         </div>
-        <div className="pdf-modal__body">
+        <div className="flex-1 bg-zinc-100 dark:bg-zinc-950">
           <iframe
             src={`${book.pdfUrl}#toolbar=1&navpanes=1`}
             title={book.title}
-            className="pdf-iframe"
+            className="w-full h-full border-none"
             allow="fullscreen"
           />
         </div>
@@ -52,6 +65,11 @@ export default function BookLibrary() {
   const [search, setSearch]       = useState('');
   const [query, setQuery]         = useState('');
   const [openBook, setOpenBook]   = useState<Book | null>(null);
+
+  // Track max unlocked unit across the library
+  const [maxUnlockedUnit, setMaxUnlockedUnit] = useState<number>(() => {
+    return parseInt(localStorage.getItem('maxUnlockedUnit') || '1', 10);
+  });
 
   const fetchBooks = useCallback(async (searchTerm: string) => {
     setLoading(true);
@@ -80,13 +98,37 @@ export default function BookLibrary() {
     setQuery(search);
   };
 
+  const handleOpenBook = (book: Book) => {
+    const unitNum = getUnitNumber(book.title);
+    if (unitNum !== 999 && unitNum > maxUnlockedUnit) {
+      alert(`Unit Locked! Please read and complete Unit ${unitNum - 1} first to unlock this unit.`);
+      return;
+    }
+    setOpenBook(book);
+  };
+
+  const handleCloseBook = () => {
+    if (openBook) {
+      const unitNum = getUnitNumber(openBook.title);
+      if (unitNum !== 999) {
+        // Unlock the next unit
+        const nextUnlocked = Math.max(maxUnlockedUnit, unitNum + 1);
+        setMaxUnlockedUnit(nextUnlocked);
+        localStorage.setItem('maxUnlockedUnit', nextUnlocked.toString());
+      }
+    }
+    setOpenBook(null);
+  };
+
+  const sortedBooks = [...books].sort((a, b) => getUnitNumber(a.title) - getUnitNumber(b.title));
+
   return (
     <section className="book-library">
       {/* Header */}
       <div className="book-library__header">
         <div>
           <h1 className="book-library__title">📚 Book Library</h1>
-          <p className="book-library__sub">Books sync automatically from the upload app</p>
+          <p className="book-library__sub">Read your units sequentially to unlock the next levels</p>
         </div>
         <button
           className="book-library__refresh"
@@ -132,7 +174,7 @@ export default function BookLibrary() {
         </div>
       )}
 
-      {!loading && !error && books.length === 0 && (
+      {!loading && !error && sortedBooks.length === 0 && (
         <div className="book-state book-state--empty">
           <span className="book-state__icon">📭</span>
           <p className="book-state__msg">
@@ -142,43 +184,66 @@ export default function BookLibrary() {
         </div>
       )}
 
-      {!loading && !error && books.length > 0 && (
+      {!loading && !error && sortedBooks.length > 0 && (
         <>
-          <p className="book-library__count">{books.length} book{books.length !== 1 ? 's' : ''}</p>
+          <p className="book-library__count">{sortedBooks.length} book{sortedBooks.length !== 1 ? 's' : ''}</p>
           <div className="book-grid">
-            {books.map(book => (
-              <button
-                key={book.id}
-                className="book-card"
-                onClick={() => setOpenBook(book)}
-                aria-label={`Open ${book.title}`}
-              >
-                <div className="book-cover-wrap">
-                  <img
-                    src={book.coverUrl || FALLBACK_COVER}
-                    alt={`Cover of ${book.title}`}
-                    className="book-cover"
-                    loading="lazy"
-                    onError={e => { (e.target as HTMLImageElement).src = FALLBACK_COVER; }}
-                  />
-                  <div className="book-cover-overlay">
-                    <span className="book-read-btn">📖 Read</span>
+            {sortedBooks.map(book => {
+              const unitNum = getUnitNumber(book.title);
+              const isLocked = unitNum !== 999 && unitNum > maxUnlockedUnit;
+              
+              return (
+                <button
+                  key={book.id}
+                  className={`book-card relative overflow-hidden transition-all ${isLocked ? 'opacity-75 grayscale-[0.3]' : 'hover:translate-y-[-4px]'}`}
+                  onClick={() => handleOpenBook(book)}
+                  aria-label={`Open ${book.title}`}
+                >
+                  <div className="book-cover-wrap relative">
+                    <img
+                      src={book.coverUrl || FALLBACK_COVER}
+                      alt={`Cover of ${book.title}`}
+                      className="book-cover"
+                      loading="lazy"
+                      onError={e => { (e.target as HTMLImageElement).src = FALLBACK_COVER; }}
+                    />
+                    
+                    {isLocked ? (
+                      <div className="absolute inset-0 bg-black/60 backdrop-blur-sm flex flex-col items-center justify-center gap-3">
+                        <div className="w-12 h-12 rounded-2xl bg-zinc-900/80 flex items-center justify-center border border-zinc-700/50 shadow-2xl">
+                          <Lock className="w-6 h-6 text-red-400" />
+                        </div>
+                        <span className="text-[10px] font-black uppercase tracking-widest text-white">Locked</span>
+                      </div>
+                    ) : (
+                      <div className="book-cover-overlay">
+                        <span className="book-read-btn flex items-center gap-2">
+                          <Unlock className="w-4 h-4" /> Read
+                        </span>
+                      </div>
+                    )}
+
+                    {book.subject && <span className="book-badge z-10">{book.subject}</span>}
                   </div>
-                  {book.subject && <span className="book-badge">{book.subject}</span>}
-                </div>
-                <div className="book-info">
-                  <h3 className="book-title">{book.title}</h3>
-                  <p className="book-author">by {book.author}</p>
-                  {book.grade && <p className="book-grade">{book.grade}</p>}
-                </div>
-              </button>
-            ))}
+                  <div className="book-info">
+                    <div className="flex items-center justify-between mb-1">
+                      {unitNum !== 999 && (
+                        <span className="text-[10px] font-black uppercase tracking-widest text-indigo-500">Unit {unitNum}</span>
+                      )}
+                    </div>
+                    <h3 className="book-title">{book.title}</h3>
+                    <p className="book-author">by {book.author}</p>
+                    {book.grade && <p className="book-grade">{book.grade}</p>}
+                  </div>
+                </button>
+              );
+            })}
           </div>
         </>
       )}
 
       {/* PDF Viewer */}
-      {openBook && <PdfViewer book={openBook} onClose={() => setOpenBook(null)} />}
+      {openBook && <PdfViewer book={openBook} onClose={handleCloseBook} />}
     </section>
   );
 }
