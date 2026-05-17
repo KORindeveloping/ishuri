@@ -617,7 +617,6 @@ export const CourseLessonsAI = ({ user, onClose, initialCourse }: { user: User; 
               </div>
               {openBook && <PdfViewer book={openBook} onClose={() => setOpenBook(null)} />}
             </motion.div>
-            </motion.div>
           ) : (
             <motion.div 
               key="syllabus"
