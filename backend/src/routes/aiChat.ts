@@ -60,6 +60,13 @@ router.post('/chat', async (req: Request, res: Response) => {
             return res.status(500).json({ error: 'AI Chat failed', details: `HF API error: ${hfRes.statusCode}` });
           }
 
+          if (!data) {
+            console.error('[AI Chat] Empty response from HF');
+            return res.status(500).json({ error: 'AI Chat failed', details: 'Empty response from AI engine' });
+          }
+
+          console.log('[AI Chat] Raw HF Response:', data);
+
           const responseData = JSON.parse(data);
           let reply = '';
           if (Array.isArray(responseData)) {
