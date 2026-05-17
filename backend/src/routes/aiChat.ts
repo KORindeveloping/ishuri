@@ -1,9 +1,10 @@
 import { Router, Response, Request } from 'express';
 import { chatTutor } from '../services/ai.service';
+import { requireAuth, AuthRequest } from '../middleware/auth';
 
 const router = Router();
 
-router.post('/chat', async (req: Request, res: Response) => {
+router.post('/chat', requireAuth, async (req: AuthRequest, res: Response) => {
   const { message, history } = req.body;
 
   if (!message) {
