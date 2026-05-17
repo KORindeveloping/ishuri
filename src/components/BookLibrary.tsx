@@ -7,7 +7,8 @@ import { Lock, Unlock, X } from 'lucide-react';
 const FALLBACK_COVER = 'https://images.unsplash.com/photo-1512820790803-83ca734da794?auto=format&fit=crop&w=400&q=80';
 
 // Helper to extract unit number from title
-function getUnitNumber(title: string): number {
+function getUnitNumber(title?: string): number {
+  if (!title) return 999;
   const match = title.match(/unit\s*(\d+)/i);
   return match ? parseInt(match[1], 10) : 999;
 }
