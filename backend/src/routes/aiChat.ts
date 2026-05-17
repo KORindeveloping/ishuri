@@ -21,9 +21,11 @@ router.post('/chat', async (req: Request, res: Response) => {
          details: 'Hugging Face API Key is missing in server environment variables. Please check Render dashboard.' 
        });
     }
-    const HF_URL = 'https://api-inference.huggingface.co/models/mistralai/Mistral-7B-Instruct';
     
-    console.log('[AI Chat] Forwarding request to Hugging Face...');
+    // CORRECT URL for Hugging Face Inference API
+    const HF_URL = 'https://api-inference.huggingface.co/models/mistralai/Mistral-7B-Instruct-v0.3';
+    
+    console.log('[AI Chat] Forwarding request to Hugging Face Inference API...');
     const response = await fetch(HF_URL, {
       method: 'POST',
       headers: {
