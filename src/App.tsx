@@ -3210,9 +3210,6 @@ const OnboardingPrompt = ({ user, onComplete }: { user: User, onComplete: (updat
     'MPC': ['Mathematics', 'Physics', 'Computer Science'],
     'MEG': ['Mathematics', 'Economics', 'Geography'],
     'MCE': ['Mathematics', 'Computer Science', 'Economics'],
-    'HEGL': ['History', 'Economics', 'Geography', 'Literature'],
-    'HLP': ['History', 'Literature', 'Philosophy'],
-    'LFK': ['Literature', 'French', 'Kinyarwanda'],
     'SOD': [
       'Python, Java, C++ Programming',
       'Data Structures & Algorithms',
