@@ -287,8 +287,6 @@ const DashboardView = ({ user, onStartQuiz, onLogout, history, onNavigate, showT
             { name: 'Workshop Management & Business Logic', progress: 0 },
             { name: 'Internal Combustion Engine Diagnosis', progress: 0 },
             { name: 'Advanced Hydraulic Braking Systems', progress: 0 },
-            { name: 'ICT Literacy & Digital Diagnostics', progress: 0 },
-            { name: 'Trade Science & Material Properties', progress: 0 },
             { name: 'Entrepreneurship & TVET Financial Mastery', progress: 0 }
           ]
       )).filter(s => s.name.toLowerCase().includes(searchQuery.toLowerCase()));
@@ -3195,8 +3193,6 @@ const OnboardingPrompt = ({ user, onComplete }: { user: User, onComplete: (updat
 
   const upperSecondaryOptions = {
     'STEM': ['PCB', 'PCM', 'MPC'],
-    'Humanities': ['HEGL', 'HLP'],
-    'Languages': ['LFK'],
     'Economics': ['MEG', 'MCE']
   };
 
@@ -3204,8 +3200,8 @@ const OnboardingPrompt = ({ user, onComplete }: { user: User, onComplete: (updat
 
   const subjectMapping: Record<string, string> = {
     'Pre Primary': 'Discovery of the World, Numeracy, Language and Literacy, Creative Arts and Culture, Physical Development and Health, Social and Emotional Development',
-    'Primary One to Primary 6': 'Kinyarwanda, English, Mathematics, Science and Elementary Technology (SET), Social and Religious Studies, Creative Arts, Physical Education',
-    'Lower Secondary (Senior 1-3)': 'Sciences (Maths, Physics, Chemistry, Biology, ICT), Humanities (History, Geography, Religion & Ethics), Languages (Kinyarwanda, English, French, Kiswahili), Entrepreneurship, Agriculture, Home Science, Music, Fine Arts',
+    'Primary One to Primary 6': 'Kinyarwanda, English, Mathematics, Science and Elementary Technology (SET), Social Studies, Creative Arts, Physical Education',
+    'Lower Secondary (Senior 1-3)': 'Maths, Physics, Chemistry, Biology, History, Geography, Kinyarwanda, English, Entrepreneurship',
   };
 
   const combinationMapping: Record<string, string[]> = {

@@ -72,16 +72,9 @@ type InteractionMode = 'EXPLORE' | 'EXPLAIN' | 'QUIZ' | 'TUTOR';
 
 const SUBJECT_DOC_MAP: Record<string, string> = {
   'Biology': 'Biology S1 SB.pdf',
-  'Computer Skills': 'CCMCS401 COMPUTER SKILLS.pdf',
   'English': 'English S1 SB.pdf',
-  'Entrepreneurship': 'Entrepreneurship S1 SB.pdf',
-  'Geography': 'Geography S1 SB.pdf',
-  'History': 'History S1 SB.pdf',
-  'ICT': 'ICT S1 SB.pdf',
-  'Kinyarwanda': 'Kinyarwanda S1 SB.pdf',
   'Maths': 'Maths S1 SB.pdf',
   'Physics': 'Physics S1 SB.pdf',
-  'Windows Server': '770484843-L4SWD-WINDOWS-SERVER-Full-Notes.pdf'
 };
 
 const CORE_SUBJECT_KEYWORDS: Record<string, string[]> = {
