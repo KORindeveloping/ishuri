@@ -970,18 +970,13 @@ const AnalyticsView = ({ history, user, onStartQuiz, showToast }: {
     : onboardingSubjects.length > 0 
       ? onboardingSubjects.map(s => ({ name: s, progress: 0 }))
       : [
-          { name: 'Numeracy Mastery (Offline Mode)', progress: 17 },
-          { name: 'Discovery of the World Mastery (Offline Mode)', progress: 24 },
-          { name: 'Core Theory & Vehicle Mechanics', progress: 0 },
-          { name: 'Practical Skill Competency Portfolio', progress: 0 },
-          { name: 'Safety & Ethics for Workshop Professionals', progress: 0 },
-          { name: 'Applied Mathematics for Trade Excellence', progress: 0 },
-          { name: 'Workshop Management & Business Logic', progress: 0 },
-          { name: 'Internal Combustion Engine Diagnosis', progress: 0 },
-          { name: 'Advanced Hydraulic Braking Systems', progress: 0 },
-          { name: 'ICT Literacy & Digital Diagnostics', progress: 0 },
-          { name: 'Trade Science & Material Properties', progress: 0 },
-          { name: 'Entrepreneurship & TVET Financial Mastery', progress: 0 }
+          { name: 'Mathematics Mastery', progress: 0 },
+          { name: 'Physics Foundations', progress: 0 },
+          { name: 'Chemistry Core', progress: 0 },
+          { name: 'Biology Systems', progress: 0 },
+          { name: 'Geography & Environment', progress: 0 },
+          { name: 'History & Civics', progress: 0 },
+          { name: 'Entrepreneurship Skills', progress: 0 }
         ];
 
   const chartData = subjects.map(s => ({
