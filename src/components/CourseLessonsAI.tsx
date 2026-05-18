@@ -84,6 +84,14 @@ const SUBJECT_DOC_MAP: Record<string, string> = {
   'Windows Server': '770484843-L4SWD-WINDOWS-SERVER-Full-Notes.pdf'
 };
 
+const CORE_SUBJECT_KEYWORDS: Record<string, string[]> = {
+  'Chemistry': ['chemistry', 'science', 'general'],
+  'Physics': ['physics', 'science', 'general'],
+  'Biology': ['biology', 'science', 'general'],
+  'Mathematics': ['math', 'mathematical', 'general'],
+  'Maths': ['math', 'mathematical', 'general']
+};
+
 export const CourseLessonsAI = ({ user, onClose, initialCourse }: { user: User; onClose: () => void; initialCourse?: string | null }) => {
   const [activeMode, setActiveMode] = useState<InteractionMode>('EXPLORE');
   const [selectedChapter, setSelectedChapter] = useState<string | null>(null);
@@ -110,21 +118,29 @@ export const CourseLessonsAI = ({ user, onClose, initialCourse }: { user: User; 
     ]
   );
 
+  const getFilteredBooks = (courseName: string, allBooks: Book[]) => {
+    const searchKey = courseName.split(' ')[0].toLowerCase();
+    const keywords = CORE_SUBJECT_KEYWORDS[courseName] || [searchKey];
+    
+    return allBooks.filter(b => {
+      const titleLower = b.title.toLowerCase();
+      const subjectLower = (b.subject || '').toLowerCase();
+      
+      return keywords.some(key => 
+        titleLower.includes(key) || 
+        subjectLower.includes(key)
+      );
+    });
+  };
+
   useEffect(() => {
     setLoadingBooks(true);
     api.getBooks()
       .then(fetchedBooks => {
         setBooks(fetchedBooks);
         if (initialCourse && stage === 'BOOK_SELECTION') {
-          const searchKey = initialCourse.split(' ')[0].toLowerCase();
-          const matching = fetchedBooks.filter(b => 
-            b.title.toLowerCase().includes(searchKey) || 
-            (b.subject && b.subject.toLowerCase().includes(searchKey)) ||
-            (b.subject && initialCourse.toLowerCase().includes(b.subject.toLowerCase()))
-          );
+          const matching = getFilteredBooks(initialCourse, fetchedBooks);
           
-          // Even if no matches, we stay in BOOK_SELECTION to show the library
-          // but we can prep the AI message in case they switch
           if (messages.length === 0) {
             setMessages([{
               id: 'ai-initial',
@@ -161,12 +177,7 @@ export const CourseLessonsAI = ({ user, onClose, initialCourse }: { user: User; 
   };
 
   const courseBooks = initialCourse 
-    ? books.filter(b => {
-        const searchKey = initialCourse.split(' ')[0].toLowerCase();
-        return b.title.toLowerCase().includes(searchKey) || 
-               (b.subject && b.subject.toLowerCase().includes(searchKey)) ||
-               (b.subject && initialCourse.toLowerCase().includes(b.subject.toLowerCase()));
-      })
+    ? getFilteredBooks(initialCourse, books)
     : books;
   
   const sortedCourseBooks = [...courseBooks].sort((a, b) => getUnitNumber(a.title) - getUnitNumber(b.title));
