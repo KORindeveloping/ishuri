@@ -111,27 +111,34 @@ export const CourseLessonsAI = ({ user, onClose, initialCourse }: { user: User; 
   );
 
   useEffect(() => {
+    setLoadingBooks(true);
     api.getBooks()
       .then(fetchedBooks => {
         setBooks(fetchedBooks);
         if (initialCourse && stage === 'BOOK_SELECTION') {
-          const matching = fetchedBooks.filter(b => b.title.toLowerCase().includes(initialCourse.split(' ')[0].toLowerCase()));
-          if (matching.length === 0) {
-            setStage('CONSULTING');
-            if (messages.length === 0) {
-              setMessages([{
-                id: 'ai-initial',
-                text: `Hello ${user?.name?.split(' ')?.[0] || 'Student'}! I see you want to study **${initialCourse}**. How can I help you master this topic today?`,
-                sender: 'ai',
-                options: ['Explain a concept', 'Generate a quiz', 'Build a study roadmap']
-              }]);
-            }
+          const searchKey = initialCourse.split(' ')[0].toLowerCase();
+          const matching = fetchedBooks.filter(b => 
+            b.title.toLowerCase().includes(searchKey) || 
+            (b.subject && b.subject.toLowerCase().includes(searchKey)) ||
+            (b.subject && initialCourse.toLowerCase().includes(b.subject.toLowerCase()))
+          );
+          
+          // Even if no matches, we stay in BOOK_SELECTION to show the library
+          // but we can prep the AI message in case they switch
+          if (messages.length === 0) {
+            setMessages([{
+              id: 'ai-initial',
+              text: `Hello ${user?.name?.split(' ')?.[0] || 'Student'}! I see you want to study **${initialCourse}**. I have ${matching.length > 0 ? `found ${matching.length} books` : "searched our database"} for this subject. How can I help you today?`,
+              sender: 'ai',
+              options: ['Explain a concept', 'Generate a quiz', 'Build a study roadmap']
+            }]);
           }
         }
       })
       .catch(console.error)
       .finally(() => setLoadingBooks(false));
-  }, []);
+  }, [initialCourse]);
+
   const handleOpenBook = (book: Book) => {
     const unitNum = getUnitNumber(book.title);
     if (unitNum !== 999 && unitNum > maxUnlockedUnit) {
@@ -154,7 +161,12 @@ export const CourseLessonsAI = ({ user, onClose, initialCourse }: { user: User; 
   };
 
   const courseBooks = initialCourse 
-    ? books.filter(b => b.title.toLowerCase().includes(initialCourse.split(' ')[0].toLowerCase()))
+    ? books.filter(b => {
+        const searchKey = initialCourse.split(' ')[0].toLowerCase();
+        return b.title.toLowerCase().includes(searchKey) || 
+               (b.subject && b.subject.toLowerCase().includes(searchKey)) ||
+               (b.subject && initialCourse.toLowerCase().includes(b.subject.toLowerCase()));
+      })
     : books;
   
   const sortedCourseBooks = [...courseBooks].sort((a, b) => getUnitNumber(a.title) - getUnitNumber(b.title));
@@ -519,7 +531,7 @@ export const CourseLessonsAI = ({ user, onClose, initialCourse }: { user: User; 
                             <div className="col-span-full py-10 flex justify-center">
                               <Loader2 className="w-8 h-8 animate-spin text-zinc-500" />
                             </div>
-                          ) : sortedCourseBooks.length > 0 ? sortedCourseBooks.map((book) => {
+                          ) : (sortedCourseBooks.length > 0 ? sortedCourseBooks : books).map((book) => {
                               const unitNum = getUnitNumber(book.title);
                               const isLocked = unitNum !== 999 && unitNum > maxUnlockedUnit;
                               return (
@@ -561,10 +573,19 @@ export const CourseLessonsAI = ({ user, onClose, initialCourse }: { user: User; 
                                   </div>
                                 </motion.div>
                               );
-                            }) : (
-                              <p className="text-center col-span-full py-10 text-zinc-500">No books found for this course.</p>
-                            )}
+                            })}
+                          {books.length === 0 && !loadingBooks && (
+                            <p className="text-center col-span-full py-10 text-zinc-500 uppercase text-[10px] font-black tracking-widest">No books available in the database.</p>
+                          )}
                         </div>
+                        
+                        {sortedCourseBooks.length === 0 && books.length > 0 && (
+                          <div className="text-center -mt-6">
+                            <p className="text-zinc-400 text-[10px] font-black uppercase tracking-widest">
+                              Showing all library resources (No direct match for {initialCourse})
+                            </p>
+                          </div>
+                        )}
                         
                         <div className="flex justify-center pt-8">
                           <button 
