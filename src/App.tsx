@@ -195,6 +195,12 @@ const RAGBadge = ({ status, progress }: { status: CompetencyStatus, progress: nu
   );
 };
 
+const BLACKLIST_SUBJECTS = [
+  'ICT', 'Humanities', 'Religion', 'Languages', 'French', 'Kiswahili', 
+  'Agriculture', 'Home Science', 'Music', 'Fine Arts', 'Social and Religious Studies',
+  'Literature', 'Philosophy'
+];
+
 // --- Views ---
 
 const DashboardView = ({ user, onStartQuiz, onLogout, history, onNavigate, showToast, onCourseAI, onViewPDF }: {
@@ -268,29 +274,30 @@ const DashboardView = ({ user, onStartQuiz, onLogout, history, onNavigate, showT
 
   const tradeCompetency = user?.competencies?.[0];
   const skills = tradeCompetency?.skills || [];
-  const onboardingSubjects = (user?.subjects || '').split(',').map(s => s.trim()).filter(Boolean);
+  const onboardingSubjects = (user?.subjects || '').split(',')
+    .map(s => s.trim())
+    .filter(Boolean)
+    .filter(s => !BLACKLIST_SUBJECTS.some(black => s.toLowerCase().includes(black.toLowerCase())));
 
-  const subjects = (skills.length > 0 
+  const subjects = (skills.length > 0
     ? skills.map(skill => ({
         name: skill.name,
         progress: skill.progress
       }))
-    : (onboardingSubjects.length > 0 
+    : (onboardingSubjects.length > 0
         ? onboardingSubjects.map(s => ({ name: s, progress: 0 }))
         : [
-            { name: 'Numeracy Mastery (Offline Mode)', progress: 17 },
-            { name: 'Discovery of the World Mastery (Offline Mode)', progress: 24 },
-            { name: 'Core Theory & Vehicle Mechanics', progress: 38 },
-            { name: 'Practical Skill Competency Portfolio', progress: 12 },
-            { name: 'Safety & Ethics for Workshop Professionals', progress: 56 },
-            { name: 'Applied Mathematics for Trade Excellence', progress: 9 },
-            { name: 'Workshop Management & Business Logic', progress: 0 },
-            { name: 'Internal Combustion Engine Diagnosis', progress: 0 },
-            { name: 'Advanced Hydraulic Braking Systems', progress: 0 },
-            { name: 'Entrepreneurship & TVET Financial Mastery', progress: 0 }
+            { name: 'Mathematics Mastery', progress: 0 },
+            { name: 'Physics Foundations', progress: 0 },
+            { name: 'Chemistry Core', progress: 0 },
+            { name: 'Biology Systems', progress: 0 },
+            { name: 'Geography & Environment', progress: 0 },
+            { name: 'History & Civics', progress: 0 },
+            { name: 'Entrepreneurship Skills', progress: 0 }
           ]
-      )).filter(s => s.name.toLowerCase().includes(searchQuery.toLowerCase()));
-
+      ))
+      .filter(s => s.name.toLowerCase().includes(searchQuery.toLowerCase()))
+      .filter(s => !BLACKLIST_SUBJECTS.some(black => s.name.toLowerCase().includes(black.toLowerCase())));
   const avgDashboardScore = history.length > 0 
     ? Math.round(history.reduce((a, b) => a + (b.score / b.totalPoints), 0) / history.length * 100)
     : 0;

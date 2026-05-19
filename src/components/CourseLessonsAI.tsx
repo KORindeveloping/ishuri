@@ -78,9 +78,9 @@ const SUBJECT_DOC_MAP: Record<string, string> = {
 };
 
 const CORE_SUBJECT_KEYWORDS: Record<string, string[]> = {
-  'Chemistry': ['chemistry', 'science', 'general'],
-  'Physics': ['physics', 'science', 'general'],
-  'Biology': ['biology', 'science', 'general'],
+  'Chemistry': ['chemistry', 'general'],
+  'Physics': ['physics', 'general'],
+  'Biology': ['biology', 'general'],
   'Mathematics': ['math', 'mathematical', 'general'],
   'Maths': ['math', 'mathematical', 'general']
 };
