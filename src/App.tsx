@@ -571,9 +571,6 @@ const DashboardView = ({ user, onStartQuiz, onLogout, history, onNavigate, showT
                   
                   <div className="flex justify-between items-start mb-6 relative z-10">
                     <div className="flex flex-col gap-1">
-                      <span className="text-[9px] font-black text-zinc-400 uppercase tracking-[0.2em]">
-                        {isAiDashboard ? 'AI Suggestion' : `Module ${String(idx + 1).padStart(2, '0')}`}
-                      </span>
                       <h3 className="text-xl font-black text-zinc-900 dark:text-white uppercase tracking-tight leading-none max-w-[80%]">
                         {subject.name.split('(')[0].trim()}
                       </h3>
