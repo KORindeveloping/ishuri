@@ -17,7 +17,7 @@ export const PastPapers = ({ user, onStartQuiz }: { user: User, onStartQuiz?: (q
     if (isNursery) return Palette;
     const sub = subject.toLowerCase();
     if (sub.includes('math')) return Calculator;
-    if (sub.includes('science') || sub.includes('set') || sub.includes('chem')) return FlaskConical;
+    if (sub.includes('set') || sub.includes('chem')) return FlaskConical;
     if (sub.includes('phys')) return Atom;
     if (sub.includes('biol')) return Microscope;
     if (sub.includes('social') || sub.includes('sre') || sub.includes('history') || sub.includes('geography') || sub.includes('religion')) return Globe;
@@ -71,7 +71,7 @@ export const PastPapers = ({ user, onStartQuiz }: { user: User, onStartQuiz?: (q
 
     // 2. Primary Subject Restriction (Specific to your request)
     if (displayLevel === 'Primary') {
-      const allowedSubjects = ['Mathematics', 'Integrated Sciences', 'SET', 'English', 'Ikinyarwanda', 'Social Religious Studies', 'SRE'];
+      const allowedSubjects = ['Mathematics', 'SET', 'English', 'Ikinyarwanda', 'Social Religious Studies', 'SRE'];
       if (!allowedSubjects.includes(paper.subject)) return false;
     }
 
