@@ -3250,7 +3250,7 @@ const OnboardingPrompt = ({ user, onComplete }: { user: User, onComplete: (updat
 
   useEffect(() => {
     if (educationLevel === 'Primary One to Primary 6') {
-      setSubjects('Kinyarwanda, English, Mathematics, Science & Tech, Social Studies, Creative Arts, Physical Education');
+      setSubjects('Kinyarwanda, English, Mathematics, Social Studies, Creative Arts, Physical Education');
     } else if (combination && combinationMapping[combination]) {
       setSubjects(combinationMapping[combination].join(', '));
     } else if (subjectMapping[educationLevel]) {
