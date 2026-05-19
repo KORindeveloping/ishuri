@@ -197,7 +197,7 @@ const RAGBadge = ({ status, progress }: { status: CompetencyStatus, progress: nu
 
 const BLACKLIST_SUBJECTS = [
   'ICT', 'Humanities', 'Religion', 'Languages', 'French', 'Kiswahili', 
-  'Agriculture', 'Home Science', 'Music', 'Fine Arts', 'Social and Religious Studies',
+  'Agriculture', 'Home Economics', 'Music', 'Fine Arts', 'Social and Religious Studies',
   'Literature', 'Philosophy'
 ];
 
@@ -3199,16 +3199,16 @@ const OnboardingPrompt = ({ user, onComplete }: { user: User, onComplete: (updat
 
   const subjectMapping: Record<string, string> = {
     'Pre Primary': 'Discovery of the World, Numeracy, Language and Literacy, Creative Arts and Culture, Physical Development and Health, Social and Emotional Development',
-    'Primary One to Primary 6': 'Kinyarwanda, English, Mathematics, Science and Elementary Technology (SET), Social Studies, Creative Arts, Physical Education',
+    'Primary One to Primary 6': 'Kinyarwanda, English, Mathematics, SET, Social Studies, Creative Arts, Physical Education',
     'Lower Secondary (Senior 1-3)': 'Maths, Physics, Chemistry, Biology, History, Geography, Kinyarwanda, English, Entrepreneurship',
   };
 
   const combinationMapping: Record<string, string[]> = {
     'PCB': ['Physics', 'Chemistry', 'Biology'],
     'PCM': ['Physics', 'Chemistry', 'Mathematics'],
-    'MPC': ['Mathematics', 'Physics', 'Computer Science'],
+    'MPC': ['Mathematics', 'Physics', 'Computer Technology'],
     'MEG': ['Mathematics', 'Economics', 'Geography'],
-    'MCE': ['Mathematics', 'Computer Science', 'Economics'],
+    'MCE': ['Mathematics', 'Computer Technology', 'Economics'],
     'SOD': [
       'Python, Java, C++ Programming',
       'Data Structures & Algorithms',
@@ -3513,7 +3513,7 @@ const AuthView = ({ onLogin }: { onLogin: (userData: any, token?: string, isSign
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [name, setName] = useState('');
-  const [trade, setTrade] = useState<Trade>('Sciences');
+  const [trade, setTrade] = useState<Trade>('General');
   const [loading, setLoading] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
