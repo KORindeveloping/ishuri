@@ -23,6 +23,7 @@ import { api } from '../lib/api';
 import ReactMarkdown from 'react-markdown';
 import { Book, User } from '../types';
 import { cn } from '../lib/utils';
+import { BLACKLIST_SUBJECTS } from '../constants';
 
 // Helper to extract unit number from title
 function getUnitNumber(title?: string): number {
@@ -106,7 +107,9 @@ export const CourseLessonsAI = ({ user, onClose, initialCourse }: { user: User; 
         id: 'ai-initial',
         text: `Hello ${user?.name?.split(' ')?.[0] || 'Student'}! I'm your Course Consultant. Which course or subject would you like to study today? Based on your level (${user.educationLevel || 'General'}), I can help you find the best path.`,
         sender: 'ai',
-        options: (user.subjects || '').split(',').map(s => s.trim()).filter(Boolean).slice(0, 4)
+        options: (user.subjects || '').split(',').map(s => s.trim()).filter(Boolean)
+          .filter(s => !BLACKLIST_SUBJECTS.some(black => s.toLowerCase().includes(black.toLowerCase())))
+          .slice(0, 4)
       }
     ]
   );

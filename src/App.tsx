@@ -76,7 +76,7 @@ import {
   Line
 } from 'recharts';
 import { cn, getVerificationRank } from './lib/utils';
-import { MOCK_USER, MOCK_ASSESSMENTS } from './constants';
+import { MOCK_USER, MOCK_ASSESSMENTS, BLACKLIST_SUBJECTS } from './constants';
 import { User, Trade, Skill, CompetencyStatus, Assessment, PortfolioItem, QuizHistoryItem } from './types';
 import { VerificationChecklist } from './components/VerificationChecklist';
 import { PastPapers } from './components/PastPapers';
@@ -194,12 +194,6 @@ const RAGBadge = ({ status, progress }: { status: CompetencyStatus, progress: nu
     </span>
   );
 };
-
-const BLACKLIST_SUBJECTS = [
-  'ICT', 'Humanities', 'Religion', 'Languages', 'French', 'Kiswahili', 
-  'Agriculture', 'Home Economics', 'Music', 'Fine Arts', 'Social and Religious Studies',
-  'Literature', 'Philosophy'
-];
 
 // --- Views ---
 
@@ -908,8 +902,10 @@ const DashboardView = ({ user, onStartQuiz, onLogout, history, onNavigate, showT
               <div className="p-5 bg-zinc-50 dark:bg-black rounded-3xl border border-zinc-200 dark:border-zinc-800 relative overflow-hidden">
                 <div className="absolute top-0 right-0 w-1 h-full bg-zinc-200 dark:bg-zinc-700" />
                 <p className="text-[10px] font-black text-zinc-500 dark:text-zinc-500 uppercase tracking-widest mb-2">Subject Concentration</p>
-                <p className="text-lg font-black text-zinc-900 dark:text-white tracking-tight">{user.subjects?.split(',')[0] || 'Core Theory'}</p>
-                <p className="text-xs font-bold text-zinc-400 dark:text-zinc-500 mt-1">Mastery: 42%</p>
+                <p className="text-lg font-black text-zinc-900 dark:text-white tracking-tight">{onboardingSubjects[0] || 'Core Theory'}</p>
+                <p className="text-xs font-bold text-zinc-400 dark:text-zinc-500 mt-1">
+                  Mastery: {subjects.find(s => s.name === onboardingSubjects[0])?.progress || 0}%
+                </p>
               </div>
 
               <div className="p-6 bg-zinc-950 dark:bg-zinc-900 text-white rounded-3xl shadow-xl shadow-indigo-500/10 border border-indigo-500/20 relative overflow-hidden group">
@@ -967,11 +963,12 @@ const AnalyticsView = ({ history, user, onStartQuiz, showToast }: {
 
   const tradeCompetency = user?.competencies?.[0];
   const skills = tradeCompetency?.skills || [];
-  const onboardingSubjects = (user?.subjects || '').split(',').map(s => s.trim()).filter(Boolean);
+  const onboardingSubjects = (user?.subjects || '').split(',').map(s => s.trim()).filter(Boolean)
+    .filter(s => !BLACKLIST_SUBJECTS.some(black => s.toLowerCase().includes(black.toLowerCase())));
 
-  const subjects = skills.length > 0 
+  const subjects = (skills.length > 0
     ? skills.map(skill => ({ name: skill.name, progress: skill.progress }))
-    : onboardingSubjects.length > 0 
+    : (onboardingSubjects.length > 0
       ? onboardingSubjects.map(s => ({ name: s, progress: 0 }))
       : [
           { name: 'Mathematics Mastery', progress: 0 },
@@ -981,8 +978,9 @@ const AnalyticsView = ({ history, user, onStartQuiz, showToast }: {
           { name: 'Geography & Environment', progress: 0 },
           { name: 'History & Civics', progress: 0 },
           { name: 'Entrepreneurship Skills', progress: 0 }
-        ];
-
+        ]
+      ))
+      .filter(s => !BLACKLIST_SUBJECTS.some(black => s.name.toLowerCase().includes(black.toLowerCase())));
   const chartData = subjects.map(s => ({
     name: s.name.split(' ')[0],
     mastery: s.progress,
@@ -1817,7 +1815,9 @@ const AssessmentView = ({
     }
   }, [customQuiz, reviewHistoryItem]);
 
-  const studentSubjects = (user.subjects || '').toLowerCase().split(',').map(s => s.trim());
+  const studentSubjects = (user.subjects || '').toLowerCase().split(',')
+    .map(s => s.trim())
+    .filter(s => !BLACKLIST_SUBJECTS.some(black => s.includes(black.toLowerCase())));
 
   const filteredAssessments = localAssessments.filter(exam => {
     const matchesSearch = exam.title.toLowerCase().includes(searchQuery.toLowerCase()) || 
