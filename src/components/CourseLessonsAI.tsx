@@ -107,9 +107,13 @@ export const CourseLessonsAI = ({ user, onClose, initialCourse }: { user: User; 
         id: 'ai-initial',
         text: `Hello ${user?.name?.split(' ')?.[0] || 'Student'}! I'm your Course Consultant. Which course or subject would you like to study today? Based on your level (${user.educationLevel || 'General'}), I can help you find the best path.`,
         sender: 'ai',
-        options: (user.subjects || '').split(',').map(s => s.trim()).filter(Boolean)
-          .filter(s => !BLACKLIST_SUBJECTS.some(black => s.toLowerCase().includes(black.toLowerCase())))
-          .slice(0, 4)
+        options: (() => {
+          const filtered = (user.subjects || '').split(',').map(s => s.trim()).filter(Boolean)
+            .filter(s => !BLACKLIST_SUBJECTS.some(black => s.toLowerCase().includes(black.toLowerCase())));
+          
+          if (filtered.length > 0) return filtered.slice(0, 4);
+          return ['Mathematics', 'Physics', 'Chemistry', 'Biology'];
+        })()
       }
     ]
   );

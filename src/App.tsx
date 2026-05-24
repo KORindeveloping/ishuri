@@ -497,7 +497,10 @@ const DashboardView = ({ user, onStartQuiz, onLogout, history, onNavigate, showT
               <Sparkles className="w-32 h-32" />
             </div>
             
-            <div className="flex flex-col md:flex-row md:items-center justify-between mb-8 gap-4 relative z-10">
+            <div 
+              className="flex flex-col md:flex-row md:items-center justify-between mb-8 gap-4 relative z-10 cursor-pointer"
+              onClick={() => setIsSubjectsExpanded(!isSubjectsExpanded)}
+            >
               <div>
                 <h2 className="text-xl font-black text-zinc-900 dark:text-white flex items-center gap-3 uppercase tracking-tight">
                   <BarChart3 className="w-6 h-6 text-zinc-400 dark:text-zinc-500" /> 
@@ -510,7 +513,7 @@ const DashboardView = ({ user, onStartQuiz, onLogout, history, onNavigate, showT
               
               <div className="flex items-center gap-3">
                 <button 
-                  onClick={() => isAiDashboard ? setIsAiDashboard(false) : generateAiDashboard()}
+                  onClick={(e) => { e.stopPropagation(); isAiDashboard ? setIsAiDashboard(false) : generateAiDashboard(); }}
                   className={cn(
                     "flex items-center gap-2 px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all",
                     isAiDashboard 
@@ -522,17 +525,14 @@ const DashboardView = ({ user, onStartQuiz, onLogout, history, onNavigate, showT
                   {isAiDashboard ? 'AI Dashboard Active' : 'Architect AI Dashboard'}
                 </button>
                 <button 
-                  onClick={() => onNavigate('analytics')}
+                  onClick={(e) => { e.stopPropagation(); onNavigate('analytics'); }}
                   className="text-[10px] font-black text-zinc-400 dark:text-zinc-500 hover:text-zinc-900 dark:hover:text-white uppercase tracking-widest transition-colors px-2"
                 >
                   Stats
                 </button>
-                <button 
-                  onClick={() => setIsSubjectsExpanded(!isSubjectsExpanded)}
-                  className="p-2 text-zinc-400 dark:text-zinc-500 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-xl transition-all"
-                >
+                <div className="p-2 text-zinc-400 dark:text-zinc-500 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-xl transition-all">
                   {isSubjectsExpanded ? <ChevronUp className="w-5 h-5" /> : <ChevronDown className="w-5 h-5" />}
-                </button>
+                </div>
               </div>
             </div>
 
