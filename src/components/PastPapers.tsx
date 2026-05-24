@@ -279,7 +279,7 @@ export const PastPapers = ({ user, onStartQuiz }: { user: User, onStartQuiz?: (q
                  />
                  {/* Watermark */}
                  <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 pointer-events-none opacity-5 select-none rotate-45">
-                    <p className="text-9xl font-black uppercase text-zinc-500 tracking-widest">TVET MASTERY PRO</p>
+                    <p className="text-9xl font-black uppercase text-zinc-500 tracking-widest text-center">SOLEARN</p>
                  </div>
               </div>
               <footer className="p-5 sm:p-6 md:p-8 border-t border-zinc-200 dark:border-zinc-800 flex justify-end gap-4">

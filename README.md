@@ -1,4 +1,4 @@
-# TVET Mastery Pro
+# Solearn
 
 A comprehensive learning platform for TVET students, featuring AI-powered tutors, course planners, and quiz generation.
 

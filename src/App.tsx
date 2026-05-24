@@ -3689,7 +3689,7 @@ const AuthView = ({ onLogin }: { onLogin: (userData: any, token?: string, isSign
                 onClick={() => setIsLogin(!isLogin)}
                 className="ml-2 text-white font-black hover:underline underline-offset-8"
               >
-                {isLogin ? 'Join TVETPRO' : 'Sign In'}
+                {isLogin ? 'Join Solearn' : 'Sign In'}
               </button>
             </p>
           </div>
@@ -4066,9 +4066,8 @@ export default function App() {
               <ShieldCheck className="w-6 h-6 text-white dark:text-black" />
             </div>
             <div>
-              <h2 className="font-black text-xl tracking-tight text-zinc-900 dark:text-white">TVET<span className="text-zinc-400 dark:text-zinc-500">PRO</span></h2>
-              <p className="text-[10px] font-bold text-zinc-400 dark:text-zinc-600 uppercase tracking-widest">Mastery Platform</p>
-            </div>
+              <h2 className="font-black text-xl tracking-tight text-zinc-900 dark:text-white">So<span className="text-zinc-400 dark:text-zinc-500">learn</span></h2>
+              <p className="text-[10px] font-bold text-zinc-400 dark:text-zinc-600 uppercase tracking-widest">Learning Platform</p>            </div>
           </div>
 
           <nav className="flex-1">

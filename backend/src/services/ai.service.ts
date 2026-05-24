@@ -320,7 +320,7 @@ export async function chatTutor(
   context: { trade?: string, level?: string, competencies?: string }, 
   history: { role: 'user' | 'model', parts: { text: string }[] }[] = []
 ) {
-  const systemPrompt = `You are a friendly, highly intelligent AI TVET Tutor and Exam Generator for the TVET Mastery Pro platform. 
+  const systemPrompt = `You are a friendly, highly intelligent AI TVET Tutor and Exam Generator for the Solearn platform. 
   Your job is to help a student who is studying ${context.trade || 'general topics'} at the ${context.level || 'General'} level.
   
   CORE BEHAVIOR:
