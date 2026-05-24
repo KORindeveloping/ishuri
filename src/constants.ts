@@ -2,7 +2,7 @@ import { Assessment, User } from './types';
 
 export const BLACKLIST_SUBJECTS = [
   'ICT', 'Humanities', 'Religion', 'Languages', 'French', 'Kiswahili', 
-  'Agriculture', 'Home Economics', 'Music', 'Fine Arts', 'Social and Religious Studies',
+  'Agriculture', 'Home Economics', 'Home Science', 'Music', 'Fine Arts', 'Social and Religious Studies',
   'Literature', 'Philosophy', 'Sciences'
 ];
 
