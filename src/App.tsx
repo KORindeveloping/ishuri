@@ -4137,15 +4137,7 @@ export default function App() {
             {isSidebarOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
           </button>
 
-          <div className="hidden md:flex items-center bg-zinc-100 dark:bg-zinc-900 rounded-2xl px-5 py-2.5 w-full max-w-sm border border-zinc-200 dark:border-zinc-800 focus-within:ring-2 focus-within:ring-black/5 dark:focus-within:ring-white/10 transition-all">
-            <Search className="w-4 h-4 text-zinc-400 dark:text-zinc-500 mr-3" />
-            <input 
-              type="text" 
-              placeholder="Search intelligence database..." 
-              className="bg-transparent border-none text-sm focus:ring-0 w-full placeholder:text-zinc-400 dark:placeholder:text-zinc-600 text-zinc-900 dark:text-white"
-            />
-          </div>
-
+          <div className="flex-1" /> {/* Spacer */}
           <div className="flex items-center gap-4 relative">
             <button 
               onClick={() => setShowNotifications(!showNotifications)}
