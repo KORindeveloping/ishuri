@@ -40,22 +40,26 @@ router.get('/', async (req: Request, res: Response) => {
 
       if (response.ok) {
         const data = await response.json();
-        const books = data.map((b: any) => ({
-          id: b.id,
-          title: b.title,
-          author: b.author || 'TVET Mastery',
-          coverUrl: b.cover_url || b.coverUrl || null,
-          pdfUrl: b.file_url || b.pdf_url || b.pdfUrl,
-          description: b.description || '',
-          subject: b.subject || 'General',
-          grade: b.grade || '',
-          uploadedBy: b.uploaded_by || b.uploadedBy || 'System',
-          createdAt: b.created_at || b.createdAt,
-          updatedAt: b.updated_at || b.updatedAt || b.created_at
-        }));
-        return res.json(books);
+        if (data && data.length > 0) {
+          const books = data.map((b: any) => ({
+            id: b.id,
+            title: b.title,
+            author: b.author || 'TVET Mastery',
+            coverUrl: b.cover_url || b.coverUrl || null,
+            pdfUrl: b.file_url || b.pdf_url || b.pdfUrl,
+            description: b.description || '',
+            subject: b.subject || 'General',
+            grade: b.grade || '',
+            uploadedBy: b.uploaded_by || b.uploadedBy || 'System',
+            createdAt: b.created_at || b.createdAt,
+            updatedAt: b.updated_at || b.updatedAt || b.created_at
+          }));
+          return res.json(books);
+        }
+        console.warn('[Supabase] No books found in table, trying Prisma.');
+      } else {
+        console.warn('[Supabase] Fetch failed with status:', response.status, 'trying Prisma.');
       }
-      console.warn('[Supabase] Fetch failed, falling back to Prisma.');
     }
 
     // 2. Fallback to Prisma (local/hosted Postgres)

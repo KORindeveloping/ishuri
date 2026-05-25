@@ -273,25 +273,23 @@ const DashboardView = ({ user, onStartQuiz, onLogout, history, onNavigate, showT
     .filter(Boolean)
     .filter(s => !BLACKLIST_SUBJECTS.some(black => s.toLowerCase().includes(black.toLowerCase())));
 
-  const subjects = (skills.length > 0
-    ? skills.map(skill => ({
-        name: skill.name || 'Unnamed Skill',
-        progress: skill.progress || 0
-      }))
-    : (onboardingSubjects.length > 0
-        ? onboardingSubjects.map(s => ({ name: s, progress: 0 }))
-        : [
-            { name: 'Mathematics Mastery', progress: 0 },
-            { name: 'Physics Foundations', progress: 0 },
-            { name: 'Chemistry Core', progress: 0 },
-            { name: 'Biology Systems', progress: 0 },
-            { name: 'Geography & Environment', progress: 0 },
-            { name: 'History & Civics', progress: 0 },
-            { name: 'Entrepreneurship Skills', progress: 0 }
-          ]
-      ))
-      .filter(s => s.name.toLowerCase().includes(searchQuery.toLowerCase()))
-      .filter(s => !BLACKLIST_SUBJECTS.some(black => s.name.toLowerCase().includes(black.toLowerCase())));
+  const subjects = (skills.length > 0 || onboardingSubjects.length > 0
+    ? [
+        ...skills.map(skill => ({ name: skill.name || 'Unnamed Skill', progress: skill.progress || 0 })),
+        ...onboardingSubjects.map(s => ({ name: s, progress: 0 }))
+      ]
+    : [
+        { name: 'Mathematics Mastery', progress: 0 },
+        { name: 'Physics Foundations', progress: 0 },
+        { name: 'Chemistry Core', progress: 0 },
+        { name: 'Biology Systems', progress: 0 },
+        { name: 'Geography & Environment', progress: 0 },
+        { name: 'History & Civics', progress: 0 },
+        { name: 'Entrepreneurship Skills', progress: 0 }
+      ]
+  )
+  .filter(s => s.name.toLowerCase().includes(searchQuery.toLowerCase()))
+  .filter(s => !BLACKLIST_SUBJECTS.some(black => s.name.toLowerCase().includes(black.toLowerCase())));
 
   useEffect(() => {
     console.log('[Dashboard] Calculated subjects:', subjects);
@@ -516,6 +514,16 @@ const DashboardView = ({ user, onStartQuiz, onLogout, history, onNavigate, showT
               </div>
               
               <div className="flex items-center gap-3">
+                <div className="flex items-center gap-2 bg-zinc-100 dark:bg-zinc-800 px-3 py-1.5 rounded-xl border border-transparent focus-within:border-zinc-300 dark:focus-within:border-zinc-700 transition-all mr-2" onClick={(e) => e.stopPropagation()}>
+                  <Search className="w-3.5 h-3.5 text-zinc-400" />
+                  <input
+                    type="text"
+                    placeholder="Search..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className="bg-transparent border-none outline-none text-[10px] font-bold uppercase tracking-widest text-zinc-900 dark:text-white placeholder:text-zinc-400 w-24"
+                  />
+                </div>
                 <button 
                   onClick={(e) => { e.stopPropagation(); isAiDashboard ? setIsAiDashboard(false) : generateAiDashboard(); }}
                   className={cn(

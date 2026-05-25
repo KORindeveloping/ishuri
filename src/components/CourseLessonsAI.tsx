@@ -697,7 +697,66 @@ export const CourseLessonsAI = ({ user, onClose, initialCourse }: { user: User; 
                       animate={{ opacity: 1, x: 0 }}
                       className="space-y-12"
                     >
-                      {/* ... other content */}
+                      <div className="space-y-8">
+                        {lessonPlan.chapters.map((chapter, i) => (
+                          <button
+                            key={i}
+                            onClick={() => setSelectedChapter(chapter)}
+                            className={cn(
+                              "w-full group flex items-start gap-4 p-6 rounded-3xl border transition-all text-left relative overflow-hidden",
+                              selectedChapter === chapter 
+                                ? "bg-zinc-900 dark:bg-white border-zinc-900 dark:border-white shadow-2xl" 
+                                : "bg-white dark:bg-zinc-900 border-zinc-200 dark:border-zinc-800 hover:border-zinc-300 dark:hover:border-zinc-700 shadow-sm"
+                            )}
+                          >
+                            <div className={cn(
+                              "w-10 h-10 rounded-2xl flex items-center justify-center shrink-0 border transition-all",
+                              selectedChapter === chapter ? "bg-white/10 dark:bg-black/5 border-white/20 dark:border-black/10" : "bg-zinc-50 dark:bg-zinc-800 border-zinc-200 dark:border-zinc-700"
+                            )}>
+                              <span className={cn("text-xs font-black", selectedChapter === chapter ? "text-white dark:text-black" : "text-zinc-400")}>
+                                {i + 1}
+                              </span>
+                            </div>
+                            <div className="flex-1">
+                              <p className={cn("text-[10px] font-black uppercase tracking-widest mb-1", selectedChapter === chapter ? "text-zinc-400 dark:text-zinc-500" : "text-zinc-500")}>
+                                Module {i + 1}
+                              </p>
+                              <h5 className={cn("font-black text-lg tracking-tight leading-none uppercase", selectedChapter === chapter ? "text-white dark:text-black" : "text-zinc-900 dark:text-white")}>
+                                {chapter}
+                              </h5>
+                            </div>
+                            <div className={cn(
+                              "mt-2 transition-transform group-hover:translate-x-1",
+                              selectedChapter === chapter ? "text-white/40 dark:text-black/40" : "text-zinc-300"
+                            )}>
+                              <ChevronRight className="w-5 h-5" />
+                            </div>
+                          </button>
+                        ))}
+                      </div>
+
+                      <div className="pt-10 border-t border-zinc-200 dark:border-zinc-800">
+                        <div className="p-8 bg-indigo-500 rounded-[2.5rem] text-white shadow-2xl shadow-indigo-500/20 relative overflow-hidden group">
+                           <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 blur-3xl -mr-16 -mt-16 group-hover:scale-150 transition-transform" />
+                           <div className="relative z-10">
+                              <div className="flex items-center gap-3 mb-6">
+                                <Sparkles className="w-5 h-5 text-indigo-200 animate-pulse" />
+                                <span className="text-[10px] font-black uppercase tracking-[0.2em] text-indigo-100">AI Architect Note</span>
+                              </div>
+                              <p className="text-sm font-bold leading-relaxed mb-8 italic">
+                                "{lessonPlan.recommendation}"
+                              </p>
+                              <button 
+                                onClick={generateFullSyllabus}
+                                disabled={isGeneratingSyllabus}
+                                className="w-full py-4 bg-white text-indigo-600 rounded-2xl font-black uppercase tracking-widest text-[10px] hover:bg-indigo-50 transition-all flex items-center justify-center gap-2"
+                              >
+                                {isGeneratingSyllabus ? <Loader2 className="w-4 h-4 animate-spin" /> : <FileText className="w-4 h-4" />}
+                                Generate Full Syllabus
+                              </button>
+                           </div>
+                        </div>
+                      </div>
                     </motion.div>
                   ) : (
                     <motion.div 
