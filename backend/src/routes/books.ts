@@ -1,6 +1,8 @@
 import { Router, Request, Response } from 'express';
+import { PrismaClient } from '@prisma/client';
 
 const router = Router();
+const prisma = new PrismaClient();
 
 const SUPABASE_URL = process.env.SUPABASE_URL || '';
 const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY || '';
@@ -16,59 +18,66 @@ router.get('/', async (req: Request, res: Response) => {
   const { search, subject, grade } = req.query as Record<string, string>;
 
   try {
-    // Construct Supabase query
-    // Supabase REST API uses PostgREST syntax
-    let queryParams = new URLSearchParams();
-    queryParams.append('select', '*');
-    queryParams.append('order', 'created_at.desc');
+    // 1. Try Supabase first if configured
+    if (SUPABASE_URL && SUPABASE_URL.startsWith('http')) {
+      let queryParams = new URLSearchParams();
+      queryParams.append('select', '*');
+      queryParams.append('order', 'created_at.desc');
 
+      if (search) {
+        queryParams.append('title', `ilike.*${search}*`);
+      }
+      if (subject) {
+        queryParams.append('subject', `ilike.${subject}`);
+      }
+      if (grade) {
+        queryParams.append('grade', `eq.${grade}`);
+      }
+
+      const response = await fetch(`${SUPABASE_URL}/rest/v1/documents?${queryParams.toString()}`, {
+        headers: getSupabaseHeaders()
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        const books = data.map((b: any) => ({
+          id: b.id,
+          title: b.title,
+          author: b.author || 'TVET Mastery',
+          coverUrl: b.cover_url || b.coverUrl || null,
+          pdfUrl: b.file_url || b.pdf_url || b.pdfUrl,
+          description: b.description || '',
+          subject: b.subject || 'General',
+          grade: b.grade || '',
+          uploadedBy: b.uploaded_by || b.uploadedBy || 'System',
+          createdAt: b.created_at || b.createdAt,
+          updatedAt: b.updated_at || b.updatedAt || b.created_at
+        }));
+        return res.json(books);
+      }
+      console.warn('[Supabase] Fetch failed, falling back to Prisma.');
+    }
+
+    // 2. Fallback to Prisma (local/hosted Postgres)
+    const where: any = {};
     if (search) {
-      // Search ONLY in title because author column doesn't exist in documents table
-      queryParams.append('title', `ilike.*${search}*`);
+      where.title = { contains: search, mode: 'insensitive' };
     }
     if (subject) {
-      queryParams.append('subject', `ilike.${subject}`);
+      where.subject = { equals: subject, mode: 'insensitive' };
     }
     if (grade) {
-      queryParams.append('grade', `eq.${grade}`);
+      where.grade = grade;
     }
 
-    if (!SUPABASE_URL || !SUPABASE_URL.startsWith('http')) {
-      console.warn('[Supabase] SUPABASE_URL is missing or invalid. Returning empty list.');
-      return res.json([]);
-    }
-
-    const response = await fetch(`${SUPABASE_URL}/rest/v1/documents?${queryParams.toString()}`, {
-      headers: getSupabaseHeaders()
+    const prismaBooks = await prisma.book.findMany({
+      where,
+      orderBy: { createdAt: 'desc' }
     });
 
-    if (!response.ok) {
-      const err = await response.json().catch(() => ({}));
-      console.error('[Supabase] Fetch failed:', err);
-      return res.json([]); // Fallback to empty array instead of failing
-    }
-
-    const data = await response.json();
-    
-    // Map Supabase fields to frontend format
-    const books = data.map((b: any) => ({
-      id: b.id,
-      title: b.title,
-      author: b.author || 'TVET Mastery', // Default if author is missing
-      coverUrl: b.cover_url || b.coverUrl || null,
-      pdfUrl: b.file_url || b.pdf_url || b.pdfUrl, // Use file_url from documents table
-      description: b.description || '',
-      subject: b.subject || 'General',
-      grade: b.grade || '',
-      uploadedBy: b.uploaded_by || b.uploadedBy || 'System',
-      createdAt: b.created_at || b.createdAt,
-      updatedAt: b.updated_at || b.updatedAt || b.created_at
-    }));
-
-    res.json(books);
+    res.json(prismaBooks);
   } catch (error) {
     console.error('[Books GET]', error);
-    // Gracefully fallback to empty array so the UI doesn't break
     res.json([]);
   }
 });

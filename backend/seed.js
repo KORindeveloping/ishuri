@@ -38,7 +38,46 @@ async function main() {
       ])
     }
   });
-  console.log('Seed successful:', mockQuiz.id);
+
+  const books = [
+    {
+      id: 'book-001',
+      title: 'Biology S1 Student Book',
+      author: 'REB',
+      subject: 'Biology',
+      grade: 'S1',
+      pdfUrl: '/Courselesson/Biology S1 SB.pdf',
+      coverUrl: 'https://images.unsplash.com/photo-1530210124550-912dc1381cb8?auto=format&fit=crop&q=80&w=400'
+    },
+    {
+      id: 'book-002',
+      title: 'Entrepreneurship S1 Student Book',
+      author: 'REB',
+      subject: 'Entrepreneurship',
+      grade: 'S1',
+      pdfUrl: '/Courselesson/Entrepreneurship S1 SB.pdf',
+      coverUrl: 'https://images.unsplash.com/photo-1507679799987-c73779587ccf?auto=format&fit=crop&q=80&w=400'
+    },
+    {
+      id: 'book-003',
+      title: 'Geography S1 Student Book',
+      author: 'REB',
+      subject: 'Geography',
+      grade: 'S1',
+      pdfUrl: '/Courselesson/Geography S1 SB.pdf',
+      coverUrl: 'https://images.unsplash.com/photo-1521295121783-8a321d551ad2?auto=format&fit=crop&q=80&w=400'
+    }
+  ];
+
+  for (const book of books) {
+    await prisma.book.upsert({
+      where: { id: book.id },
+      update: {},
+      create: book
+    });
+  }
+
+  console.log('Seed successful: Mock Quiz and 3 Books created.');
 }
 
 main()

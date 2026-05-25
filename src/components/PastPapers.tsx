@@ -71,7 +71,7 @@ export const PastPapers = ({ user, onStartQuiz }: { user: User, onStartQuiz?: (q
 
     // 2. Primary Subject Restriction (Specific to your request)
     if (displayLevel === 'Primary') {
-      const allowedSubjects = ['Mathematics', 'SET', 'English', 'Ikinyarwanda', 'Social Religious Studies', 'SRE'];
+      const allowedSubjects = ['Mathematics', 'SET', 'English', 'Ikinyarwanda', 'Ikinyarwanda II', 'Social Religious Studies', 'SRE'];
       if (!allowedSubjects.includes(paper.subject)) return false;
     }
 

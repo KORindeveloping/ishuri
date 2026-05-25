@@ -76,6 +76,8 @@ const SUBJECT_DOC_MAP: Record<string, string> = {
   'English': 'English S1 SB.pdf',
   'Maths': 'Maths S1 SB.pdf',
   'Physics': 'Physics S1 SB.pdf',
+  'Entrepreneurship': 'Entrepreneurship S1 SB.pdf',
+  'Geography': 'Geography S1 SB.pdf',
 };
 
 const CORE_SUBJECT_KEYWORDS: Record<string, string[]> = {

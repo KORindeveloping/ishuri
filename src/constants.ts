@@ -1,9 +1,9 @@
 import { Assessment, User } from './types';
 
 export const BLACKLIST_SUBJECTS = [
-  'ICT', 'Humanities', 'Religion', 'Languages', 'French', 'Kiswahili', 
+  'Humanities', 'Religion', 'Languages', 'French', 'Kiswahili', 
   'Agriculture', 'Home Economics', 'Home Science', 'Music', 'Fine Arts', 'Social and Religious Studies',
-  'Literature', 'Philosophy', 'Sciences'
+  'Philosophy', 'Sciences'
 ];
 
 export const MOCK_USER: User = {

@@ -290,7 +290,6 @@ const DashboardView = ({ user, onStartQuiz, onLogout, history, onNavigate, showT
             { name: 'Entrepreneurship Skills', progress: 0 }
           ]
       ))
-      .filter(s => s.name.toLowerCase().includes(searchQuery.toLowerCase()))
       .filter(s => !BLACKLIST_SUBJECTS.some(black => s.name.toLowerCase().includes(black.toLowerCase())));
   const avgDashboardScore = history.length > 0 
     ? Math.round(history.reduce((a, b) => a + (b.score / b.totalPoints), 0) / history.length * 100)
