@@ -83,9 +83,17 @@ const SUBJECT_DOC_MAP: Record<string, string> = {
 const CORE_SUBJECT_KEYWORDS: Record<string, string[]> = {
   'Chemistry': ['chemistry', 'general'],
   'Physics': ['physics', 'general'],
-  'Biology': ['biology', 'general'],
+  'Biology': ['biology', 'general', 'health'],
   'Mathematics': ['math', 'mathematical', 'general'],
-  'Maths': ['math', 'mathematical', 'general']
+  'Maths': ['math', 'mathematical', 'general'],
+  'English': ['english', 'literature', 'general'],
+  'Geography': ['geography', 'environment', 'general'],
+  'Entrepreneurship': ['entrepreneurship', 'business', 'general'],
+  'ICT': ['ict', 'computer', 'technology', 'general'],
+  'Ikinyarwanda': ['ikinyarwanda', 'general'],
+  'Francais': ['francais', 'french', 'general'],
+  'History': ['history', 'civics', 'general'],
+  'Economics': ['economics', 'general'],
 };
 
 export const CourseLessonsAI = ({ user, onClose, initialCourse }: { user: User; onClose: () => void; initialCourse?: string | null }) => {
@@ -544,7 +552,7 @@ export const CourseLessonsAI = ({ user, onClose, initialCourse }: { user: User; 
                             <div className="col-span-full py-10 flex justify-center">
                               <Loader2 className="w-8 h-8 animate-spin text-zinc-500" />
                             </div>
-                          ) : (sortedCourseBooks.length > 0 ? sortedCourseBooks : books).map((book) => {
+                          ) : sortedCourseBooks.map((book) => {
                               const unitNum = getUnitNumber(book.title);
                               const isLocked = unitNum !== 999 && unitNum > maxUnlockedUnit;
                               return (
@@ -587,8 +595,16 @@ export const CourseLessonsAI = ({ user, onClose, initialCourse }: { user: User; 
                                 </motion.div>
                               );
                             })}
-                          {books.length === 0 && !loadingBooks && (
-                            <p className="text-center col-span-full py-10 text-zinc-500 uppercase text-[10px] font-black tracking-widest">No books available in the database.</p>
+                          {sortedCourseBooks.length === 0 && !loadingBooks && (
+                            <div className="col-span-full py-20 flex flex-col items-center justify-center text-center gap-6">
+                              <div className="w-20 h-20 rounded-full bg-zinc-100 dark:bg-zinc-900 flex items-center justify-center">
+                                <BookOpen className="w-10 h-10 text-zinc-400" />
+                              </div>
+                              <div className="space-y-2">
+                                <p className="text-zinc-900 dark:text-white uppercase text-[10px] font-black tracking-widest">No matching books found</p>
+                                <p className="text-zinc-500 text-[10px] font-bold uppercase tracking-widest max-w-xs mx-auto">We couldn't find any specific Level 1 materials for "{initialCourse}" in our library.</p>
+                              </div>
+                            </div>
                           )}
                         </div>
                         
