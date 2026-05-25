@@ -275,8 +275,8 @@ const DashboardView = ({ user, onStartQuiz, onLogout, history, onNavigate, showT
 
   const subjects = (skills.length > 0
     ? skills.map(skill => ({
-        name: skill.name,
-        progress: skill.progress
+        name: skill.name || 'Unnamed Skill',
+        progress: skill.progress || 0
       }))
     : (onboardingSubjects.length > 0
         ? onboardingSubjects.map(s => ({ name: s, progress: 0 }))
@@ -290,7 +290,12 @@ const DashboardView = ({ user, onStartQuiz, onLogout, history, onNavigate, showT
             { name: 'Entrepreneurship Skills', progress: 0 }
           ]
       ))
+      .filter(s => s.name.toLowerCase().includes(searchQuery.toLowerCase()))
       .filter(s => !BLACKLIST_SUBJECTS.some(black => s.name.toLowerCase().includes(black.toLowerCase())));
+
+  useEffect(() => {
+    console.log('[Dashboard] Calculated subjects:', subjects);
+  }, [subjects]);
   const avgDashboardScore = history.length > 0 
     ? Math.round(history.reduce((a, b) => a + (b.score / b.totalPoints), 0) / history.length * 100)
     : 0;
@@ -981,9 +986,9 @@ const AnalyticsView = ({ history, user, onStartQuiz, showToast }: {
       ))
       .filter(s => !BLACKLIST_SUBJECTS.some(black => s.name.toLowerCase().includes(black.toLowerCase())));
   const chartData = subjects.map(s => ({
-    name: s.name.split(' ')[0],
-    mastery: s.progress,
-    points: Math.floor(s.progress * 1.5)
+    name: (s.name || 'Unknown').split(' ')[0],
+    mastery: s.progress || 0,
+    points: Math.floor((s.progress || 0) * 1.5)
   }));
 
   const avgMastery = history.length > 0 
