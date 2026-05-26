@@ -18,7 +18,13 @@ import {
   CheckCircle2,
   Lock,
   Unlock,
-  AlertTriangle
+  AlertTriangle,
+  Zap,
+  MessageSquare,
+  FileEdit,
+  RefreshCw,
+  AlertCircle,
+  Layers
 } from 'lucide-react';
 import { api } from '../lib/api';
 import ReactMarkdown from 'react-markdown';
@@ -33,16 +39,26 @@ function getUnitNumber(title?: string): number {
   return match ? parseInt(match[1], 10) : 999;
 }
 
-// ─── AI Study Workspace (Redesigned PDF Viewer) ────────────────────────────────
+// ─── AI Study Workspace (Interactive Tutor) ────────────────────────────────
 function PdfViewer({ book, onClose, user }: { book: Book; onClose: () => void; user: User }) {
-  const [activeTab, setActiveTab] = useState<'summary' | 'questions' | 'notes' | 'chat'>('summary');
-  const [summary, setSummary] = useState<string>('');
-  const [questions, setQuestions] = useState<string>('');
-  const [hints, setHints] = useState<string>('');
-  const [chatInput, setChatInput] = useState('');
-  const [chatMessages, setChatMessages] = useState<{ role: 'user' | 'ai', text: string }[]>([]);
+  const [activeTab, setActiveTab] = useState<'tutor' | 'notes' | 'chat'>('tutor');
+  const [currentPage, setCurrentPage] = useState<number>(1);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [notes, setNotes] = useState<string>(() => localStorage.getItem(`notes_${book.id}`) || '');
+  
+  // Structured AI Content
+  const [aiData, setAiData] = useState<{
+    topic?: string;
+    summary?: string;
+    keyPoints?: string[];
+    examHints?: { type: string; content: string }[];
+    quiz?: { question: string; options: string[]; answer: string; explanation: string }[];
+  }>({});
+
+  const [chatInput, setChatInput] = useState('');
+  const [chatMessages, setChatMessages] = useState<{ role: 'user' | 'ai', text: string }[]>([]);
+  const [revealedQuiz, setRevealedQuiz] = useState<number | null>(null);
+  const [studyMode, setStudyMode] = useState<'standard' | 'simple' | 'exam' | 'flashcards'>('standard');
 
   const chatEndRef = useRef<HTMLDivElement>(null);
 
@@ -54,45 +70,57 @@ function PdfViewer({ book, onClose, user }: { book: Book; onClose: () => void; u
     chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [chatMessages]);
 
-  const generateAIInsights = async () => {
+  const generateAIInsights = async (mode = studyMode, page = currentPage) => {
     setIsAnalyzing(true);
+    setRevealedQuiz(null);
     try {
-      const prompt = `You are a TVET Study Architect. The student is reading "${book.title}" (Subject: ${book.subject}).
-      Generate 3 things in a structured format:
-      1. A concise summary of the core concepts in this unit.
-      2. 3 likely exam questions based on this unit.
-      3. 2 critical "Exam Hints" or "Cheat Sheet" tips.
+      const prompt = `Act as an Elite TVET Tutor. The student is reading "${book.title}" on Page ${page}.
+      Mode: ${mode.toUpperCase()}
       
-      Format your response clearly so I can parse it. Use headings like [SUMMARY], [QUESTIONS], [HINTS].`;
+      Requirements:
+      - Topic: Identify the core concept of this page.
+      - Summary: One powerful, simple sentence.
+      - Key Points: 4-5 high-impact bullet points.
+      - Exam Hints: 2 critical "traps" or "orders of operations".
+      - Quiz: 1 high-quality MCQ with 4 options, the correct answer index (0-3), and a brief explanation.
+
+      Format your response ONLY as a JSON object:
+      {
+        "topic": "string",
+        "summary": "string",
+        "keyPoints": ["string"],
+        "examHints": [{"type": "string", "content": "string"}],
+        "quiz": [{"question": "string", "options": ["string"], "answer": "index_as_string", "explanation": "string"}]
+      }`;
 
       const response = await api.sendChatMessage(prompt, []);
-      const text = response.reply;
-      
-      const summaryMatch = text.match(/\[SUMMARY\]([\s\S]*?)(?=\[|$)/i);
-      const questionsMatch = text.match(/\[QUESTIONS\]([\s\S]*?)(?=\[|$)/i);
-      const hintsMatch = text.match(/\[HINTS\]([\s\S]*?)(?=\[|$)/i);
-
-      if (summaryMatch) setSummary(summaryMatch[1].trim());
-      if (questionsMatch) setQuestions(questionsMatch[1].trim());
-      if (hintsMatch) setHints(hintsMatch[1].trim());
-
+      const cleanJson = response.reply.replace(/```json|```/g, '').trim();
+      const parsed = JSON.parse(cleanJson);
+      setAiData(parsed);
     } catch (e) {
       console.error("AI Insight generation failed", e);
+      setAiData({
+        topic: "Analysis Interrupted",
+        summary: "I couldn't sync with the current page. Please try again.",
+        keyPoints: ["Check your connection", "Try a different page number"]
+      });
     } finally {
       setIsAnalyzing(false);
     }
   };
 
   useEffect(() => {
-    generateAIInsights();
+    generateAIInsights('standard', 1);
   }, [book.id]);
 
-  const handleChatSend = async () => {
-    if (!chatInput.trim()) return;
-    const userMsg = chatInput;
+  const handleChatSend = async (customMsg?: string) => {
+    const userMsg = customMsg || chatInput;
+    if (!userMsg.trim()) return;
+    
     setChatMessages(prev => [...prev, { role: 'user', text: userMsg }]);
     setChatInput('');
     setIsAnalyzing(true);
+    setActiveTab('chat');
 
     try {
       const response = await api.sendChatMessage(userMsg, chatMessages.map(m => ({
@@ -108,31 +136,47 @@ function PdfViewer({ book, onClose, user }: { book: Book; onClose: () => void; u
   };
 
   return (
-    <div className="fixed inset-0 z-[300] bg-black flex items-center justify-center overflow-hidden" role="dialog" aria-modal="true">
+    <div className="fixed inset-0 z-[300] bg-black flex items-center justify-center overflow-hidden font-sans" role="dialog" aria-modal="true">
       <motion.div 
         initial={{ opacity: 0, scale: 0.98 }}
         animate={{ opacity: 1, scale: 1 }}
-        className="w-full h-full flex flex-col bg-zinc-950 text-white"
+        className="w-full h-full flex flex-col bg-[#050505] text-white"
       >
         {/* Workspace Header */}
-        <header className="h-16 border-b border-zinc-800 flex items-center justify-between px-6 bg-zinc-950 shrink-0">
-          <div className="flex items-center gap-4">
-            <div className="w-8 h-8 rounded-lg bg-indigo-500 flex items-center justify-center">
-              <BookOpen className="w-4 h-4 text-white" />
-            </div>
-            <div>
-              <h3 className="font-black text-sm uppercase tracking-tight">{book.title}</h3>
-              <p className="text-[10px] text-zinc-500 font-bold uppercase tracking-widest">AI Study Workspace</p>
+        <header className="h-16 border-b border-white/5 flex items-center justify-between px-6 bg-[#0a0a0a] shrink-0">
+          <div className="flex items-center gap-6">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-indigo-600 to-purple-600 flex items-center justify-center shadow-lg shadow-indigo-500/20">
+                <BookOpen className="w-5 h-5 text-white" />
+              </div>
+              <div>
+                <h3 className="font-black text-sm uppercase tracking-tight leading-none">{book.title}</h3>
+                <div className="flex items-center gap-2 mt-1">
+                  <span className="text-[9px] text-indigo-400 font-black uppercase tracking-[0.2em]">Mastery Workspace</span>
+                  <span className="w-1 h-1 bg-white/20 rounded-full" />
+                  <span className="text-[9px] text-zinc-500 font-bold uppercase tracking-widest">{book.subject}</span>
+                </div>
+              </div>
             </div>
           </div>
-          <div className="flex items-center gap-4">
-            <div className="flex items-center gap-2 px-3 py-1 bg-zinc-900 rounded-full border border-zinc-800">
-               <div className="w-1.5 h-1.5 bg-indigo-500 rounded-full animate-pulse" />
-               <span className="text-[9px] font-black uppercase tracking-widest text-zinc-400">AI Sync Active</span>
-            </div>
-            <button 
+
+          <div className="flex items-center gap-6">
+             <div className="flex items-center gap-3 px-4 py-2 bg-white/5 rounded-xl border border-white/10">
+                <span className="text-[10px] font-black uppercase tracking-widest text-zinc-400">Page</span>
+                <input 
+                  type="number" 
+                  value={currentPage}
+                  onChange={(e) => {
+                    const p = parseInt(e.target.value);
+                    setCurrentPage(p);
+                    generateAIInsights(studyMode, p);
+                  }}
+                  className="w-12 bg-transparent text-center font-black text-sm outline-none border-b border-indigo-500"
+                />
+             </div>
+             <button 
               onClick={onClose}
-              className="p-2 hover:bg-zinc-800 rounded-xl transition-colors text-zinc-500 hover:text-white"
+              className="w-10 h-10 flex items-center justify-center rounded-xl bg-white/5 hover:bg-red-500/10 hover:text-red-500 transition-all border border-white/10"
             >
               <X className="w-5 h-5" />
             </button>
@@ -141,138 +185,211 @@ function PdfViewer({ book, onClose, user }: { book: Book; onClose: () => void; u
 
         <div className="flex-1 flex overflow-hidden">
           {/* Left Side: PDF Viewer (70%) */}
-          <div className="flex-[0.7] bg-zinc-900 relative flex flex-col border-r border-zinc-800">
+          <div className="flex-[0.7] bg-zinc-900 relative flex flex-col">
             <iframe
-              src={`${book.pdfUrl}#toolbar=1&navpanes=0&scrollbar=1`}
+              src={`${book.pdfUrl}#page=${currentPage}&toolbar=1&navpanes=0&scrollbar=1`}
               title={book.title}
-              className="w-full h-full border-none invert dark:invert-0"
+              className="w-full h-full border-none"
               allow="fullscreen"
             />
+            {/* Contextual Progress Bar */}
+            <div className="absolute bottom-6 left-1/2 -translate-x-1/2 px-6 py-3 bg-black/80 backdrop-blur-xl rounded-full border border-white/10 flex items-center gap-4 shadow-2xl">
+               <span className="text-[10px] font-black uppercase tracking-widest text-indigo-400">Current Progress</span>
+               <div className="w-48 h-1 bg-white/10 rounded-full overflow-hidden">
+                  <div className="h-full bg-indigo-500 rounded-full" style={{ width: '45%' }} />
+               </div>
+               <span className="text-[10px] font-black text-white">45%</span>
+            </div>
           </div>
 
-          {/* Right Side: AI Assistant Panel (30%) */}
-          <div className="flex-[0.3] flex flex-col bg-zinc-950 overflow-hidden relative">
-            {/* Tabs */}
-            <div className="flex items-center p-2 bg-zinc-900 border-b border-zinc-800 shrink-0">
+          {/* Right Side: AI Tutor Sidebar (30%) */}
+          <div className="flex-[0.3] flex flex-col bg-[#0a0a0a] border-l border-white/5 overflow-hidden">
+            {/* Interaction Modes */}
+            <div className="p-4 grid grid-cols-4 gap-2 bg-[#050505] border-b border-white/5">
               {[
-                { id: 'summary', label: 'Summary', icon: FileText },
-                { id: 'questions', label: 'Questions', icon: Target },
-                { id: 'notes', label: 'Notes', icon: FileText },
-                { id: 'chat', label: 'Chat', icon: Bot }
+                { id: 'tutor', icon: Bot, label: 'Tutor' },
+                { id: 'chat', icon: MessageSquare, label: 'Chat' },
+                { id: 'notes', icon: FileEdit, label: 'Notes' },
+                { id: 'sync', icon: RefreshCw, label: 'Sync' }
               ].map(tab => (
                 <button
                   key={tab.id}
-                  onClick={() => setActiveTab(tab.id as any)}
+                  onClick={() => tab.id === 'sync' ? generateAIInsights() : setActiveTab(tab.id as any)}
                   className={cn(
-                    "flex-1 flex flex-col items-center py-2 gap-1 transition-all rounded-xl",
-                    activeTab === tab.id ? "bg-zinc-800 text-white" : "text-zinc-500 hover:text-zinc-300"
+                    "flex flex-col items-center py-2 rounded-xl transition-all border",
+                    activeTab === tab.id 
+                      ? "bg-indigo-600 border-indigo-500 text-white shadow-lg shadow-indigo-600/20" 
+                      : "bg-white/5 border-transparent text-zinc-500 hover:bg-white/10 hover:text-zinc-300"
                   )}
                 >
-                  <tab.icon className="w-4 h-4" />
+                  <tab.icon className="w-4 h-4 mb-1" />
                   <span className="text-[8px] font-black uppercase tracking-widest">{tab.label}</span>
                 </button>
               ))}
             </div>
 
-            {/* Tab Content */}
-            <div className="flex-1 overflow-y-auto p-6 space-y-8 custom-scrollbar">
+            {/* Scrollable Content */}
+            <div className="flex-1 overflow-y-auto p-6 space-y-8 scrollbar-hide bg-gradient-to-b from-[#0a0a0a] to-[#050505]">
               <AnimatePresence mode="wait">
-                {activeTab === 'summary' && (
+                {activeTab === 'tutor' && (
                   <motion.div
-                    key="summary"
-                    initial={{ opacity: 0, x: 10 }}
+                    key="tutor"
+                    initial={{ opacity: 0, x: 20 }}
                     animate={{ opacity: 1, x: 0 }}
-                    exit={{ opacity: 0, x: -10 }}
-                    className="space-y-8"
+                    exit={{ opacity: 0, x: -20 }}
+                    className="space-y-8 pb-10"
                   >
-                    <section className="space-y-4">
-                      <div className="flex items-center gap-2">
-                        <Sparkles className="w-4 h-4 text-indigo-400" />
-                        <h4 className="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-400">AI Auto-Summary</h4>
-                      </div>
-                      <div className="p-5 bg-zinc-900/50 rounded-2xl border border-zinc-800 text-xs leading-relaxed text-zinc-300 prose prose-invert prose-sm">
-                        {isAnalyzing && !summary ? (
-                          <div className="flex flex-col gap-2">
-                            <div className="h-4 w-3/4 bg-zinc-800 rounded animate-pulse" />
-                            <div className="h-4 w-full bg-zinc-800 rounded animate-pulse" />
-                            <div className="h-4 w-5/6 bg-zinc-800 rounded animate-pulse" />
-                          </div>
-                        ) : (
-                          <ReactMarkdown>{summary || "Generating summary..."}</ReactMarkdown>
-                        )}
-                      </div>
-                    </section>
-
-                    <section className="space-y-4">
-                      <div className="flex items-center gap-2">
-                        <AlertTriangle className="w-4 h-4 text-amber-500" />
-                        <h4 className="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-400">Exam Hints</h4>
-                      </div>
-                      <div className="p-5 bg-amber-500/5 rounded-2xl border border-amber-500/10 text-xs leading-relaxed text-amber-200/80">
-                         <ReactMarkdown>{hints || "Identifying critical points..."}</ReactMarkdown>
-                      </div>
-                    </section>
-                  </motion.div>
-                )}
-
-                {activeTab === 'questions' && (
-                  <motion.div
-                    key="questions"
-                    initial={{ opacity: 0, x: 10 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    exit={{ opacity: 0, x: -10 }}
-                    className="space-y-6"
-                  >
-                    <div className="flex items-center gap-2">
-                      <Target className="w-4 h-4 text-indigo-400" />
-                      <h4 className="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-400">Practice Challenges</h4>
+                    {/* Active Topic Badge */}
+                    <div className="flex items-center gap-3">
+                       <div className="px-3 py-1 bg-indigo-500/10 border border-indigo-500/20 rounded-full">
+                          <span className="text-[10px] font-black uppercase tracking-[0.2em] text-indigo-400 italic">Current Topic</span>
+                       </div>
                     </div>
-                    <div className="prose prose-invert prose-sm bg-zinc-900/50 p-6 rounded-2xl border border-zinc-800">
-                      <ReactMarkdown>{questions || "Formulating questions..."}</ReactMarkdown>
-                    </div>
-                    <button 
-                      onClick={generateAIInsights}
-                      className="w-full py-4 bg-zinc-900 hover:bg-zinc-800 text-zinc-400 hover:text-white rounded-xl text-[10px] font-black uppercase tracking-widest transition-all border border-zinc-800"
-                    >
-                      Regenerate Questions
-                    </button>
-                  </motion.div>
-                )}
 
-                {activeTab === 'notes' && (
-                  <motion.div
-                    key="notes"
-                    initial={{ opacity: 0, x: 10 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    exit={{ opacity: 0, x: -10 }}
-                    className="h-full flex flex-col"
-                  >
-                    <div className="flex items-center gap-2 mb-4">
-                      <FileText className="w-4 h-4 text-indigo-400" />
-                      <h4 className="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-400">Study Notebook</h4>
+                    {/* Topic Heading Card */}
+                    <div className="relative group">
+                       <div className="absolute -inset-1 bg-gradient-to-r from-indigo-500 to-purple-600 rounded-3xl blur opacity-10 group-hover:opacity-20 transition" />
+                       <div className="relative bg-[#111] p-8 rounded-3xl border border-white/10">
+                          <h4 className="text-2xl font-black tracking-tight leading-none uppercase mb-4">
+                            {aiData.topic || "Analyzing Content..."}
+                          </h4>
+                          <p className="text-xs font-medium text-zinc-400 leading-relaxed italic border-l-2 border-indigo-500 pl-4 py-1">
+                            {aiData.summary || "Extracting the core essence of this page..."}
+                          </p>
+                       </div>
                     </div>
-                    <textarea 
-                      value={notes}
-                      onChange={(e) => setNotes(e.target.value)}
-                      placeholder="Type your notes here... They'll be saved automatically."
-                      className="flex-1 w-full bg-zinc-900 border border-zinc-800 rounded-2xl p-6 text-sm outline-none focus:border-indigo-500 transition-all resize-none text-zinc-300"
-                    />
+
+                    {/* Key Points Grid */}
+                    <div className="space-y-4">
+                       <div className="flex items-center gap-2 px-1">
+                          <Zap className="w-3 h-3 text-amber-500" />
+                          <h5 className="text-[10px] font-black uppercase tracking-[0.3em] text-zinc-500">Essential Mastery Points</h5>
+                       </div>
+                       <div className="space-y-3">
+                          {aiData.keyPoints?.map((point, i) => (
+                            <motion.div 
+                              key={i}
+                              initial={{ opacity: 0, y: 10 }}
+                              animate={{ opacity: 1, y: 0 }}
+                              transition={{ delay: i * 0.1 }}
+                              className="p-4 bg-white/[0.02] border border-white/5 rounded-2xl flex items-start gap-4 hover:bg-white/[0.04] transition-colors group"
+                            >
+                               <div className="w-6 h-6 rounded-lg bg-zinc-800 flex items-center justify-center shrink-0 group-hover:bg-indigo-500 transition-colors">
+                                  <span className="text-[10px] font-black text-zinc-400 group-hover:text-white">{i + 1}</span>
+                               </div>
+                               <p className="text-[11px] font-medium text-zinc-300 leading-relaxed">{point}</p>
+                            </motion.div>
+                          ))}
+                       </div>
+                    </div>
+
+                    {/* Exam Traps (Sticky Style) */}
+                    <div className="space-y-4">
+                       <div className="flex items-center gap-2 px-1">
+                          <AlertTriangle className="w-3 h-3 text-red-500" />
+                          <h5 className="text-[10px] font-black uppercase tracking-[0.3em] text-zinc-500 text-red-500/70">Critical Exam Traps</h5>
+                       </div>
+                       <div className="grid grid-cols-1 gap-3">
+                          {aiData.examHints?.map((hint, i) => (
+                            <div key={i} className="p-5 bg-red-500/[0.03] border border-red-500/10 rounded-2xl relative overflow-hidden group">
+                               <div className="absolute top-0 right-0 p-2 opacity-10 group-hover:opacity-20 transition-opacity">
+                                  <AlertCircle className="w-8 h-8" />
+                               </div>
+                               <p className="text-[10px] font-black uppercase tracking-widest text-red-400 mb-2">{hint.type}</p>
+                               <p className="text-[11px] font-bold text-zinc-200 leading-relaxed">{hint.content}</p>
+                            </div>
+                          ))}
+                       </div>
+                    </div>
+
+                    {/* Interactive Quiz Card */}
+                    {aiData.quiz && aiData.quiz.length > 0 && (
+                      <div className="space-y-4">
+                         <div className="flex items-center gap-2 px-1">
+                            <Target className="w-3 h-3 text-indigo-500" />
+                            <h5 className="text-[10px] font-black uppercase tracking-[0.3em] text-zinc-500">Live Retention Check</h5>
+                         </div>
+                         <div className="bg-[#111] border border-white/10 rounded-[2.5rem] p-8 shadow-2xl">
+                            <h6 className="text-sm font-bold text-white mb-6 leading-relaxed">
+                               {aiData.quiz[0].question}
+                            </h6>
+                            <div className="space-y-2">
+                               {aiData.quiz[0].options.map((opt, i) => (
+                                 <button 
+                                   key={i}
+                                   onClick={() => setRevealedQuiz(i)}
+                                   className={cn(
+                                     "w-full p-4 rounded-2xl text-[11px] font-bold text-left transition-all border",
+                                     revealedQuiz === i 
+                                       ? (i === parseInt(aiData.quiz![0].answer) ? "bg-emerald-500 border-transparent text-white" : "bg-red-500 border-transparent text-white")
+                                       : "bg-white/5 border-transparent text-zinc-400 hover:bg-white/10 hover:text-zinc-200"
+                                   )}
+                                 >
+                                    <div className="flex items-center gap-3">
+                                       <span className="w-6 h-6 rounded-lg bg-black/20 flex items-center justify-center shrink-0">{String.fromCharCode(65 + i)}</span>
+                                       {opt}
+                                    </div>
+                                 </button>
+                               ))}
+                            </div>
+                            <AnimatePresence>
+                               {revealedQuiz !== null && (
+                                 <motion.div 
+                                   initial={{ opacity: 0, height: 0 }}
+                                   animate={{ opacity: 1, height: 'auto' }}
+                                   className="mt-6 pt-6 border-t border-white/10"
+                                 >
+                                    <p className="text-[10px] font-black uppercase tracking-widest text-zinc-500 mb-2">Explanatory Insight</p>
+                                    <p className="text-[11px] text-zinc-400 leading-relaxed italic">
+                                       {aiData.quiz[0].explanation}
+                                    </p>
+                                 </motion.div>
+                               )}
+                            </AnimatePresence>
+                         </div>
+                      </div>
+                    )}
+
+                    {/* Mode Buttons */}
+                    <div className="grid grid-cols-2 gap-3">
+                       <button 
+                        onClick={() => { setStudyMode('simple'); generateAIInsights('simple'); }}
+                        className="p-4 rounded-2xl bg-white/5 border border-white/10 hover:border-indigo-500/50 flex flex-col items-center gap-2 transition-all group"
+                       >
+                          <Sparkles className="w-4 h-4 text-indigo-400 group-hover:scale-110 transition-transform" />
+                          <span className="text-[9px] font-black uppercase tracking-widest">Explain Simpler</span>
+                       </button>
+                       <button 
+                        onClick={() => handleChatSend("Generate 5 flashcards for this page.")}
+                        className="p-4 rounded-2xl bg-white/5 border border-white/10 hover:border-purple-500/50 flex flex-col items-center gap-2 transition-all group"
+                       >
+                          <Layers className="w-4 h-4 text-purple-400 group-hover:scale-110 transition-transform" />
+                          <span className="text-[9px] font-black uppercase tracking-widest">Flashcards</span>
+                       </button>
+                    </div>
                   </motion.div>
                 )}
 
                 {activeTab === 'chat' && (
                   <motion.div
                     key="chat"
-                    initial={{ opacity: 0, x: 10 }}
+                    initial={{ opacity: 0, x: 20 }}
                     animate={{ opacity: 1, x: 0 }}
-                    exit={{ opacity: 0, x: -10 }}
+                    exit={{ opacity: 0, x: -20 }}
                     className="h-full flex flex-col"
                   >
-                    <div className="flex-1 space-y-6">
+                    <div className="flex-1 space-y-6 pb-20">
                       {chatMessages.length === 0 && (
-                        <div className="flex flex-col items-center justify-center h-full text-center space-y-4 opacity-30">
-                          <Bot className="w-12 h-12" />
-                          <p className="text-xs font-bold uppercase tracking-widest">Ask anything about this page</p>
+                        <div className="flex flex-col items-center justify-center h-full text-center space-y-6 opacity-20">
+                           <div className="w-20 h-20 rounded-[2.5rem] bg-indigo-500/10 flex items-center justify-center border border-indigo-500/20">
+                              <Bot className="w-10 h-10 text-indigo-400" />
+                           </div>
+                           <div>
+                              <p className="text-[10px] font-black uppercase tracking-[0.4em] text-white">Direct AI Sync</p>
+                              <p className="text-[10px] font-bold text-zinc-400 mt-2 max-w-[180px] mx-auto leading-relaxed">
+                                Ask about specific diagrams, tables, or complex paragraphs on this page.
+                              </p>
+                           </div>
                         </div>
                       )}
                       {chatMessages.map((msg, i) => (
@@ -281,43 +398,74 @@ function PdfViewer({ book, onClose, user }: { book: Book; onClose: () => void; u
                           msg.role === 'user' ? "items-end" : "items-start"
                         )}>
                           <div className={cn(
-                            "px-4 py-3 rounded-2xl text-[11px] max-w-[90%]",
-                            msg.role === 'user' ? "bg-indigo-500 text-white" : "bg-zinc-800 text-zinc-200"
+                            "px-5 py-4 rounded-3xl text-[11px] max-w-[90%] leading-relaxed",
+                            msg.role === 'user' 
+                              ? "bg-indigo-600 text-white shadow-xl shadow-indigo-600/10" 
+                              : "bg-[#111] border border-white/5 text-zinc-200"
                           )}>
                             <ReactMarkdown>{msg.text}</ReactMarkdown>
                           </div>
                         </div>
                       ))}
                       {isAnalyzing && (
-                        <div className="flex items-center gap-2 text-[9px] font-black text-zinc-500 uppercase tracking-widest animate-pulse">
-                          <Loader2 className="w-3 h-3 animate-spin" /> Thinking...
+                        <div className="flex items-center gap-3 text-[10px] font-black text-indigo-400 uppercase tracking-widest animate-pulse pl-2">
+                          <Loader2 className="w-4 h-4 animate-spin" /> Analyzing context...
                         </div>
                       )}
                       <div ref={chatEndRef} />
                     </div>
                   </motion.div>
                 )}
+
+                {activeTab === 'notes' && (
+                  <motion.div
+                    key="notes"
+                    initial={{ opacity: 0, x: 20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    exit={{ opacity: 0, x: -20 }}
+                    className="h-full flex flex-col"
+                  >
+                    <div className="flex-1 flex flex-col bg-[#080808] rounded-[2.5rem] border border-white/5 p-8 relative overflow-hidden group">
+                       <div className="absolute top-0 right-0 w-32 h-32 bg-indigo-500/5 blur-3xl -mt-16 -mr-16 group-hover:bg-indigo-500/10 transition-colors" />
+                       <div className="relative z-10 flex flex-col h-full">
+                          <div className="flex items-center gap-3 mb-6">
+                             <FileEdit className="w-4 h-4 text-indigo-400" />
+                             <h4 className="text-[10px] font-black uppercase tracking-[0.3em] text-zinc-500">Live Notebook</h4>
+                          </div>
+                          <textarea 
+                            value={notes}
+                            onChange={(e) => setNotes(e.target.value)}
+                            placeholder="Synthesize your learnings here... They're persisted to your session automatically."
+                            className="flex-1 w-full bg-transparent border-none text-sm font-medium leading-relaxed outline-none resize-none text-zinc-300 placeholder:text-zinc-700 placeholder:italic scrollbar-hide"
+                          />
+                       </div>
+                    </div>
+                  </motion.div>
+                )}
               </AnimatePresence>
             </div>
 
-            {/* Assistant Input (Sticky at bottom for Chat) */}
-            <div className="p-4 bg-zinc-950 border-t border-zinc-800">
-               <div className="relative">
-                  <input 
-                    type="text"
-                    value={chatInput}
-                    onChange={(e) => setChatInput(e.target.value)}
-                    onKeyDown={(e) => e.key === 'Enter' && handleChatSend()}
-                    placeholder={activeTab === 'chat' ? "Explain this simply..." : "Ask AI about this page..."}
-                    className="w-full bg-zinc-900 border border-zinc-800 rounded-xl py-4 pl-5 pr-12 text-[11px] outline-none focus:border-indigo-500 transition-all text-zinc-200"
-                  />
-                  <button 
-                    onClick={handleChatSend}
-                    disabled={isAnalyzing || !chatInput.trim()}
-                    className="absolute right-2 top-2 p-2 bg-indigo-500 text-white rounded-lg disabled:opacity-50"
-                  >
-                    <Send className="w-4 h-4" />
-                  </button>
+            {/* Sticky Input Area */}
+            <div className="p-6 bg-[#0a0a0a] border-t border-white/5">
+               <div className="relative group">
+                  <div className="absolute -inset-1 bg-gradient-to-r from-indigo-500 to-purple-600 rounded-2xl blur opacity-10 group-focus-within:opacity-30 transition" />
+                  <div className="relative flex items-center bg-[#111] border border-white/10 rounded-2xl px-5 py-4 focus-within:border-indigo-500/50 transition-all">
+                     <input 
+                       type="text"
+                       value={chatInput}
+                       onChange={(e) => setChatInput(e.target.value)}
+                       onKeyDown={(e) => e.key === 'Enter' && handleChatSend()}
+                       placeholder="Explain this simply..."
+                       className="flex-1 bg-transparent text-[11px] font-bold outline-none text-zinc-200 placeholder:text-zinc-600"
+                     />
+                     <button 
+                       onClick={() => handleChatSend()}
+                       disabled={isAnalyzing || !chatInput.trim()}
+                       className="ml-3 p-2 bg-indigo-500 text-white rounded-xl disabled:opacity-50 hover:scale-105 active:scale-95 transition-all shadow-lg shadow-indigo-500/20"
+                     >
+                       <Send className="w-4 h-4" />
+                     </button>
+                  </div>
                </div>
             </div>
           </div>
