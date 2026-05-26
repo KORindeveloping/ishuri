@@ -81,19 +81,19 @@ const SUBJECT_DOC_MAP: Record<string, string> = {
 };
 
 const CORE_SUBJECT_KEYWORDS: Record<string, string[]> = {
-  'Chemistry': ['chemistry', 'general'],
-  'Physics': ['physics', 'general'],
-  'Biology': ['biology', 'general', 'health'],
-  'Mathematics': ['math', 'mathematical', 'general'],
-  'Maths': ['math', 'mathematical', 'general'],
-  'English': ['english', 'literature', 'general'],
-  'Geography': ['geography', 'environment', 'general'],
-  'Entrepreneurship': ['entrepreneurship', 'business', 'general'],
-  'ICT': ['ict', 'computer', 'technology', 'general'],
-  'Ikinyarwanda': ['ikinyarwanda', 'general'],
-  'Francais': ['francais', 'french', 'general'],
-  'History': ['history', 'civics', 'general'],
-  'Economics': ['economics', 'general'],
+  'Chemistry': ['chemistry'],
+  'Physics': ['physics'],
+  'Biology': ['biology', 'health'],
+  'Mathematics': ['math', 'mathematical'],
+  'Maths': ['math', 'mathematical'],
+  'English': ['english', 'literature'],
+  'Geography': ['geography', 'environment'],
+  'Entrepreneurship': ['entrepreneurship', 'business'],
+  'ICT': ['ict', 'computer', 'technology'],
+  'Ikinyarwanda': ['ikinyarwanda'],
+  'Francais': ['francais', 'french'],
+  'History': ['history', 'civics'],
+  'Economics': ['economics'],
 };
 
 export const CourseLessonsAI = ({ user, onClose, initialCourse }: { user: User; onClose: () => void; initialCourse?: string | null }) => {
@@ -607,14 +607,6 @@ export const CourseLessonsAI = ({ user, onClose, initialCourse }: { user: User; 
                             </div>
                           )}
                         </div>
-                        
-                        {sortedCourseBooks.length === 0 && books.length > 0 && (
-                          <div className="text-center -mt-6">
-                            <p className="text-zinc-400 text-[10px] font-black uppercase tracking-widest">
-                              Showing all library resources (No direct match for {initialCourse})
-                            </p>
-                          </div>
-                        )}
                         
                         <div className="flex justify-center pt-8">
                           <button 
