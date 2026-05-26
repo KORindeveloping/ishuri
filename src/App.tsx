@@ -1122,6 +1122,8 @@ const FlashcardsView = ({ user, showToast }: { user: User, showToast: (m: string
   const [viewMode, setViewMode] = useState<'review' | 'library'>('review');
   const [newCard, setNewCard] = useState({ q: '', a: '', category: 'General' });
   const [isGenerating, setIsGenerating] = useState(false);
+  const [isAskingParams, setIsAskingParams] = useState(false);
+  const [genParams, setGenParams] = useState({ course: '', unit: '' });
 
   useEffect(() => {
     localStorage.setItem('tvet_flashcards', JSON.stringify(cards));
@@ -1158,11 +1160,17 @@ const FlashcardsView = ({ user, showToast }: { user: User, showToast: (m: string
   };
 
   const generateAiCards = async () => {
+    if (!genParams.course) {
+      setIsAskingParams(true);
+      return;
+    }
+
     setIsGenerating(true);
+    setIsAskingParams(false);
     try {
-      const prompt = `Act as a TVET Education Expert. Generate 5 professional, high-quality flashcards for a student studying ${user.trade || 'General Tech'} at the ${user.educationLevel || 'TVET'} level. 
-      The cards should cover core concepts, technical terms, or safety protocols.
-      Return ONLY a JSON array of objects with "q" (question), "a" (answer), and "category".
+      const prompt = `Act as a TVET Education Expert. Generate 5 professional, high-quality flashcards for a student studying ${genParams.course} ${genParams.unit ? `(Unit: ${genParams.unit})` : ''} at the ${user.educationLevel || 'TVET'} level. 
+      The cards should cover core concepts, technical terms, or safety protocols specifically from this curriculum area.
+      Return ONLY a JSON array of objects with "q" (question), "a" (answer), and "category" (which should be "${genParams.course}").
       Example: [{"q": "...", "a": "...", "category": "..."}]`;
       
       const response = await api.sendChatMessage(prompt, []);
@@ -1174,7 +1182,8 @@ const FlashcardsView = ({ user, showToast }: { user: User, showToast: (m: string
           nextReview: new Date().toISOString()
         }));
         setCards([...cards, ...generated]);
-        showToast("5 Professional cards generated!", "success");
+        showToast(`5 Cards for ${genParams.course} generated!`, "success");
+        setGenParams({ course: '', unit: '' });
       }
     } catch (e) {
       showToast("AI Generation failed.", "error");
@@ -1200,7 +1209,7 @@ const FlashcardsView = ({ user, showToast }: { user: User, showToast: (m: string
 
   return (
     <div className="space-y-12 pb-24">
-      <header className="flex flex-col md:flex-row md:items-end justify-between gap-8 bg-zinc-50 dark:bg-zinc-900/50 p-10 rounded-[3rem] border border-zinc-200 dark:border-zinc-800 relative overflow-hidden">
+      <header className="flex flex-col lg:flex-row lg:items-center justify-between gap-8 bg-zinc-50 dark:bg-zinc-900/50 p-10 rounded-[3rem] border border-zinc-200 dark:border-zinc-800 relative overflow-hidden">
         <div className="absolute top-0 right-0 w-64 h-64 bg-indigo-500/5 blur-3xl rounded-full -mr-32 -mt-32" />
         <div className="relative z-10">
           <div className="flex items-center gap-3 mb-4">
@@ -1215,8 +1224,8 @@ const FlashcardsView = ({ user, showToast }: { user: User, showToast: (m: string
           </h1>
         </div>
 
-        <div className="flex flex-wrap gap-4 relative z-10">
-          <div className="bg-white dark:bg-black p-1.5 rounded-2xl flex border border-zinc-200 dark:border-zinc-800 shadow-sm">
+        <div className="flex flex-wrap gap-4 relative z-10 lg:items-center">
+          <div className="bg-white dark:bg-black p-1.5 rounded-2xl flex border border-zinc-200 dark:border-zinc-800 shadow-sm h-fit">
             <button 
               onClick={() => setViewMode('review')}
               className={cn("px-6 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all", viewMode === 'review' ? "bg-zinc-900 dark:bg-white text-white dark:text-black shadow-xl" : "text-zinc-500 hover:text-zinc-900 dark:hover:text-white")}
@@ -1232,7 +1241,7 @@ const FlashcardsView = ({ user, showToast }: { user: User, showToast: (m: string
           </div>
           
           <button 
-            onClick={generateAiCards}
+            onClick={() => setIsAskingParams(true)}
             disabled={isGenerating}
             className="px-8 py-4 bg-indigo-500 text-white font-black uppercase tracking-widest text-[10px] rounded-2xl flex items-center gap-3 shadow-xl shadow-indigo-500/20 hover:scale-105 active:scale-95 transition-all disabled:opacity-50"
           >
@@ -1248,6 +1257,62 @@ const FlashcardsView = ({ user, showToast }: { user: User, showToast: (m: string
           </button>
         </div>
       </header>
+
+      <AnimatePresence>
+        {isAskingParams && (
+          <div className="fixed inset-0 z-[250] flex items-center justify-center p-6 bg-black/90 backdrop-blur-xl">
+            <motion.div 
+              initial={{ opacity: 0, scale: 0.9, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.9, y: 20 }}
+              className="w-full max-w-xl bg-zinc-900 rounded-[3.5rem] p-12 border border-white/10 shadow-2xl relative overflow-hidden"
+            >
+              <div className="absolute top-0 right-0 w-32 h-32 bg-indigo-500/10 blur-3xl -mr-16 -mt-16" />
+              <div className="flex items-center justify-between mb-12 relative z-10">
+                <div>
+                  <h2 className="text-2xl font-black text-white uppercase tracking-tight">AI Generation Core</h2>
+                  <p className="text-[10px] font-black text-zinc-500 uppercase tracking-widest mt-1">Specify curriculum area for extraction</p>
+                </div>
+                <button onClick={() => setIsAskingParams(false)} className="p-3 bg-zinc-800 text-white rounded-2xl hover:bg-zinc-700 transition-colors">
+                  <X className="w-6 h-6" />
+                </button>
+              </div>
+              
+              <div className="space-y-8 relative z-10">
+                <div className="space-y-3">
+                  <label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest ml-1">Select Course</label>
+                  <input 
+                    type="text"
+                    value={genParams.course}
+                    onChange={(e) => setGenParams({...genParams, course: e.target.value})}
+                    placeholder="e.g. Entrepreneurship, Physics..."
+                    className="w-full bg-black/50 border border-zinc-800 rounded-2xl px-8 py-5 text-white outline-none focus:border-indigo-500 transition-all font-bold"
+                  />
+                </div>
+                <div className="space-y-3">
+                  <label className="text-[10px] font-black text-zinc-500 uppercase tracking-widest ml-1">Specific Unit (Optional)</label>
+                  <input 
+                    type="text"
+                    value={genParams.unit}
+                    onChange={(e) => setGenParams({...genParams, unit: e.target.value})}
+                    placeholder="e.g. Unit 1, Engine Diagnostics..."
+                    className="w-full bg-black/50 border border-zinc-800 rounded-2xl px-8 py-5 text-white outline-none focus:border-indigo-500 transition-all font-bold"
+                  />
+                </div>
+                
+                <button 
+                  onClick={generateAiCards}
+                  disabled={!genParams.course || isGenerating}
+                  className="w-full py-6 bg-indigo-600 text-white rounded-[2rem] font-black uppercase tracking-widest text-xs shadow-xl shadow-indigo-600/20 hover:bg-indigo-500 transition-all mt-4 flex items-center justify-center gap-3 disabled:opacity-50 disabled:grayscale"
+                >
+                  {isGenerating ? <Loader2 className="w-5 h-5 animate-spin" /> : <Sparkles className="w-5 h-5" />}
+                  Initialize Neural Extraction
+                </button>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
 
       <div className="max-w-4xl mx-auto w-full">
         <AnimatePresence mode="wait">
