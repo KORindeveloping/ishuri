@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import logo from './assets/logo.jpg';
 import { 
   LayoutDashboard, 
   BookOpen, 
@@ -4140,7 +4141,7 @@ export default function App() {
         <div className="h-full flex flex-col p-6">
           <div className="flex items-center gap-3 mb-10 px-2">
             <div className="w-10 h-10 bg-zinc-900 dark:bg-white rounded-xl flex items-center justify-center shadow-lg shadow-black/10 dark:shadow-white/10 overflow-hidden">
-              <img src={`${import.meta.env.BASE_URL}icon2.jpg`} alt="Solearn" className="w-full h-full object-cover" />
+              <img src={logo} alt="Solearn" className="w-full h-full object-cover" />
             </div>            <div>
               <h2 className="font-black text-xl tracking-tight text-zinc-900 dark:text-white">So<span className="text-zinc-400 dark:text-zinc-500">learn</span></h2>
               <p className="text-[10px] font-bold text-zinc-400 dark:text-zinc-600 uppercase tracking-widest">Learning Platform</p>            </div>
