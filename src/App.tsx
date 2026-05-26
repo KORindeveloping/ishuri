@@ -346,7 +346,7 @@ const DashboardView = ({ user, onStartQuiz, onLogout, history, onNavigate, showT
         const generated = JSON.parse(jsonMatch[0]);
         setAiSubjects(generated);
         setIsAiDashboard(true);
-        showToast("AI Dashboard Architected!", "success");
+        showToast("Learning Workspace Ready!", "success");
       }
     } catch (e) {
       console.error(e);
@@ -373,7 +373,7 @@ const DashboardView = ({ user, onStartQuiz, onLogout, history, onNavigate, showT
                   </div>
                </div>
                <h3 className="text-2xl font-black text-white uppercase tracking-widest mb-4">
-                 {generatingQuiz === "AI_ARCHITECT" ? "Architecting Dashboard" : "AI Engine Active"}
+                 {generatingQuiz === "AI_ARCHITECT" ? "Syncing Workspace" : "Assistant Active"}
                </h3>
                <div className="h-6 overflow-hidden">
                  <motion.div
@@ -396,9 +396,9 @@ const DashboardView = ({ user, onStartQuiz, onLogout, history, onNavigate, showT
         <div className="absolute top-0 right-0 w-1/2 h-full bg-gradient-to-l from-black/[0.02] dark:from-white/[0.02] to-transparent pointer-events-none" />
         <div className="relative z-10">
           <div className="flex items-center gap-4 mb-8">
-            <div className="px-3.5 py-1.5 bg-zinc-900 dark:bg-white text-white dark:text-black text-[9px] font-black uppercase tracking-[0.3em] rounded-full shadow-[0_5px_15px_rgba(0,0,0,0.1)] dark:shadow-[0_5px_15px_rgba(255,255,255,0.1)]">Active Session</div>
+            <div className="px-3.5 py-1.5 bg-zinc-900 dark:bg-white text-white dark:text-black text-[9px] font-black uppercase tracking-[0.3em] rounded-full shadow-[0_5px_15px_rgba(0,0,0,0.1)] dark:shadow-[0_5px_15px_rgba(255,255,255,0.1)]">Current Session</div>
             <div className="flex items-center gap-1.5 px-2.5 py-1.5 bg-white dark:bg-zinc-900/50 backdrop-blur-md text-zinc-500 dark:text-zinc-400 text-[10px] font-black uppercase tracking-widest rounded-full border border-zinc-200 dark:border-white/[0.05]">
-              <Zap className="w-3.5 h-3.5 fill-current text-zinc-900 dark:text-white" /> Exam Prep Mode
+              <Zap className="w-3.5 h-3.5 fill-current text-zinc-900 dark:text-white" /> Review Mode
             </div>
           </div>
           <h1 className="text-4xl sm:text-5xl md:text-7xl font-black text-zinc-900 dark:text-white tracking-tighter mb-4 leading-[0.9]">
@@ -506,7 +506,7 @@ const DashboardView = ({ user, onStartQuiz, onLogout, history, onNavigate, showT
               <div>
                 <h2 className="text-xl font-black text-zinc-900 dark:text-white flex items-center gap-3 uppercase tracking-tight">
                   <BarChart3 className="w-6 h-6 text-zinc-400 dark:text-zinc-500" /> 
-                  {isAiDashboard ? 'AI Personalized Roadmap' : 'Subject Progress'}
+                  {isAiDashboard ? 'Smart Roadmap' : 'Subject Progress'}
                 </h2>
                 <p className="text-[10px] font-black text-zinc-500 uppercase tracking-widest mt-1">
                   {isAiDashboard ? 'Generated based on your study history' : 'Official National Curriculum'}
@@ -534,7 +534,7 @@ const DashboardView = ({ user, onStartQuiz, onLogout, history, onNavigate, showT
                   )}
                 >
                   <Sparkles className={cn("w-3.5 h-3.5", isAiDashboard && "animate-pulse")} />
-                  {isAiDashboard ? 'AI Dashboard Active' : 'Architect AI Dashboard'}
+                  {isAiDashboard ? 'Personalized View Active' : 'Create Roadmap'}
                 </button>
                 <button 
                   onClick={(e) => { e.stopPropagation(); onNavigate('analytics'); }}
@@ -4092,30 +4092,10 @@ export default function App() {
             <SidebarItem icon={FolderOpen} label="E-Portfolio" active={activeTab === 'portfolio'} onClick={() => handleTabChange('portfolio')} />
             <SidebarItem icon={ClipboardCheck} label="Past Papers" active={activeTab === 'papers'} onClick={() => handleTabChange('papers')} />
             <SidebarItem icon={Library} label="Book Library" active={activeTab === 'library'} onClick={() => handleTabChange('library')} />
-            <div className="mt-10 text-[10px] font-bold text-zinc-500 dark:text-zinc-600 uppercase tracking-widest mb-4 px-2">System</div>
             <SidebarItem icon={Settings} label="Settings" active={activeTab === 'settings'} onClick={() => handleTabChange('settings')} />
           </nav>
 
           <div className="mt-auto pt-8 border-t border-zinc-200 dark:border-white/[0.05]">
-            <div className="bg-zinc-100 dark:bg-black/40 rounded-3xl p-5 border border-zinc-200 dark:border-white/[0.05] mb-6">
-              <div className="flex items-center justify-between mb-4">
-                <p className="text-[9px] font-black text-zinc-400 dark:text-zinc-600 uppercase tracking-widest">System Engine</p>
-                <div className="flex items-center gap-1.5">
-                  <div className="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse" />
-                  <span className="text-[9px] font-black text-green-600 dark:text-green-500 uppercase">Online</span>
-                </div>
-              </div>
-              <div className="space-y-3">
-                <div className="flex justify-between items-end">
-                  <p className="text-[10px] font-bold text-zinc-500">AI Latency</p>
-                  <p className="text-[10px] font-black text-zinc-900 dark:text-white">24ms</p>
-                </div>
-                <div className="h-1 w-full bg-zinc-200 dark:bg-zinc-900 rounded-full overflow-hidden">
-                  <div className="h-full bg-zinc-900 dark:bg-white w-3/4" />
-                </div>
-              </div>
-            </div>
-
             <div className="flex items-center gap-4 px-3 mb-8">
               <div className="w-10 h-10 rounded-full bg-zinc-200 dark:bg-zinc-900 overflow-hidden border border-zinc-200 dark:border-zinc-800">
                 <img src="https://i.pravatar.cc/100?img=12" alt="profile" referrerPolicy="no-referrer" />
@@ -4185,10 +4165,6 @@ export default function App() {
               )}
             </AnimatePresence>
             <div className="w-px h-6 bg-zinc-200 dark:bg-zinc-800 mx-1 hidden sm:block" />
-            <div className="hidden sm:flex items-center gap-2.5 px-4 py-2 bg-zinc-100 dark:bg-zinc-900 text-zinc-500 dark:text-zinc-300 rounded-xl border border-zinc-200 dark:border-zinc-800">
-              <ShieldCheck className="w-4 h-4" />
-              <span className="text-[10px] font-black uppercase tracking-wider">Secure Protocol</span>
-            </div>
           </div>
         </header>
 

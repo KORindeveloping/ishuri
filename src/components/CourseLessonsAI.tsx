@@ -229,7 +229,7 @@ function PdfViewer({ book, onClose, user }: { book: Book; onClose: () => void; u
             </div>
 
             {/* Scrollable Content */}
-            <div className="flex-1 overflow-y-auto p-6 space-y-8 scrollbar-hide bg-gradient-to-b from-[#0a0a0a] to-[#050505]">
+            <div className="flex-1 overflow-y-auto p-8 space-y-12 scrollbar-hide bg-[#0a0a0a]">
               <AnimatePresence mode="wait">
                 {activeTab === 'tutor' && (
                   <motion.div
@@ -237,96 +237,83 @@ function PdfViewer({ book, onClose, user }: { book: Book; onClose: () => void; u
                     initial={{ opacity: 0, x: 20 }}
                     animate={{ opacity: 1, x: 0 }}
                     exit={{ opacity: 0, x: -20 }}
-                    className="space-y-8 pb-10"
+                    className="space-y-12 pb-10"
                   >
-                    {/* Active Topic Badge */}
-                    <div className="flex items-center gap-3">
-                       <div className="px-3 py-1 bg-indigo-500/10 border border-indigo-500/20 rounded-full">
-                          <span className="text-[10px] font-black uppercase tracking-[0.2em] text-indigo-400 italic">Current Topic</span>
-                       </div>
-                    </div>
-
-                    {/* Topic Heading Card */}
-                    <div className="relative group">
-                       <div className="absolute -inset-1 bg-gradient-to-r from-indigo-500 to-purple-600 rounded-3xl blur opacity-10 group-hover:opacity-20 transition" />
-                       <div className="relative bg-[#111] p-8 rounded-3xl border border-white/10">
-                          <h4 className="text-2xl font-black tracking-tight leading-none uppercase mb-4">
-                            {aiData.topic || "Analyzing Content..."}
-                          </h4>
-                          <p className="text-xs font-medium text-zinc-400 leading-relaxed italic border-l-2 border-indigo-500 pl-4 py-1">
-                            {aiData.summary || "Extracting the core essence of this page..."}
+                    {/* Active Topic Section */}
+                    <div className="space-y-4">
+                       <p className="text-[10px] font-black uppercase tracking-[0.3em] text-indigo-500/80">Current Topic</p>
+                       <h4 className="text-3xl font-black tracking-tight leading-[1.1] uppercase">
+                         {aiData.topic || "Reviewing content..."}
+                       </h4>
+                       <div className="p-6 bg-white/[0.03] border-l-4 border-indigo-500 rounded-r-2xl">
+                          <p className="text-sm font-medium text-zinc-300 leading-relaxed italic">
+                            "{aiData.summary || "Generating a quick breakdown for this page..."}"
                           </p>
                        </div>
                     </div>
 
-                    {/* Key Points Grid */}
-                    <div className="space-y-4">
-                       <div className="flex items-center gap-2 px-1">
-                          <Zap className="w-3 h-3 text-amber-500" />
-                          <h5 className="text-[10px] font-black uppercase tracking-[0.3em] text-zinc-500">Essential Mastery Points</h5>
+                    {/* Key Ideas Section */}
+                    <div className="space-y-6">
+                       <div className="flex items-center justify-between px-1">
+                          <h5 className="text-[10px] font-black uppercase tracking-[0.3em] text-zinc-500">Key Ideas to Remember</h5>
+                          <span className="text-[10px] font-bold text-zinc-700">Page {currentPage}</span>
                        </div>
-                       <div className="space-y-3">
+                       <div className="space-y-4">
                           {aiData.keyPoints?.map((point, i) => (
                             <motion.div 
                               key={i}
                               initial={{ opacity: 0, y: 10 }}
                               animate={{ opacity: 1, y: 0 }}
                               transition={{ delay: i * 0.1 }}
-                              className="p-4 bg-white/[0.02] border border-white/5 rounded-2xl flex items-start gap-4 hover:bg-white/[0.04] transition-colors group"
+                              className="p-5 bg-white/[0.02] border border-white/5 rounded-3xl flex items-start gap-5 hover:bg-white/[0.04] transition-colors"
                             >
-                               <div className="w-6 h-6 rounded-lg bg-zinc-800 flex items-center justify-center shrink-0 group-hover:bg-indigo-500 transition-colors">
-                                  <span className="text-[10px] font-black text-zinc-400 group-hover:text-white">{i + 1}</span>
+                               <div className="w-8 h-8 rounded-xl bg-zinc-900 flex items-center justify-center shrink-0 border border-white/5">
+                                  <span className="text-xs font-black text-zinc-500">{i + 1}</span>
                                </div>
-                               <p className="text-[11px] font-medium text-zinc-300 leading-relaxed">{point}</p>
+                               <p className="text-[13px] font-medium text-zinc-300 leading-relaxed">{point}</p>
                             </motion.div>
                           ))}
                        </div>
                     </div>
 
-                    {/* Exam Traps (Sticky Style) */}
-                    <div className="space-y-4">
-                       <div className="flex items-center gap-2 px-1">
-                          <AlertTriangle className="w-3 h-3 text-red-500" />
-                          <h5 className="text-[10px] font-black uppercase tracking-[0.3em] text-zinc-500 text-red-500/70">Critical Exam Traps</h5>
-                       </div>
-                       <div className="grid grid-cols-1 gap-3">
+                    {/* Common Mistakes Section */}
+                    <div className="space-y-6">
+                       <h5 className="text-[10px] font-black uppercase tracking-[0.3em] text-red-500/60 px-1">Common Exam Mistakes</h5>
+                       <div className="grid grid-cols-1 gap-4">
                           {aiData.examHints?.map((hint, i) => (
-                            <div key={i} className="p-5 bg-red-500/[0.03] border border-red-500/10 rounded-2xl relative overflow-hidden group">
-                               <div className="absolute top-0 right-0 p-2 opacity-10 group-hover:opacity-20 transition-opacity">
-                                  <AlertCircle className="w-8 h-8" />
+                            <div key={i} className="p-6 bg-red-500/[0.02] border border-red-500/10 rounded-[2rem] relative overflow-hidden">
+                               <div className="flex items-center gap-3 mb-3">
+                                  <AlertCircle className="w-4 h-4 text-red-500/50" />
+                                  <p className="text-[10px] font-black uppercase tracking-widest text-red-400">{hint.type}</p>
                                </div>
-                               <p className="text-[10px] font-black uppercase tracking-widest text-red-400 mb-2">{hint.type}</p>
-                               <p className="text-[11px] font-bold text-zinc-200 leading-relaxed">{hint.content}</p>
+                               <p className="text-sm font-bold text-zinc-200 leading-relaxed">{hint.content}</p>
                             </div>
                           ))}
                        </div>
                     </div>
 
-                    {/* Interactive Quiz Card */}
+                    {/* Quick Check Section */}
                     {aiData.quiz && aiData.quiz.length > 0 && (
-                      <div className="space-y-4">
-                         <div className="flex items-center gap-2 px-1">
-                            <Target className="w-3 h-3 text-indigo-500" />
-                            <h5 className="text-[10px] font-black uppercase tracking-[0.3em] text-zinc-500">Live Retention Check</h5>
-                         </div>
-                         <div className="bg-[#111] border border-white/10 rounded-[2.5rem] p-8 shadow-2xl">
-                            <h6 className="text-sm font-bold text-white mb-6 leading-relaxed">
+                      <div className="space-y-6">
+                         <h5 className="text-[10px] font-black uppercase tracking-[0.3em] text-zinc-500 px-1">Quick Check</h5>
+                         <div className="bg-[#111] border border-white/10 rounded-[2.5rem] p-10 shadow-2xl">
+                            <h6 className="text-lg font-black text-white mb-8 leading-tight">
                                {aiData.quiz[0].question}
                             </h6>
-                            <div className="space-y-2">
+                            <div className="space-y-3">
                                {aiData.quiz[0].options.map((opt, i) => (
                                  <button 
                                    key={i}
                                    onClick={() => setRevealedQuiz(i)}
                                    className={cn(
-                                     "w-full p-4 rounded-2xl text-[11px] font-bold text-left transition-all border",
+                                     "w-full p-5 rounded-[1.5rem] text-[13px] font-bold text-left transition-all border",
                                      revealedQuiz === i 
                                        ? (i === parseInt(aiData.quiz![0].answer) ? "bg-emerald-500 border-transparent text-white" : "bg-red-500 border-transparent text-white")
                                        : "bg-white/5 border-transparent text-zinc-400 hover:bg-white/10 hover:text-zinc-200"
                                    )}
                                  >
-                                    <div className="flex items-center gap-3">
-                                       <span className="w-6 h-6 rounded-lg bg-black/20 flex items-center justify-center shrink-0">{String.fromCharCode(65 + i)}</span>
+                                    <div className="flex items-center gap-4">
+                                       <span className="w-8 h-8 rounded-xl bg-black/20 flex items-center justify-center shrink-0 font-black text-xs">{String.fromCharCode(65 + i)}</span>
                                        {opt}
                                     </div>
                                  </button>
@@ -337,10 +324,10 @@ function PdfViewer({ book, onClose, user }: { book: Book; onClose: () => void; u
                                  <motion.div 
                                    initial={{ opacity: 0, height: 0 }}
                                    animate={{ opacity: 1, height: 'auto' }}
-                                   className="mt-6 pt-6 border-t border-white/10"
+                                   className="mt-8 pt-8 border-t border-white/10"
                                  >
-                                    <p className="text-[10px] font-black uppercase tracking-widest text-zinc-500 mb-2">Explanatory Insight</p>
-                                    <p className="text-[11px] text-zinc-400 leading-relaxed italic">
+                                    <p className="text-[10px] font-black uppercase tracking-widest text-indigo-400 mb-3">Expert Explanation</p>
+                                    <p className="text-sm text-zinc-400 leading-relaxed italic">
                                        {aiData.quiz[0].explanation}
                                     </p>
                                  </motion.div>
@@ -350,22 +337,29 @@ function PdfViewer({ book, onClose, user }: { book: Book; onClose: () => void; u
                       </div>
                     )}
 
-                    {/* Mode Buttons */}
-                    <div className="grid grid-cols-2 gap-3">
-                       <button 
-                        onClick={() => { setStudyMode('simple'); generateAIInsights('simple'); }}
-                        className="p-4 rounded-2xl bg-white/5 border border-white/10 hover:border-indigo-500/50 flex flex-col items-center gap-2 transition-all group"
-                       >
-                          <Sparkles className="w-4 h-4 text-indigo-400 group-hover:scale-110 transition-transform" />
-                          <span className="text-[9px] font-black uppercase tracking-widest">Explain Simpler</span>
-                       </button>
-                       <button 
-                        onClick={() => handleChatSend("Generate 5 flashcards for this page.")}
-                        className="p-4 rounded-2xl bg-white/5 border border-white/10 hover:border-purple-500/50 flex flex-col items-center gap-2 transition-all group"
-                       >
-                          <Layers className="w-4 h-4 text-purple-400 group-hover:scale-110 transition-transform" />
-                          <span className="text-[9px] font-black uppercase tracking-widest">Flashcards</span>
-                       </button>
+                    {/* Smart Actions */}
+                    <div className="space-y-4">
+                       <p className="text-[10px] font-black uppercase tracking-[0.3em] text-zinc-500 px-1">Study Tools</p>
+                       <div className="grid grid-cols-2 gap-4">
+                          <button 
+                            onClick={() => { setStudyMode('simple'); generateAIInsights('simple'); }}
+                            className="p-6 rounded-[2rem] bg-indigo-500/5 border border-indigo-500/10 hover:border-indigo-500 transition-all flex flex-col items-center gap-3 group"
+                          >
+                             <div className="w-10 h-10 rounded-2xl bg-indigo-500/10 flex items-center justify-center group-hover:scale-110 transition-transform">
+                                <Sparkles className="w-5 h-5 text-indigo-400" />
+                             </div>
+                             <span className="text-[10px] font-black uppercase tracking-widest text-indigo-400">Explain Like Beginner</span>
+                          </button>
+                          <button 
+                            onClick={() => handleChatSend("Generate 5 flashcards for this page.")}
+                            className="p-6 rounded-[2rem] bg-purple-500/5 border border-purple-500/10 hover:border-purple-500 transition-all flex flex-col items-center gap-3 group"
+                          >
+                             <div className="w-10 h-10 rounded-2xl bg-purple-500/10 flex items-center justify-center group-hover:scale-110 transition-transform">
+                                <Layers className="w-5 h-5 text-purple-400" />
+                             </div>
+                             <span className="text-[10px] font-black uppercase tracking-widest text-purple-400">Flashcards</span>
+                          </button>
+                       </div>
                     </div>
                   </motion.div>
                 )}
@@ -378,27 +372,27 @@ function PdfViewer({ book, onClose, user }: { book: Book; onClose: () => void; u
                     exit={{ opacity: 0, x: -20 }}
                     className="h-full flex flex-col"
                   >
-                    <div className="flex-1 space-y-6 pb-20">
+                    <div className="flex-1 space-y-8 pb-20">
                       {chatMessages.length === 0 && (
-                        <div className="flex flex-col items-center justify-center h-full text-center space-y-6 opacity-20">
-                           <div className="w-20 h-20 rounded-[2.5rem] bg-indigo-500/10 flex items-center justify-center border border-indigo-500/20">
-                              <Bot className="w-10 h-10 text-indigo-400" />
+                        <div className="flex flex-col items-center justify-center h-full text-center space-y-8 opacity-20">
+                           <div className="w-24 h-24 rounded-[3rem] bg-indigo-500/10 flex items-center justify-center border border-indigo-500/20">
+                              <MessageSquare className="w-10 h-10 text-indigo-400" />
                            </div>
-                           <div>
-                              <p className="text-[10px] font-black uppercase tracking-[0.4em] text-white">Direct AI Sync</p>
-                              <p className="text-[10px] font-bold text-zinc-400 mt-2 max-w-[180px] mx-auto leading-relaxed">
-                                Ask about specific diagrams, tables, or complex paragraphs on this page.
+                           <div className="space-y-3">
+                              <p className="text-[11px] font-black uppercase tracking-[0.5em] text-white">Assistant Sync</p>
+                              <p className="text-xs font-bold text-zinc-500 max-w-[200px] mx-auto leading-relaxed">
+                                Need a deeper explanation? Ask anything about the current section.
                               </p>
                            </div>
                         </div>
                       )}
                       {chatMessages.map((msg, i) => (
                         <div key={i} className={cn(
-                          "flex flex-col gap-2",
+                          "flex flex-col gap-3",
                           msg.role === 'user' ? "items-end" : "items-start"
                         )}>
                           <div className={cn(
-                            "px-5 py-4 rounded-3xl text-[11px] max-w-[90%] leading-relaxed",
+                            "px-6 py-5 rounded-[2rem] text-[13px] max-w-[90%] leading-relaxed",
                             msg.role === 'user' 
                               ? "bg-indigo-600 text-white shadow-xl shadow-indigo-600/10" 
                               : "bg-[#111] border border-white/5 text-zinc-200"
@@ -409,7 +403,7 @@ function PdfViewer({ book, onClose, user }: { book: Book; onClose: () => void; u
                       ))}
                       {isAnalyzing && (
                         <div className="flex items-center gap-3 text-[10px] font-black text-indigo-400 uppercase tracking-widest animate-pulse pl-2">
-                          <Loader2 className="w-4 h-4 animate-spin" /> Analyzing context...
+                          <Loader2 className="w-4 h-4 animate-spin" /> Reviewing page...
                         </div>
                       )}
                       <div ref={chatEndRef} />
@@ -425,18 +419,17 @@ function PdfViewer({ book, onClose, user }: { book: Book; onClose: () => void; u
                     exit={{ opacity: 0, x: -20 }}
                     className="h-full flex flex-col"
                   >
-                    <div className="flex-1 flex flex-col bg-[#080808] rounded-[2.5rem] border border-white/5 p-8 relative overflow-hidden group">
-                       <div className="absolute top-0 right-0 w-32 h-32 bg-indigo-500/5 blur-3xl -mt-16 -mr-16 group-hover:bg-indigo-500/10 transition-colors" />
+                    <div className="flex-1 flex flex-col bg-[#080808] rounded-[3rem] border border-white/5 p-10 relative overflow-hidden">
                        <div className="relative z-10 flex flex-col h-full">
-                          <div className="flex items-center gap-3 mb-6">
-                             <FileEdit className="w-4 h-4 text-indigo-400" />
-                             <h4 className="text-[10px] font-black uppercase tracking-[0.3em] text-zinc-500">Live Notebook</h4>
+                          <div className="flex items-center gap-4 mb-8">
+                             <FileEdit className="w-5 h-5 text-indigo-400" />
+                             <h4 className="text-[10px] font-black uppercase tracking-[0.4em] text-zinc-500">Study Notebook</h4>
                           </div>
                           <textarea 
                             value={notes}
                             onChange={(e) => setNotes(e.target.value)}
-                            placeholder="Synthesize your learnings here... They're persisted to your session automatically."
-                            className="flex-1 w-full bg-transparent border-none text-sm font-medium leading-relaxed outline-none resize-none text-zinc-300 placeholder:text-zinc-700 placeholder:italic scrollbar-hide"
+                            placeholder="Jot down your synthesis... I'll keep them safe for you."
+                            className="flex-1 w-full bg-transparent border-none text-[15px] font-medium leading-relaxed outline-none resize-none text-zinc-300 placeholder:text-zinc-700 placeholder:italic scrollbar-hide"
                           />
                        </div>
                     </div>
@@ -1047,7 +1040,7 @@ export const CourseLessonsAI = ({ user, onClose, initialCourse }: { user: User; 
                         <Bot className="w-5 h-5 text-white" />
                       </div>
                       <div>
-                        <h3 className="font-black text-zinc-900 dark:text-white uppercase tracking-tight text-sm">AI Tutor</h3>
+                        <h3 className="font-black text-zinc-900 dark:text-white uppercase tracking-tight text-sm">Study Assistant</h3>
                         <p className="text-[10px] font-bold text-emerald-500 uppercase tracking-widest flex items-center gap-1">
                           <span className="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-pulse" /> Online
                         </p>
