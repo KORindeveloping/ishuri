@@ -17,7 +17,8 @@ import {
   Download,
   CheckCircle2,
   Lock,
-  Unlock
+  Unlock,
+  AlertTriangle
 } from 'lucide-react';
 import { api } from '../lib/api';
 import ReactMarkdown from 'react-markdown';
@@ -32,33 +33,296 @@ function getUnitNumber(title?: string): number {
   return match ? parseInt(match[1], 10) : 999;
 }
 
-// ─── PDF Viewer modal ─────────────────────────────────────────────────────────
-function PdfViewer({ book, onClose }: { book: Book; onClose: () => void }) {
+// ─── AI Study Workspace (Redesigned PDF Viewer) ────────────────────────────────
+function PdfViewer({ book, onClose, user }: { book: Book; onClose: () => void; user: User }) {
+  const [activeTab, setActiveTab] = useState<'summary' | 'questions' | 'notes' | 'chat'>('summary');
+  const [summary, setSummary] = useState<string>('');
+  const [questions, setQuestions] = useState<string>('');
+  const [hints, setHints] = useState<string>('');
+  const [chatInput, setChatInput] = useState('');
+  const [chatMessages, setChatMessages] = useState<{ role: 'user' | 'ai', text: string }[]>([]);
+  const [isAnalyzing, setIsAnalyzing] = useState(false);
+  const [notes, setNotes] = useState<string>(() => localStorage.getItem(`notes_${book.id}`) || '');
+
+  const chatEndRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    localStorage.setItem(`notes_${book.id}`, notes);
+  }, [notes, book.id]);
+
+  useEffect(() => {
+    chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, [chatMessages]);
+
+  const generateAIInsights = async () => {
+    setIsAnalyzing(true);
+    try {
+      const prompt = `You are a TVET Study Architect. The student is reading "${book.title}" (Subject: ${book.subject}).
+      Generate 3 things in a structured format:
+      1. A concise summary of the core concepts in this unit.
+      2. 3 likely exam questions based on this unit.
+      3. 2 critical "Exam Hints" or "Cheat Sheet" tips.
+      
+      Format your response clearly so I can parse it. Use headings like [SUMMARY], [QUESTIONS], [HINTS].`;
+
+      const response = await api.sendChatMessage(prompt, []);
+      const text = response.reply;
+      
+      const summaryMatch = text.match(/\[SUMMARY\]([\s\S]*?)(?=\[|$)/i);
+      const questionsMatch = text.match(/\[QUESTIONS\]([\s\S]*?)(?=\[|$)/i);
+      const hintsMatch = text.match(/\[HINTS\]([\s\S]*?)(?=\[|$)/i);
+
+      if (summaryMatch) setSummary(summaryMatch[1].trim());
+      if (questionsMatch) setQuestions(questionsMatch[1].trim());
+      if (hintsMatch) setHints(hintsMatch[1].trim());
+
+    } catch (e) {
+      console.error("AI Insight generation failed", e);
+    } finally {
+      setIsAnalyzing(false);
+    }
+  };
+
+  useEffect(() => {
+    generateAIInsights();
+  }, [book.id]);
+
+  const handleChatSend = async () => {
+    if (!chatInput.trim()) return;
+    const userMsg = chatInput;
+    setChatMessages(prev => [...prev, { role: 'user', text: userMsg }]);
+    setChatInput('');
+    setIsAnalyzing(true);
+
+    try {
+      const response = await api.sendChatMessage(userMsg, chatMessages.map(m => ({
+        role: m.role === 'user' ? 'user' : 'model',
+        parts: [{ text: m.text }]
+      })));
+      setChatMessages(prev => [...prev, { role: 'ai', text: response.reply }]);
+    } catch (e) {
+      setChatMessages(prev => [...prev, { role: 'ai', text: "Sorry, I'm having trouble connecting." }]);
+    } finally {
+      setIsAnalyzing(false);
+    }
+  };
+
   return (
-    <div className="fixed inset-0 z-[300] bg-black/80 flex items-center justify-center p-4" role="dialog" aria-modal="true" aria-label={`Reading: ${book.title}`}>
-      <div className="bg-white dark:bg-black w-full max-w-5xl h-[90vh] rounded-3xl overflow-hidden flex flex-col">
-        <div className="flex items-center justify-between p-4 border-b dark:border-zinc-800">
-          <div className="flex flex-col">
-            <span className="font-bold text-lg dark:text-white">{book.title}</span>
-            <span className="text-xs text-zinc-500">by {book.author}</span>
+    <div className="fixed inset-0 z-[300] bg-black flex items-center justify-center overflow-hidden" role="dialog" aria-modal="true">
+      <motion.div 
+        initial={{ opacity: 0, scale: 0.98 }}
+        animate={{ opacity: 1, scale: 1 }}
+        className="w-full h-full flex flex-col bg-zinc-950 text-white"
+      >
+        {/* Workspace Header */}
+        <header className="h-16 border-b border-zinc-800 flex items-center justify-between px-6 bg-zinc-950 shrink-0">
+          <div className="flex items-center gap-4">
+            <div className="w-8 h-8 rounded-lg bg-indigo-500 flex items-center justify-center">
+              <BookOpen className="w-4 h-4 text-white" />
+            </div>
+            <div>
+              <h3 className="font-black text-sm uppercase tracking-tight">{book.title}</h3>
+              <p className="text-[10px] text-zinc-500 font-bold uppercase tracking-widest">AI Study Workspace</p>
+            </div>
           </div>
-          <button 
-            className="px-6 py-2.5 bg-red-500 hover:bg-red-600 text-white rounded-xl font-black uppercase tracking-widest text-[10px] flex items-center gap-2 transition-colors shadow-lg shadow-red-500/20" 
-            onClick={onClose} 
-            aria-label="Close reader"
-          >
-            <X className="w-4 h-4" /> Close Book
-          </button>
+          <div className="flex items-center gap-4">
+            <div className="flex items-center gap-2 px-3 py-1 bg-zinc-900 rounded-full border border-zinc-800">
+               <div className="w-1.5 h-1.5 bg-indigo-500 rounded-full animate-pulse" />
+               <span className="text-[9px] font-black uppercase tracking-widest text-zinc-400">AI Sync Active</span>
+            </div>
+            <button 
+              onClick={onClose}
+              className="p-2 hover:bg-zinc-800 rounded-xl transition-colors text-zinc-500 hover:text-white"
+            >
+              <X className="w-5 h-5" />
+            </button>
+          </div>
+        </header>
+
+        <div className="flex-1 flex overflow-hidden">
+          {/* Left Side: PDF Viewer (70%) */}
+          <div className="flex-[0.7] bg-zinc-900 relative flex flex-col border-r border-zinc-800">
+            <iframe
+              src={`${book.pdfUrl}#toolbar=1&navpanes=0&scrollbar=1`}
+              title={book.title}
+              className="w-full h-full border-none invert dark:invert-0"
+              allow="fullscreen"
+            />
+          </div>
+
+          {/* Right Side: AI Assistant Panel (30%) */}
+          <div className="flex-[0.3] flex flex-col bg-zinc-950 overflow-hidden relative">
+            {/* Tabs */}
+            <div className="flex items-center p-2 bg-zinc-900 border-b border-zinc-800 shrink-0">
+              {[
+                { id: 'summary', label: 'Summary', icon: FileText },
+                { id: 'questions', label: 'Questions', icon: Target },
+                { id: 'notes', label: 'Notes', icon: FileText },
+                { id: 'chat', label: 'Chat', icon: Bot }
+              ].map(tab => (
+                <button
+                  key={tab.id}
+                  onClick={() => setActiveTab(tab.id as any)}
+                  className={cn(
+                    "flex-1 flex flex-col items-center py-2 gap-1 transition-all rounded-xl",
+                    activeTab === tab.id ? "bg-zinc-800 text-white" : "text-zinc-500 hover:text-zinc-300"
+                  )}
+                >
+                  <tab.icon className="w-4 h-4" />
+                  <span className="text-[8px] font-black uppercase tracking-widest">{tab.label}</span>
+                </button>
+              ))}
+            </div>
+
+            {/* Tab Content */}
+            <div className="flex-1 overflow-y-auto p-6 space-y-8 custom-scrollbar">
+              <AnimatePresence mode="wait">
+                {activeTab === 'summary' && (
+                  <motion.div
+                    key="summary"
+                    initial={{ opacity: 0, x: 10 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    exit={{ opacity: 0, x: -10 }}
+                    className="space-y-8"
+                  >
+                    <section className="space-y-4">
+                      <div className="flex items-center gap-2">
+                        <Sparkles className="w-4 h-4 text-indigo-400" />
+                        <h4 className="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-400">AI Auto-Summary</h4>
+                      </div>
+                      <div className="p-5 bg-zinc-900/50 rounded-2xl border border-zinc-800 text-xs leading-relaxed text-zinc-300 prose prose-invert prose-sm">
+                        {isAnalyzing && !summary ? (
+                          <div className="flex flex-col gap-2">
+                            <div className="h-4 w-3/4 bg-zinc-800 rounded animate-pulse" />
+                            <div className="h-4 w-full bg-zinc-800 rounded animate-pulse" />
+                            <div className="h-4 w-5/6 bg-zinc-800 rounded animate-pulse" />
+                          </div>
+                        ) : (
+                          <ReactMarkdown>{summary || "Generating summary..."}</ReactMarkdown>
+                        )}
+                      </div>
+                    </section>
+
+                    <section className="space-y-4">
+                      <div className="flex items-center gap-2">
+                        <AlertTriangle className="w-4 h-4 text-amber-500" />
+                        <h4 className="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-400">Exam Hints</h4>
+                      </div>
+                      <div className="p-5 bg-amber-500/5 rounded-2xl border border-amber-500/10 text-xs leading-relaxed text-amber-200/80">
+                         <ReactMarkdown>{hints || "Identifying critical points..."}</ReactMarkdown>
+                      </div>
+                    </section>
+                  </motion.div>
+                )}
+
+                {activeTab === 'questions' && (
+                  <motion.div
+                    key="questions"
+                    initial={{ opacity: 0, x: 10 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    exit={{ opacity: 0, x: -10 }}
+                    className="space-y-6"
+                  >
+                    <div className="flex items-center gap-2">
+                      <Target className="w-4 h-4 text-indigo-400" />
+                      <h4 className="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-400">Practice Challenges</h4>
+                    </div>
+                    <div className="prose prose-invert prose-sm bg-zinc-900/50 p-6 rounded-2xl border border-zinc-800">
+                      <ReactMarkdown>{questions || "Formulating questions..."}</ReactMarkdown>
+                    </div>
+                    <button 
+                      onClick={generateAIInsights}
+                      className="w-full py-4 bg-zinc-900 hover:bg-zinc-800 text-zinc-400 hover:text-white rounded-xl text-[10px] font-black uppercase tracking-widest transition-all border border-zinc-800"
+                    >
+                      Regenerate Questions
+                    </button>
+                  </motion.div>
+                )}
+
+                {activeTab === 'notes' && (
+                  <motion.div
+                    key="notes"
+                    initial={{ opacity: 0, x: 10 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    exit={{ opacity: 0, x: -10 }}
+                    className="h-full flex flex-col"
+                  >
+                    <div className="flex items-center gap-2 mb-4">
+                      <FileText className="w-4 h-4 text-indigo-400" />
+                      <h4 className="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-400">Study Notebook</h4>
+                    </div>
+                    <textarea 
+                      value={notes}
+                      onChange={(e) => setNotes(e.target.value)}
+                      placeholder="Type your notes here... They'll be saved automatically."
+                      className="flex-1 w-full bg-zinc-900 border border-zinc-800 rounded-2xl p-6 text-sm outline-none focus:border-indigo-500 transition-all resize-none text-zinc-300"
+                    />
+                  </motion.div>
+                )}
+
+                {activeTab === 'chat' && (
+                  <motion.div
+                    key="chat"
+                    initial={{ opacity: 0, x: 10 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    exit={{ opacity: 0, x: -10 }}
+                    className="h-full flex flex-col"
+                  >
+                    <div className="flex-1 space-y-6">
+                      {chatMessages.length === 0 && (
+                        <div className="flex flex-col items-center justify-center h-full text-center space-y-4 opacity-30">
+                          <Bot className="w-12 h-12" />
+                          <p className="text-xs font-bold uppercase tracking-widest">Ask anything about this page</p>
+                        </div>
+                      )}
+                      {chatMessages.map((msg, i) => (
+                        <div key={i} className={cn(
+                          "flex flex-col gap-2",
+                          msg.role === 'user' ? "items-end" : "items-start"
+                        )}>
+                          <div className={cn(
+                            "px-4 py-3 rounded-2xl text-[11px] max-w-[90%]",
+                            msg.role === 'user' ? "bg-indigo-500 text-white" : "bg-zinc-800 text-zinc-200"
+                          )}>
+                            <ReactMarkdown>{msg.text}</ReactMarkdown>
+                          </div>
+                        </div>
+                      ))}
+                      {isAnalyzing && (
+                        <div className="flex items-center gap-2 text-[9px] font-black text-zinc-500 uppercase tracking-widest animate-pulse">
+                          <Loader2 className="w-3 h-3 animate-spin" /> Thinking...
+                        </div>
+                      )}
+                      <div ref={chatEndRef} />
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
+
+            {/* Assistant Input (Sticky at bottom for Chat) */}
+            <div className="p-4 bg-zinc-950 border-t border-zinc-800">
+               <div className="relative">
+                  <input 
+                    type="text"
+                    value={chatInput}
+                    onChange={(e) => setChatInput(e.target.value)}
+                    onKeyDown={(e) => e.key === 'Enter' && handleChatSend()}
+                    placeholder={activeTab === 'chat' ? "Explain this simply..." : "Ask AI about this page..."}
+                    className="w-full bg-zinc-900 border border-zinc-800 rounded-xl py-4 pl-5 pr-12 text-[11px] outline-none focus:border-indigo-500 transition-all text-zinc-200"
+                  />
+                  <button 
+                    onClick={handleChatSend}
+                    disabled={isAnalyzing || !chatInput.trim()}
+                    className="absolute right-2 top-2 p-2 bg-indigo-500 text-white rounded-lg disabled:opacity-50"
+                  >
+                    <Send className="w-4 h-4" />
+                  </button>
+               </div>
+            </div>
+          </div>
         </div>
-        <div className="flex-1 bg-zinc-100 dark:bg-zinc-900">
-          <iframe
-            src={`${book.pdfUrl}#toolbar=1&navpanes=1`}
-            title={book.title}
-            className="w-full h-full border-none"
-            allow="fullscreen"
-          />
-        </div>
-      </div>
+      </motion.div>
     </div>
   );
 }
@@ -712,7 +976,7 @@ export const CourseLessonsAI = ({ user, onClose, initialCourse }: { user: User; 
                 </div>
               </div>
               <AnimatePresence>
-                {openBook && <PdfViewer book={openBook} onClose={handleCloseBook} />}
+                {openBook && <PdfViewer book={openBook} onClose={handleCloseBook} user={user} />}
               </AnimatePresence>
             </motion.div>
           ) : (
