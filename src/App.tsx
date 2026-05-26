@@ -4162,12 +4162,25 @@ export default function App() {
 
           <div className="mt-auto pt-8 border-t border-zinc-200 dark:border-white/[0.05]">
             <div className="flex items-center gap-4 px-3 mb-8">
-              <div className="w-10 h-10 rounded-full bg-zinc-200 dark:bg-zinc-900 overflow-hidden border border-zinc-200 dark:border-zinc-800">
-                <img src="https://i.pravatar.cc/100?img=12" alt="profile" referrerPolicy="no-referrer" />
+              <div className="w-10 h-10 rounded-full bg-zinc-200 dark:bg-zinc-900 overflow-hidden border border-zinc-200 dark:border-zinc-800 flex items-center justify-center">
+                {user.avatarUrl ? (
+                  <img 
+                    src={user.avatarUrl.startsWith('http') ? user.avatarUrl : `http://localhost:5000${user.avatarUrl}`} 
+                    alt="profile" 
+                    className="w-full h-full object-cover" 
+                    referrerPolicy="no-referrer" 
+                  />
+                ) : (
+                  <img 
+                    src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${user.name}`} 
+                    alt="profile" 
+                    className="w-full h-full object-cover" 
+                  />
+                )}
               </div>
               <div className="flex-1 min-w-0">
                 <p className="text-sm font-bold text-zinc-900 dark:text-white truncate">{user.name}</p>
-                <p className="text-xs text-zinc-500 dark:text-zinc-500 truncate">{user.trade} Student</p>
+                <p className="text-xs text-zinc-500 dark:text-zinc-500 truncate">{user.trade || (user.educationLevel === 'Lower Secondary (Senior 1-3)' ? 'Lower Secondary' : 'TVET')} Student</p>
               </div>
             </div>
             <button 
