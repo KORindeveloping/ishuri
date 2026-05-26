@@ -607,20 +607,6 @@ export const CourseLessonsAI = ({ user, onClose, initialCourse }: { user: User; 
                             </div>
                           )}
                         </div>
-                        
-                        <div className="flex justify-center pt-8">
-                          <button 
-                            onClick={() => {
-                              if (messages.length === 0) {
-                                handleSend(`I want to explore ${initialCourse} and see a roadmap`);
-                              }
-                              setStage('CONSULTING');
-                            }}
-                            className="text-[10px] font-black text-zinc-400 hover:text-zinc-900 dark:hover:text-white uppercase tracking-[0.3em] transition-colors border-b border-zinc-200 dark:border-zinc-800 pb-1"
-                          >
-                            Skip to AI Consultant
-                          </button>
-                        </div>
                       </motion.div>
                     ) : messages.map((msg) => (
                       <motion.div 
@@ -666,127 +652,129 @@ export const CourseLessonsAI = ({ user, onClose, initialCourse }: { user: User; 
                     <div ref={messagesEndRef} />
                   </div>
                 </div>
+              </div>
 
-                <footer className="p-5 sm:p-6 md:p-8 bg-white dark:bg-black border-t border-zinc-200 dark:border-zinc-800">
-                  <div className="max-w-4xl mx-auto flex gap-4">
+              {/* Sidebar Plan View */}
+              <div className="w-[450px] bg-zinc-50 dark:bg-[#050505] border-l border-zinc-200 dark:border-zinc-800 flex flex-col p-10 overflow-hidden hidden lg:flex">
+                <div className="flex-1 overflow-y-auto pr-2 scrollbar-hide">
+                  <div className="flex items-center gap-4 mb-12">
+                    <div className="w-10 h-10 rounded-xl bg-zinc-900 dark:bg-white flex items-center justify-center">
+                      <Target className="w-5 h-5 text-white dark:text-black" />
+                    </div>
+                    <h4 className="text-[10px] font-black text-zinc-500 uppercase tracking-[0.4em]">Learning Roadmap</h4>
+                  </div>
+                  
+                  <AnimatePresence mode="wait">
+                    {lessonPlan ? (
+                      <motion.div 
+                        key="plan"
+                        initial={{ opacity: 0, x: 20 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        className="space-y-12"
+                      >
+                        <div className="space-y-8">
+                          {lessonPlan.chapters.map((chapter, i) => (
+                            <button
+                              key={i}
+                              onClick={() => setSelectedChapter(chapter)}
+                              className={cn(
+                                "w-full group flex items-start gap-4 p-6 rounded-3xl border transition-all text-left relative overflow-hidden",
+                                selectedChapter === chapter 
+                                  ? "bg-zinc-900 dark:bg-white border-zinc-900 dark:border-white shadow-2xl" 
+                                  : "bg-white dark:bg-zinc-900 border-zinc-200 dark:border-zinc-800 hover:border-zinc-300 dark:hover:border-zinc-700 shadow-sm"
+                              )}
+                            >
+                              <div className={cn(
+                                "w-10 h-10 rounded-2xl flex items-center justify-center shrink-0 border transition-all",
+                                selectedChapter === chapter ? "bg-white/10 dark:bg-black/5 border-white/20 dark:border-black/10" : "bg-zinc-50 dark:bg-zinc-800 border-zinc-200 dark:border-zinc-700"
+                              )}>
+                                <span className={cn("text-xs font-black", selectedChapter === chapter ? "text-white dark:text-black" : "text-zinc-400")}>
+                                  {i + 1}
+                                </span>
+                              </div>
+                              <div className="flex-1">
+                                <p className={cn("text-[10px] font-black uppercase tracking-widest mb-1", selectedChapter === chapter ? "text-zinc-400 dark:text-zinc-500" : "text-zinc-500")}>
+                                  Module {i + 1}
+                                </p>
+                                <h5 className={cn("font-black text-lg tracking-tight leading-none uppercase", selectedChapter === chapter ? "text-white dark:text-black" : "text-zinc-900 dark:text-white")}>
+                                  {chapter}
+                                </h5>
+                              </div>
+                              <div className={cn(
+                                "mt-2 transition-transform group-hover:translate-x-1",
+                                selectedChapter === chapter ? "text-white/40 dark:text-black/40" : "text-zinc-300"
+                              )}>
+                                <ChevronRight className="w-5 h-5" />
+                              </div>
+                            </button>
+                          ))}
+                        </div>
+
+                        <div className="pt-10 border-t border-zinc-200 dark:border-zinc-800">
+                          <div className="p-8 bg-indigo-500 rounded-[2.5rem] text-white shadow-2xl shadow-indigo-500/20 relative overflow-hidden group">
+                             <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 blur-3xl -mr-16 -mt-16 group-hover:scale-150 transition-transform" />
+                             <div className="relative z-10">
+                                <div className="flex items-center gap-3 mb-6">
+                                  <Sparkles className="w-5 h-5 text-indigo-200 animate-pulse" />
+                                  <span className="text-[10px] font-black uppercase tracking-[0.2em] text-indigo-100">AI Architect Note</span>
+                                </div>
+                                <p className="text-sm font-bold leading-relaxed mb-8 italic">
+                                  "{lessonPlan.recommendation}"
+                                </p>
+                                <button 
+                                  onClick={generateFullSyllabus}
+                                  disabled={isGeneratingSyllabus}
+                                  className="w-full py-4 bg-white text-indigo-600 rounded-2xl font-black uppercase tracking-widest text-[10px] hover:bg-indigo-50 transition-all flex items-center justify-center gap-2"
+                                >
+                                  {isGeneratingSyllabus ? <Loader2 className="w-4 h-4 animate-spin" /> : <FileText className="w-4 h-4" />}
+                                  Generate Full Syllabus
+                                </button>
+                             </div>
+                          </div>
+                        </div>
+                      </motion.div>
+                    ) : (
+                      <motion.div 
+                        key="empty"
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        className="flex-1 flex flex-col items-center justify-center text-center space-y-8 py-20"
+                      >
+                        <div className="w-32 h-32 rounded-[3rem] border-4 border-dashed border-zinc-200 dark:border-zinc-800 flex items-center justify-center">
+                          <Layout className="w-12 h-12 text-zinc-300 dark:text-zinc-700" />
+                        </div>
+                        <div className="space-y-3">
+                          <p className="text-[11px] font-black uppercase tracking-[0.4em] text-zinc-500">
+                            Waiting for Selection
+                          </p>
+                          <p className="text-[10px] font-bold text-zinc-400 max-w-[240px] mx-auto leading-relaxed">
+                            Tell the AI what you'd like to study to generate your personalized roadmap.
+                          </p>
+                        </div>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+                </div>
+
+                <div className="mt-8 pt-8 border-t border-zinc-200 dark:border-zinc-800">
+                  <div className="relative">
                     <input 
                       type="text"
                       value={input}
                       onChange={(e) => setInput(e.target.value)}
                       onKeyDown={(e) => e.key === 'Enter' && handleSend()}
-                      placeholder="Discuss your study goals with AI..."
-                      className="flex-1 bg-zinc-50 dark:bg-zinc-900 border border-transparent focus:border-zinc-300 dark:focus:border-zinc-700 rounded-[2rem] px-8 py-5 text-sm focus:ring-4 focus:ring-zinc-900/5 dark:focus:ring-white/5 transition-all outline-none"
+                      placeholder="Discuss your study goals..."
+                      className="w-full bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 focus:border-zinc-900 dark:focus:border-white rounded-2xl px-6 py-5 text-sm outline-none transition-all pr-16 shadow-sm"
                     />
                     <button 
                       onClick={() => handleSend()}
                       disabled={isLoading || !input.trim()}
-                      className="p-5 bg-zinc-900 dark:bg-white text-white dark:text-black rounded-[2rem] disabled:opacity-50 hover:scale-105 active:scale-95 transition-all shadow-xl"
+                      className="absolute right-2 top-2 p-3 bg-zinc-900 dark:bg-white text-white dark:text-black rounded-xl disabled:opacity-50 hover:scale-105 active:scale-95 transition-all shadow-lg"
                     >
-                      <Send className="w-7 h-7" />
+                      {isLoading ? <Loader2 className="w-5 h-5 animate-spin" /> : <Send className="w-5 h-5" />}
                     </button>
                   </div>
-                </footer>
-              </div>
-
-              {/* Sidebar Plan View */}
-              <div className="w-[450px] bg-zinc-50 dark:bg-[#050505] border-l border-zinc-200 dark:border-zinc-800 flex flex-col p-10 overflow-y-auto hidden lg:flex">
-                <div className="flex items-center gap-4 mb-12">
-                  <div className="w-10 h-10 rounded-xl bg-zinc-900 dark:bg-white flex items-center justify-center">
-                    <Target className="w-5 h-5 text-white dark:text-black" />
-                  </div>
-                  <h4 className="text-[10px] font-black text-zinc-500 uppercase tracking-[0.4em]">Learning Roadmap</h4>
                 </div>
-                
-                <AnimatePresence mode="wait">
-                  {lessonPlan ? (
-                    <motion.div 
-                      key="plan"
-                      initial={{ opacity: 0, x: 20 }}
-                      animate={{ opacity: 1, x: 0 }}
-                      className="space-y-12"
-                    >
-                      <div className="space-y-8">
-                        {lessonPlan.chapters.map((chapter, i) => (
-                          <button
-                            key={i}
-                            onClick={() => setSelectedChapter(chapter)}
-                            className={cn(
-                              "w-full group flex items-start gap-4 p-6 rounded-3xl border transition-all text-left relative overflow-hidden",
-                              selectedChapter === chapter 
-                                ? "bg-zinc-900 dark:bg-white border-zinc-900 dark:border-white shadow-2xl" 
-                                : "bg-white dark:bg-zinc-900 border-zinc-200 dark:border-zinc-800 hover:border-zinc-300 dark:hover:border-zinc-700 shadow-sm"
-                            )}
-                          >
-                            <div className={cn(
-                              "w-10 h-10 rounded-2xl flex items-center justify-center shrink-0 border transition-all",
-                              selectedChapter === chapter ? "bg-white/10 dark:bg-black/5 border-white/20 dark:border-black/10" : "bg-zinc-50 dark:bg-zinc-800 border-zinc-200 dark:border-zinc-700"
-                            )}>
-                              <span className={cn("text-xs font-black", selectedChapter === chapter ? "text-white dark:text-black" : "text-zinc-400")}>
-                                {i + 1}
-                              </span>
-                            </div>
-                            <div className="flex-1">
-                              <p className={cn("text-[10px] font-black uppercase tracking-widest mb-1", selectedChapter === chapter ? "text-zinc-400 dark:text-zinc-500" : "text-zinc-500")}>
-                                Module {i + 1}
-                              </p>
-                              <h5 className={cn("font-black text-lg tracking-tight leading-none uppercase", selectedChapter === chapter ? "text-white dark:text-black" : "text-zinc-900 dark:text-white")}>
-                                {chapter}
-                              </h5>
-                            </div>
-                            <div className={cn(
-                              "mt-2 transition-transform group-hover:translate-x-1",
-                              selectedChapter === chapter ? "text-white/40 dark:text-black/40" : "text-zinc-300"
-                            )}>
-                              <ChevronRight className="w-5 h-5" />
-                            </div>
-                          </button>
-                        ))}
-                      </div>
-
-                      <div className="pt-10 border-t border-zinc-200 dark:border-zinc-800">
-                        <div className="p-8 bg-indigo-500 rounded-[2.5rem] text-white shadow-2xl shadow-indigo-500/20 relative overflow-hidden group">
-                           <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 blur-3xl -mr-16 -mt-16 group-hover:scale-150 transition-transform" />
-                           <div className="relative z-10">
-                              <div className="flex items-center gap-3 mb-6">
-                                <Sparkles className="w-5 h-5 text-indigo-200 animate-pulse" />
-                                <span className="text-[10px] font-black uppercase tracking-[0.2em] text-indigo-100">AI Architect Note</span>
-                              </div>
-                              <p className="text-sm font-bold leading-relaxed mb-8 italic">
-                                "{lessonPlan.recommendation}"
-                              </p>
-                              <button 
-                                onClick={generateFullSyllabus}
-                                disabled={isGeneratingSyllabus}
-                                className="w-full py-4 bg-white text-indigo-600 rounded-2xl font-black uppercase tracking-widest text-[10px] hover:bg-indigo-50 transition-all flex items-center justify-center gap-2"
-                              >
-                                {isGeneratingSyllabus ? <Loader2 className="w-4 h-4 animate-spin" /> : <FileText className="w-4 h-4" />}
-                                Generate Full Syllabus
-                              </button>
-                           </div>
-                        </div>
-                      </div>
-                    </motion.div>
-                  ) : (
-                    <motion.div 
-                      key="empty"
-                      initial={{ opacity: 0 }}
-                      animate={{ opacity: 1 }}
-                      className="flex-1 flex flex-col items-center justify-center text-center space-y-8 opacity-20"
-                    >
-                      <div className="w-32 h-32 rounded-[3rem] border-4 border-dashed border-zinc-400 flex items-center justify-center">
-                        <Layout className="w-12 h-12 text-zinc-400" />
-                      </div>
-                      <div className="space-y-3">
-                        <p className="text-[11px] font-black uppercase tracking-[0.4em] text-zinc-500">
-                          Waiting for Selection
-                        </p>
-                        <p className="text-[10px] font-bold text-zinc-400 max-w-[200px] mx-auto leading-relaxed">
-                          Tell the AI what you'd like to study to generate your personalized roadmap.
-                        </p>
-                      </div>
-                    </motion.div>
-                  )}
-                </AnimatePresence>
               </div>
               <AnimatePresence>
                 {openBook && <PdfViewer book={openBook} onClose={handleCloseBook} />}
