@@ -58,8 +58,8 @@ export const PastPapers = ({ user, onStartQuiz }: { user: User, onStartQuiz?: (q
     const level = eduLevel.toLowerCase();
     if (level.includes('nursery') || level.includes('pre primary') || level.includes('preprimary')) return 'Nursery';
     if (level.includes('primary')) return 'Primary';
-    if (level.includes('ordinary') || level.includes('s3')) return 'S3';
-    return 'S6';
+    if (level.includes('senior 1') || level.includes('senior 2') || level.includes('senior 3') || level.includes('s1') || level.includes('s2') || level.includes('s3') || level.includes('ordinary')) return 'S3';
+    return 'S6'; // Default for S4-S6 and TVET (Advanced/Technical level)
   };
 
   const displayLevel = getDisplayLevel(user.educationLevel);

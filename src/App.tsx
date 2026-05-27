@@ -4059,8 +4059,7 @@ export default function App() {
         case 'planner': return <PlannerView user={user} showToast={showToast} />;
         case 'portfolio': return <PortfolioView user={user} showToast={showToast} />;
         case 'papers': return <PastPapers user={user} onStartQuiz={handleStartCustomQuiz} />;
-        case 'library': return <BookLibrary />;
-        case 'settings': return (
+        case 'library': return <BookLibrary user={user} />;        case 'settings': return (
           <SettingsView 
             user={user} 
             setUser={setUser} 

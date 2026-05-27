@@ -684,20 +684,26 @@ export const CourseLessonsAI = ({ user, onClose, initialCourse }: { user: User; 
       const isLevel1 = normalizedText === '1' || normalizedText.includes('level 1') || normalizedText === 'one';
       
       if (isLevel1) {
+        const level = (user.educationLevel || '').toLowerCase();
+        const isChild = level === 'pre primary' || level.includes('primary');
+        const isLowerSecondary = level.includes('senior 1') || level.includes('senior 2') || level.includes('senior 3') || level.includes('s1') || level.includes('s2') || level.includes('s3') || level.includes('senior 1-3');
         const searchName = (initialCourse || '').toLowerCase();
-        const docFile = SUBJECT_DOC_MAP[initialCourse || ''] || 
-                       SUBJECT_DOC_MAP[Object.keys(SUBJECT_DOC_MAP).find(k => 
-                         k.toLowerCase().includes(searchName) || searchName.includes(k.toLowerCase())) || ''];
+
+        // Only use SUBJECT_DOC_MAP (which contains S1 books) if the user is in Lower Secondary (S1-S3).
+        const canUseS1Books = isLowerSecondary;
         
+        const docFile = canUseS1Books ? (SUBJECT_DOC_MAP[initialCourse || ''] ||
+                       SUBJECT_DOC_MAP[Object.keys(SUBJECT_DOC_MAP).find(k =>
+                         k.toLowerCase().includes(searchName) || searchName.includes(k.toLowerCase())) || '']) : null;
+
         const aiResponse = {
           id: `ai-${Date.now()}`,
-          text: docFile 
-            ? `Perfect choice! Here is the official **Level 1** document for **${initialCourse}**:\n\n### 📄 [Click here to open ${docFile}](/Courselesson/${encodeURIComponent(docFile)})\n\nI can now generate a detailed study roadmap and syllabus based on these official materials. Shall we begin?`
-            : `I've registered your interest in Level 1 for **${initialCourse}**. While I prepare the specific document link, let me build your personalized study roadmap based on adapting national curriculum standards.`,
+          text: docFile
+            ? `Perfect choice! Here is the official **Student Book** for **${initialCourse}**:\n\n### 📄 [Click here to open ${docFile}](/Courselesson/${encodeURIComponent(docFile)})\n\nI can now generate a detailed study roadmap and syllabus based on these official materials. Shall we begin?`
+            : `I've registered your interest in **${initialCourse}**. While I prepare the specific document link for your level (${user.educationLevel}), let me build your personalized study roadmap based on adapting national curriculum standards.`,
           sender: 'ai' as const,
           options: ['Yes, generate roadmap', 'Suggest another course']
-        };
-        
+        };        
         setMessages(prev => [...prev, aiResponse]);
         setStage('CONSULTING');
         setIsLoading(false);

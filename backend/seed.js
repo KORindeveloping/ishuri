@@ -66,6 +66,24 @@ async function main() {
       grade: 'S1',
       pdfUrl: '/Courselesson/Geography S1 SB.pdf',
       coverUrl: 'https://images.unsplash.com/photo-1521295121783-8a321d551ad2?auto=format&fit=crop&q=80&w=400'
+    },
+    {
+      id: 'book-p1-math',
+      title: 'Mathematics P1 Student Book',
+      author: 'REB',
+      subject: 'Mathematics',
+      grade: 'Primary',
+      pdfUrl: '/Courselesson/Math P1.pdf',
+      coverUrl: 'https://images.unsplash.com/photo-1509228468518-180dd48a5791?auto=format&fit=crop&q=80&w=400'
+    },
+    {
+      id: 'book-p6-set',
+      title: 'SET P6 Student Book',
+      author: 'REB',
+      subject: 'SET',
+      grade: 'Primary',
+      pdfUrl: '/Courselesson/SET P6.pdf',
+      coverUrl: 'https://images.unsplash.com/photo-1532094349884-543bc11b234d?auto=format&fit=crop&q=80&w=400'
     }
   ];
 

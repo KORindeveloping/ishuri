@@ -1,7 +1,7 @@
-import { useState, useEffect, useCallback } from 'react';
-import { Book } from '../types';
+import { useState, useEffect, useCallback, useMemo } from 'react';
+import { Book, User } from '../types';
 import { api } from '../lib/api';
-import { Lock, Unlock, X } from 'lucide-react';
+import { Lock, Unlock, X, Filter } from 'lucide-react';
 
 // ─── Fallback cover when no coverUrl ─────────────────────────────────────────
 const FALLBACK_COVER = 'https://images.unsplash.com/photo-1512820790803-83ca734da794?auto=format&fit=crop&w=400&q=80';
@@ -52,19 +52,49 @@ function PdfViewer({ book, onClose }: { book: Book; onClose: () => void }) {
 }
 
 // ─── Main component ───────────────────────────────────────────────────────────
-export default function BookLibrary() {
+export default function BookLibrary({ user }: { user?: User }) {
   const [books, setBooks]         = useState<Book[]>([]);
   const [loading, setLoading]     = useState(true);
   const [error, setError]         = useState<string | null>(null);
   const [search, setSearch]       = useState('');
   const [query, setQuery]         = useState('');
   const [openBook, setOpenBook]   = useState<Book | null>(null);
+  const [selectedGrade, setSelectedGrade] = useState<string | undefined>(undefined);
 
-  const fetchBooks = useCallback(async (searchTerm: string) => {
+  // Map educationLevel to grade filter
+  const defaultGrade = useMemo(() => {
+    if (!user?.educationLevel) return undefined;
+    const level = user.educationLevel;
+    if (level === 'Pre Primary') return 'Nursery';
+    if (level.includes('Primary')) return 'Primary';
+    if (level.includes('Senior 1') || level.includes('S1')) return 'S1';
+    if (level.includes('Senior 2') || level.includes('S2')) return 'S2';
+    if (level.includes('Senior 3') || level.includes('S3')) return 'S3';
+    if (level.includes('Senior 1-3')) return 'S1'; // Fallback for the range
+    if (level.includes('S4')) return 'S4';
+    if (level.includes('S5')) return 'S5';
+    if (level.includes('S6')) return 'S6';
+    if (level.includes('S4-S6')) return 'S4'; // Fallback for the range
+    if (level.includes('Level 3') || level === 'TVET') return 'L3';
+    if (level.includes('Level 4')) return 'L4';
+    if (level.includes('Level 5')) return 'L5';
+    return undefined;
+  }, [user?.educationLevel]);
+
+  // Sync selectedGrade with defaultGrade on initial load
+  useEffect(() => {
+    setSelectedGrade(defaultGrade);
+  }, [defaultGrade]);
+
+  const fetchBooks = useCallback(async (searchTerm: string, gradeFilter?: string) => {
     setLoading(true);
     setError(null);
     try {
-      const data = await api.getBooks(searchTerm ? { search: searchTerm } : undefined);
+      const params: any = {};
+      if (searchTerm) params.search = searchTerm;
+      if (gradeFilter) params.grade = gradeFilter;
+      
+      const data = await api.getBooks(Object.keys(params).length > 0 ? params : undefined);
       setBooks(data);
     } catch (err: any) {
       setError(err.message || 'Could not load books. Please try again.');
@@ -73,14 +103,10 @@ export default function BookLibrary() {
     }
   }, []);
 
-  // Initial load
-  useEffect(() => { fetchBooks(''); }, [fetchBooks]);
-
-  // Search with debounce
-  useEffect(() => {
-    const t = setTimeout(() => fetchBooks(query), 350);
-    return () => clearTimeout(t);
-  }, [query, fetchBooks]);
+  // Initial load & when grade changes
+  useEffect(() => { 
+    fetchBooks(query, selectedGrade); 
+  }, [fetchBooks, query, selectedGrade]);
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
@@ -93,16 +119,41 @@ export default function BookLibrary() {
       <div className="book-library__header">
         <div>
           <h1 className="book-library__title">📚 Book Library</h1>
-          <p className="book-library__sub">Explore our collection of TVET resources</p>
+          <p className="book-library__sub">Explore our collection of {user?.educationLevel || 'educational'} resources</p>
         </div>
-        <button
-          className="book-library__refresh"
-          onClick={() => fetchBooks(query)}
-          disabled={loading}
-          aria-label="Refresh books"
-        >
-          <span className={loading ? 'spin' : ''}>↻</span> Refresh
-        </button>
+        <div className="flex items-center gap-4">
+          {/* Grade Selector */}
+          <div className="relative">
+            <select
+              value={selectedGrade || ''}
+              onChange={(e) => setSelectedGrade(e.target.value || undefined)}
+              className="appearance-none bg-zinc-100 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-xl px-4 py-2 pr-10 text-xs font-bold text-zinc-700 dark:text-zinc-300 outline-none focus:ring-2 focus:ring-zinc-900/10 dark:focus:ring-white/10 transition-all"
+            >
+              <option value="">All Levels</option>
+              <option value="Nursery">Nursery</option>
+              <option value="Primary">Primary</option>
+              <option value="S1">S1</option>
+              <option value="S2">S2</option>
+              <option value="S3">S3</option>
+              <option value="S4">S4</option>
+              <option value="S5">S5</option>
+              <option value="S6">S6</option>
+              <option value="L3">TVET Level 3</option>
+              <option value="L4">TVET Level 4</option>
+              <option value="L5">TVET Level 5</option>
+            </select>
+            <Filter className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-400 pointer-events-none" />
+          </div>
+
+          <button
+            className="book-library__refresh"
+            onClick={() => fetchBooks(query, selectedGrade)}
+            disabled={loading}
+            aria-label="Refresh books"
+          >
+            <span className={loading ? 'spin' : ''}>↻</span> Refresh
+          </button>
+        </div>
       </div>
 
       {/* Search bar */}
