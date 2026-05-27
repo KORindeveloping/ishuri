@@ -537,14 +537,57 @@ export const CourseLessonsAI = ({ user, onClose, initialCourse }: { user: User; 
     const searchKey = courseName.split(' ')[0].toLowerCase();
     const keywords = CORE_SUBJECT_KEYWORDS[courseName] || [searchKey];
     
+    const eduLevel = (user.educationLevel || '').toLowerCase();
+    const isPrimary = eduLevel.includes('primary');
+    const isNursery = eduLevel.includes('nursery') || eduLevel.includes('pre primary');
+    const isS1toS3 = eduLevel.includes('senior 1') || eduLevel.includes('s1') || eduLevel.includes('s2') || eduLevel.includes('s3') || eduLevel.includes('senior 1-3');
+    const isS4toS6 = eduLevel.includes('s4') || eduLevel.includes('s5') || eduLevel.includes('s6') || eduLevel.includes('senior 4-6');
+    const isTVET = eduLevel.includes('level 3') || eduLevel.includes('level 4') || eduLevel.includes('level 5') || eduLevel === 'tvet';
+
     return allBooks.filter(b => {
       const titleLower = b.title.toLowerCase();
       const subjectLower = (b.subject || '').toLowerCase();
+      const gradeLower = (b.grade || '').toLowerCase();
       
-      return keywords.some(key => 
+      const subjectMatch = keywords.some(key => 
         titleLower.includes(key) || 
         subjectLower.includes(key)
       );
+
+      if (!subjectMatch) return false;
+
+      // Grade Filtering
+      const hasSMarker = gradeLower.startsWith('s') || titleLower.includes(' s1') || titleLower.includes(' s2') || titleLower.includes(' s3') || titleLower.includes(' s4') || titleLower.includes(' s5') || titleLower.includes(' s6') || titleLower.includes('senior');
+      const hasPMarker = gradeLower.includes('primary') || gradeLower.startsWith('p') || titleLower.includes('primary') || titleLower.includes(' p1') || titleLower.includes(' p2') || titleLower.includes(' p3') || titleLower.includes(' p4') || titleLower.includes(' p5') || titleLower.includes(' p6');
+      const hasTVETMarker = gradeLower.startsWith('l') || gradeLower.includes('tvet') || titleLower.includes('level 3') || titleLower.includes('level 4') || titleLower.includes('level 5') || titleLower.includes('tvet');
+
+      if (isPrimary) {
+        // If Primary: Show Primary books OR books with NO markers. MUST NOT show S or TVET.
+        if (hasSMarker || hasTVETMarker) return false;
+        return hasPMarker || (!hasSMarker && !hasTVETMarker);
+      }
+      
+      if (isNursery) {
+        if (hasSMarker || hasPMarker || hasTVETMarker) return gradeLower.includes('nursery') || titleLower.includes('nursery');
+        return true;
+      }
+
+      if (isS1toS3) {
+        if (hasPMarker || hasTVETMarker || (hasSMarker && !gradeLower.includes('s1') && !gradeLower.includes('s2') && !gradeLower.includes('s3') && !titleLower.includes('s1') && !titleLower.includes('s2') && !titleLower.includes('s3'))) return false;
+        return true;
+      }
+
+      if (isS4toS6) {
+        if (hasPMarker || hasTVETMarker || (hasSMarker && !gradeLower.includes('s4') && !gradeLower.includes('s5') && !gradeLower.includes('s6') && !titleLower.includes('s4') && !titleLower.includes('s5') && !titleLower.includes('s6'))) return false;
+        return true;
+      }
+
+      if (isTVET) {
+        if (hasPMarker || hasSMarker) return false;
+        return hasTVETMarker || (!hasPMarker && !hasSMarker);
+      }
+
+      return true;
     });
   };
 

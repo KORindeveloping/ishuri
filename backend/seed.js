@@ -84,6 +84,33 @@ async function main() {
       grade: 'Primary',
       pdfUrl: '/Courselesson/SET P6.pdf',
       coverUrl: 'https://images.unsplash.com/photo-1532094349884-543bc11b234d?auto=format&fit=crop&q=80&w=400'
+    },
+    {
+      id: 'book-p1-english',
+      title: 'English P1 Student Book',
+      author: 'REB',
+      subject: 'English',
+      grade: 'Primary',
+      pdfUrl: '/Courselesson/English P1.pdf',
+      coverUrl: 'https://images.unsplash.com/photo-1456513080510-7bf3a84b82f8?auto=format&fit=crop&q=80&w=400'
+    },
+    {
+      id: 'book-p6-english',
+      title: 'English P6 Student Book',
+      author: 'REB',
+      subject: 'English',
+      grade: 'Primary',
+      pdfUrl: '/Courselesson/English P6.pdf',
+      coverUrl: 'https://images.unsplash.com/photo-1544640808-32ca72ac7f37?auto=format&fit=crop&q=80&w=400'
+    },
+    {
+      id: 'book-p4-social',
+      title: 'Social Studies P4 Student Book',
+      author: 'REB',
+      subject: 'Social Studies',
+      grade: 'Primary',
+      pdfUrl: '/Courselesson/Social P4.pdf',
+      coverUrl: 'https://images.unsplash.com/photo-1526778548025-fa2f459cd5c1?auto=format&fit=crop&q=80&w=400'
     }
   ];
 
@@ -95,7 +122,7 @@ async function main() {
     });
   }
 
-  console.log('Seed successful: Mock Quiz and 3 Books created.');
+  console.log('Seed successful: Mock Quiz and Updated Books created.');
 }
 
 main()
