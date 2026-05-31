@@ -26,18 +26,30 @@
 
 :root {
   --bg-color: #ffffff;
-  --text-color: #000000;
-  --card-bg: #f4f4f5;
-  --secondary-bg: #e4e4e7;
-  --border-color: #e4e4e7;
+  --text-color: #09090b;
+  --card-bg: #f8fafc;
+  --secondary-bg: #f1f5f9;
+  --border-color: #e2e8f0;
+  
+  /* Educational Brand Colors */
+  --color-learning: #2563eb; /* Blue */
+  --color-progress: #10b981; /* Green */
+  --color-exams: #f97316;    /* Orange */
+  --color-ai: #8b5cf6;       /* Purple */
 }
 
 .dark {
-  --bg-color: #000000;
-  --text-color: #ffffff;
-  --card-bg: #09090b;
-  --secondary-bg: #27272a;
-  --border-color: #27272a;
+  --bg-color: #020617; /* Deeper black/blue for high contrast */
+  --text-color: #f8fafc;
+  --card-bg: #0f172a;
+  --secondary-bg: #1e293b;
+  --border-color: #334155;
+
+  /* Increased Contrast for Dark Mode */
+  --color-learning: #3b82f6; 
+  --color-progress: #34d399; 
+  --color-exams: #fb923c;    
+  --color-ai: #a78bfa;       
 }
 
 @layer utilities {

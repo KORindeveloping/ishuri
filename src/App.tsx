@@ -168,21 +168,36 @@ const Modal = ({ title, children, onClose, onConfirm, confirmText = "Confirm", c
 );
 
 const SidebarItem =
- ({ icon: Icon, label, active, onClick }: { icon: any, label: string, active?: boolean, onClick: () => void }) => (
-  <button
-    onClick={onClick}
-    className={cn(
-      "flex items-center w-full px-4 py-3 mb-1 transition-all duration-200 rounded-xl group",
-      active 
-        ? "bg-zinc-900 dark:bg-white text-white dark:text-black shadow-lg shadow-black/10 dark:shadow-white/10" 
-        : "text-zinc-500 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-800 hover:text-zinc-900 dark:hover:text-white"
-    )}
-  >
-    <Icon className={cn("w-5 h-5 mr-3", active ? "text-white dark:text-black" : "text-zinc-400 dark:text-zinc-500 group-hover:text-zinc-900 dark:group-hover:text-white")} />
-    <span className="font-medium">{label}</span>
-    {active && <motion.div layoutId="sidebar-active" className="ml-auto w-1.5 h-1.5 rounded-full bg-white dark:bg-black" />}
-  </button>
-);
+ ({ icon: Icon, label, active, onClick }: { icon: any, label: string, active?: boolean, onClick: () => void }) => {
+  const getColors = () => {
+    if (!active) return "text-zinc-500 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-800/50 hover:text-zinc-900 dark:hover:text-white";
+    
+    // Brand colors for active states
+    if (label.includes('AI') || label.includes('Tutor')) return "bg-purple-600 text-white shadow-lg shadow-purple-500/30";
+    if (label.includes('Papers') || label.includes('Quiz')) return "bg-orange-500 text-white shadow-lg shadow-orange-500/30";
+    if (label.includes('Library') || label.includes('Assessments')) return "bg-blue-600 text-white shadow-lg shadow-blue-500/30";
+    return "bg-emerald-600 text-white shadow-lg shadow-emerald-500/30";
+  };
+
+  return (
+    <button
+      onClick={onClick}
+      className={cn(
+        "flex items-center w-full px-4 py-3 mb-1 transition-all duration-300 rounded-xl group relative overflow-hidden",
+        getColors()
+      )}
+    >
+      <Icon className={cn("w-5 h-5 mr-3 transition-transform group-hover:scale-110", active ? "text-white" : "text-zinc-400 dark:text-zinc-500 group-hover:text-zinc-900 dark:group-hover:text-white")} />
+      <span className="font-bold text-sm tracking-tight">{label}</span>
+      {active && (
+        <motion.div 
+          layoutId="sidebar-active" 
+          className="ml-auto w-1.5 h-1.5 rounded-full bg-white/80" 
+        />
+      )}
+    </button>
+  );
+};
 
 const RAGBadge = ({ status, progress }: { status: CompetencyStatus, progress: number }) => {
   let color = "bg-zinc-100 dark:bg-zinc-800 text-zinc-500 dark:text-zinc-400 border-zinc-200 dark:border-zinc-700";
@@ -598,8 +613,8 @@ const DashboardView = ({ user, onStartQuiz, onLogout, history, onNavigate, showT
                   <div className="space-y-4 relative z-10">
                     <div className="flex justify-between items-end">
                       <div className="flex flex-col">
-                        <span className="text-[9px] font-black text-zinc-400 uppercase tracking-widest">
-                          {isAiDashboard ? 'Predicted Mastery' : 'Trade Mastery'}
+                        <span className="text-[9px] font-black text-zinc-500 dark:text-zinc-400 uppercase tracking-widest">
+                          {isAiDashboard ? 'Predicted Competency' : 'Competency Level'}
                         </span>
                         <span className="text-2xl font-black text-zinc-900 dark:text-white">{subject.progress}%</span>
                       </div>
@@ -609,15 +624,15 @@ const DashboardView = ({ user, onStartQuiz, onLogout, history, onNavigate, showT
                         <div className="flex items-center gap-2">
                            <button 
                              onClick={(e) => { e.stopPropagation(); onCourseAI(subject.name); }}
-                             className="px-4 py-2 rounded-xl text-[9px] font-black uppercase tracking-widest hover:scale-105 transition-all shadow-sm bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-300 border border-zinc-200 dark:border-zinc-700"
+                             className="px-4 py-2 rounded-xl text-[9px] font-black uppercase tracking-widest hover:scale-105 transition-all shadow-sm bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/20"
                            >
                              Learn
                            </button>
                            <button 
                              onClick={(e) => { e.stopPropagation(); if (!generatingQuiz) startPracticeQuiz(subject.name); }}
                              className={cn(
-                               "px-4 py-2 rounded-xl text-[9px] font-black uppercase tracking-widest hover:scale-105 transition-all shadow-lg",
-                               isAiDashboard ? "bg-indigo-500 text-white" : "bg-zinc-900 dark:bg-white text-white dark:text-black"
+                               "px-4 py-2 rounded-xl text-[9px] font-black uppercase tracking-widest hover:scale-105 transition-all shadow-lg shadow-orange-500/20",
+                               isAiDashboard ? "bg-purple-600 text-white" : "bg-orange-500 text-white"
                              )}
                            >
                              Start Quiz
@@ -626,13 +641,13 @@ const DashboardView = ({ user, onStartQuiz, onLogout, history, onNavigate, showT
                       )}
                     </div>
                     
-                    <div className="h-1.5 w-full bg-zinc-100 dark:bg-black rounded-full overflow-hidden border border-zinc-200 dark:border-zinc-800 p-0.5">
+                    <div className="h-1.5 w-full bg-zinc-100 dark:bg-zinc-950 rounded-full overflow-hidden border border-zinc-200 dark:border-zinc-800 p-0.5">
                       <motion.div 
                         initial={{ width: 0 }}
                         animate={{ width: `${subject.progress}%` }}
                         className={cn(
                           "h-full rounded-full transition-all duration-1000",
-                          isAiDashboard ? "bg-indigo-500" : (subject.progress >= 80 ? "bg-zinc-900 dark:bg-white" : subject.progress >= 40 ? "bg-zinc-500" : "bg-zinc-300 dark:bg-zinc-800")
+                          isAiDashboard ? "bg-purple-500" : (subject.progress >= 80 ? "bg-emerald-500" : subject.progress >= 40 ? "bg-blue-500" : "bg-zinc-300 dark:bg-zinc-800")
                         )}
                       />
                     </div>
