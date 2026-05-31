@@ -27,13 +27,15 @@ router.get('/', async (req: Request, res: Response) => {
       if (search) {
         queryParams.append('title', `ilike.*${search}*`);
       }
-      if (subject) {
+      // Only append subject/grade if they are explicitly requested and NOT empty
+      if (subject && subject !== 'undefined') {
         queryParams.append('subject', `ilike.${subject}`);
       }
-      if (grade) {
+      if (grade && grade !== 'undefined') {
         queryParams.append('grade', `eq.${grade}`);
       }
 
+      // Fetch from 'documents' table
       const response = await fetch(`${SUPABASE_URL}/rest/v1/documents?${queryParams.toString()}`, {
         headers: getSupabaseHeaders()
       });
@@ -43,14 +45,14 @@ router.get('/', async (req: Request, res: Response) => {
         if (data && data.length > 0) {
           const books = data.map((b: any) => ({
             id: b.id,
-            title: b.title,
+            title: b.title || 'Untitled Book',
             author: b.author || 'TVET Mastery',
             coverUrl: b.cover_url || b.coverUrl || null,
             pdfUrl: b.file_url || b.pdf_url || b.pdfUrl,
             description: b.description || '',
             subject: b.subject || 'General',
             grade: b.grade || '',
-            uploadedBy: b.uploaded_by || b.uploadedBy || 'System',
+            uploadedBy: b.uploaded_by || 'System',
             createdAt: b.created_at || b.createdAt,
             updatedAt: b.updated_at || b.updatedAt || b.created_at
           }));
@@ -104,10 +106,10 @@ router.get('/:id', async (req: Request, res: Response) => {
     const b = data[0];
     res.json({
       id: b.id || b._id,
-      title: b.title,
-      author: b.author,
-      coverUrl: b.coverUrl || b.cover_url,
-      pdfUrl: b.pdfUrl || b.pdf_url,
+      title: b.title || b.book_title || 'Untitled',
+      author: b.author || b.uploaded_by || 'TVET Mastery',
+      coverUrl: b.coverUrl || b.cover_url || b.thumbnail,
+      pdfUrl: b.pdfUrl || b.pdf_url || b.file_url || b.url,
       description: b.description,
       subject: b.subject,
       grade: b.grade,

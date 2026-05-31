@@ -83,8 +83,9 @@ export default function BookLibrary({ user }: { user?: User }) {
 
   // Sync selectedGrade with defaultGrade on initial load
   useEffect(() => {
-    setSelectedGrade(defaultGrade);
-  }, [defaultGrade]);
+    // Default to 'All Levels' (undefined) to ensure all books show up
+    setSelectedGrade(undefined);
+  }, []);
 
   const fetchBooks = useCallback(async (searchTerm: string, gradeFilter?: string) => {
     setLoading(true);
@@ -105,6 +106,8 @@ export default function BookLibrary({ user }: { user?: User }) {
 
   // Initial load & when grade changes
   useEffect(() => { 
+    // If we are in S1/S2/S3, let's default to no grade filter initially 
+    // to ensure books without grade metadata show up.
     fetchBooks(query, selectedGrade); 
   }, [fetchBooks, query, selectedGrade]);
 
