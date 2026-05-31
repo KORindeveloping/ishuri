@@ -223,7 +223,7 @@ function PdfViewer({ book, onClose, user }: { book: Book; onClose: () => void; u
                   )}
                 >
                   <tab.icon className="w-4 h-4 mb-1" />
-                  <span className="text-[8px] font-black uppercase tracking-widest">{tab.label}</span>
+                  <span className="text-[10px] font-black uppercase tracking-widest">{tab.label}</span>
                 </button>
               ))}
             </div>
@@ -1023,7 +1023,7 @@ export const CourseLessonsAI = ({ user, onClose, initialCourse }: { user: User; 
                                       <span className="text-[10px] font-black text-zinc-400 dark:text-zinc-500 uppercase tracking-widest">
                                         {unitNum !== 999 ? `Unit ${unitNum}` : (book.subject || 'Resource')}
                                       </span>
-                                      <div className={`px-2 py-0.5 text-[8px] font-black uppercase rounded-full border ${isLocked ? 'bg-red-500/10 text-red-600 dark:text-red-500 border-red-500/20' : 'bg-green-500/10 text-green-600 dark:text-green-500 border-green-500/20'}`}>
+                                      <div className={`px-2 py-0.5 text-[10px] font-black uppercase rounded-full border ${isLocked ? 'bg-red-500/10 text-red-600 dark:text-red-500 border-red-500/20' : 'bg-green-500/10 text-green-600 dark:text-green-500 border-green-500/20'}`}>
                                         {isLocked ? 'Locked' : 'Available'}
                                       </div>
                                     </div>
@@ -1233,3 +1233,4 @@ export const CourseLessonsAI = ({ user, onClose, initialCourse }: { user: User; 
     </div>
   );
 };
+

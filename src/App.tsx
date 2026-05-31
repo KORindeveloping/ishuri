@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import logo from './assets/logo.jpg';
 import { 
   LayoutDashboard, 
@@ -412,7 +412,7 @@ const DashboardView = ({ user, onStartQuiz, onLogout, history, onNavigate, showT
         <div className="absolute top-0 right-0 w-1/2 h-full bg-gradient-to-l from-black/[0.02] dark:from-white/[0.02] to-transparent pointer-events-none" />
         <div className="relative z-10">
           <div className="flex items-center gap-4 mb-8">
-            <div className="px-3.5 py-1.5 bg-zinc-900 dark:bg-white text-white dark:text-black text-[9px] font-black uppercase tracking-[0.3em] rounded-full shadow-[0_5px_15px_rgba(0,0,0,0.1)] dark:shadow-[0_5px_15px_rgba(255,255,255,0.1)]">Current Session</div>
+            <div className="px-3.5 py-1.5 bg-zinc-900 dark:bg-white text-white dark:text-black text-[11px] font-black uppercase tracking-[0.3em] rounded-full shadow-[0_5px_15px_rgba(0,0,0,0.1)] dark:shadow-[0_5px_15px_rgba(255,255,255,0.1)]">Current Session</div>
             <div className="flex items-center gap-1.5 px-2.5 py-1.5 bg-white dark:bg-zinc-900/50 backdrop-blur-md text-zinc-500 dark:text-zinc-400 text-[10px] font-black uppercase tracking-widest rounded-full border border-zinc-200 dark:border-white/[0.05]">
               <Zap className="w-3.5 h-3.5 fill-current text-zinc-900 dark:text-white" /> Review Mode
             </div>
@@ -437,7 +437,7 @@ const DashboardView = ({ user, onStartQuiz, onLogout, history, onNavigate, showT
                     onBlur={() => setIsSettingDate(false)}
                     className="bg-zinc-100 dark:bg-zinc-900 border border-zinc-200 dark:border-white/10 rounded-xl px-4 py-2 text-xs font-black text-zinc-900 dark:text-white outline-none focus:ring-2 focus:ring-indigo-500"
                   />
-                  <p className="text-[9px] font-black text-zinc-400 uppercase tracking-widest">Set Finals Day</p>
+                  <p className="text-[11px] font-black text-zinc-400 uppercase tracking-widest">Set Finals Day</p>
                 </div>
               ) : (
                 <>
@@ -494,12 +494,12 @@ const DashboardView = ({ user, onStartQuiz, onLogout, history, onNavigate, showT
                 </span>
               )}
               {stat.label === 'Study Streak' && !isStreakLost && (user.longestStreak || 0) > (user.streak || 0) && (
-                <span className="text-[9px] font-black text-zinc-400 dark:text-zinc-600 uppercase tracking-widest">
+                <span className="text-[11px] font-black text-zinc-400 dark:text-zinc-600 uppercase tracking-widest">
                   Best: {user.longestStreak}d
                 </span>
               )}
               {stat.label === 'Current Rank' && (
-                <span className="text-[8px] font-black text-emerald-500 bg-emerald-500/10 px-1 rounded uppercase tracking-widest mb-1.5 leading-none px-1.5 py-1 animate-pulse">Live</span>
+                <span className="text-[10px] font-black text-emerald-500 bg-emerald-500/10 px-1 rounded uppercase tracking-widest mb-1.5 leading-none px-1.5 py-1 animate-pulse">Live</span>
               )}
             </p>
           </motion.div>
@@ -603,7 +603,7 @@ const DashboardView = ({ user, onStartQuiz, onLogout, history, onNavigate, showT
                   {subject.name.includes('(') && (
                     <div className="mb-6 flex flex-wrap gap-2 relative z-10">
                       {subject.name.match(/\((.*?)\)/)?.[1].split(',').map((sub, i) => (
-                        <span key={i} className="px-2 py-1 bg-zinc-100 dark:bg-zinc-800 rounded-lg text-[8px] font-black text-zinc-500 uppercase tracking-widest border border-zinc-200 dark:border-zinc-700">
+                        <span key={i} className="px-2 py-1 bg-zinc-100 dark:bg-zinc-800 rounded-lg text-[10px] font-black text-zinc-500 uppercase tracking-widest border border-zinc-200 dark:border-zinc-700">
                           {sub.trim()}
                         </span>
                       ))}
@@ -613,7 +613,7 @@ const DashboardView = ({ user, onStartQuiz, onLogout, history, onNavigate, showT
                   <div className="space-y-4 relative z-10">
                     <div className="flex justify-between items-end">
                       <div className="flex flex-col">
-                        <span className="text-[9px] font-black text-zinc-500 dark:text-zinc-400 uppercase tracking-widest">
+                        <span className="text-[11px] font-black text-zinc-500 dark:text-zinc-400 uppercase tracking-widest">
                           {isAiDashboard ? 'Predicted Competency' : 'Competency Level'}
                         </span>
                         <span className="text-2xl font-black text-zinc-900 dark:text-white">{subject.progress}%</span>
@@ -624,14 +624,14 @@ const DashboardView = ({ user, onStartQuiz, onLogout, history, onNavigate, showT
                         <div className="flex items-center gap-2">
                            <button 
                              onClick={(e) => { e.stopPropagation(); onCourseAI(subject.name); }}
-                             className="px-4 py-2 rounded-xl text-[9px] font-black uppercase tracking-widest hover:scale-105 transition-all shadow-sm bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/20"
+                             className="px-4 py-2 rounded-xl text-[11px] font-black uppercase tracking-widest hover:scale-105 transition-all shadow-sm bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/20"
                            >
                              Learn
                            </button>
                            <button 
                              onClick={(e) => { e.stopPropagation(); if (!generatingQuiz) startPracticeQuiz(subject.name); }}
                              className={cn(
-                               "px-4 py-2 rounded-xl text-[9px] font-black uppercase tracking-widest hover:scale-105 transition-all shadow-lg shadow-orange-500/20",
+                               "px-4 py-2 rounded-xl text-[11px] font-black uppercase tracking-widest hover:scale-105 transition-all shadow-lg shadow-orange-500/20",
                                isAiDashboard ? "bg-purple-600 text-white" : "bg-orange-500 text-white"
                              )}
                            >
@@ -1347,12 +1347,12 @@ const FlashcardsView = ({ user, showToast }: { user: User, showToast: (m: string
                       <div className="flex items-center justify-between mb-6">
                         <div className="flex gap-2">
                           <span className={cn(
-                            "px-3 py-1 rounded-lg text-[8px] font-black uppercase tracking-widest",
+                            "px-3 py-1 rounded-lg text-[10px] font-black uppercase tracking-widest",
                             card.interval > 4 ? "bg-emerald-500/10 text-emerald-600" : "bg-amber-500/10 text-amber-600"
                           )}>
                             {card.interval > 4 ? 'Mastered' : 'Learning'}
                           </span>
-                          <span className="px-3 py-1 bg-zinc-100 dark:bg-zinc-800 rounded-lg text-[8px] font-black text-zinc-500 uppercase tracking-widest border border-zinc-200 dark:border-zinc-700">
+                          <span className="px-3 py-1 bg-zinc-100 dark:bg-zinc-800 rounded-lg text-[10px] font-black text-zinc-500 uppercase tracking-widest border border-zinc-200 dark:border-zinc-700">
                             {card.category || 'General'}
                           </span>
                         </div>
@@ -1660,7 +1660,7 @@ const QuizHistoryView = ({ history, onReviewQuiz, showToast }: {
                      <span className={cn("text-xs font-bold", selectedItems.includes(item.id) ? "text-zinc-400 dark:text-zinc-400" : "text-zinc-400 dark:text-zinc-500")}>/{item.totalPoints}</span>
                    </div>
                    <div className={cn(
-                     "mt-2 px-2.5 py-1 rounded-lg text-[9px] font-black uppercase tracking-[0.2em]",
+                     "mt-2 px-2.5 py-1 rounded-lg text-[11px] font-black uppercase tracking-[0.2em]",
                      (item.score / item.totalPoints >= 0.7) 
                         ? (selectedItems.includes(item.id) ? "bg-white dark:bg-black text-black dark:text-white" : "bg-green-500/10 text-green-600 dark:text-green-500")
                         : (selectedItems.includes(item.id) ? "bg-white/20 dark:bg-black/20 text-white dark:text-black" : "bg-yellow-500/10 text-yellow-600 dark:text-yellow-500")
@@ -1790,7 +1790,7 @@ const UploadAssessmentModal = ({ isOpen, onClose, onAdd, user }: {
                   </div>
 
                   <div>
-                     <label className="block text-[8px] font-black text-zinc-400 uppercase tracking-widest mb-2">Correct Answer</label>
+                     <label className="block text-[10px] font-black text-zinc-400 uppercase tracking-widest mb-2">Correct Answer</label>
                      <select 
                        value={newQ.correctAnswer}
                        onChange={(e) => setNewQ({...newQ, correctAnswer: e.target.value})}
@@ -2130,7 +2130,7 @@ const AssessmentView = ({
           
           <div className="flex items-center gap-8">
             <div className="flex flex-col items-end">
-              <span className="text-[9px] font-black text-zinc-400 uppercase tracking-widest">Library Health</span>
+              <span className="text-[11px] font-black text-zinc-400 uppercase tracking-widest">Library Health</span>
               <span className="text-sm font-black text-zinc-900 dark:text-white uppercase tracking-tighter">Optimal (v{localAssessments.length}.0)</span>
             </div>
             <div className="w-10 h-10 rounded-full bg-emerald-500/10 flex items-center justify-center">
@@ -2174,7 +2174,7 @@ const AssessmentView = ({
               <div className="pt-6 border-t border-zinc-100 dark:border-zinc-800/50 flex items-center justify-between relative z-10">
                 <div className="flex items-center gap-2">
                   <div className="w-2 h-2 bg-emerald-500 rounded-full" />
-                  <span className="text-[9px] font-black text-zinc-400 uppercase tracking-widest">Simulation Ready</span>
+                  <span className="text-[11px] font-black text-zinc-400 uppercase tracking-widest">Simulation Ready</span>
                 </div>
                 <div className="flex items-center gap-2 text-zinc-900 dark:text-white font-black text-[10px] uppercase tracking-widest">
                   Start <ArrowRight className="w-4 h-4" />
@@ -2425,7 +2425,7 @@ const AssessmentView = ({
 
                        {(q.type === 'ShortAnswer' || !(reviewHistoryItem?.questionFeedback?.[q.id]?.isCorrect ?? checkAnswer(answers[q.id], q.correctAnswer))) && (
                          <div className="p-4 bg-white/5 rounded-xl border border-white/10">
-                            <p className="text-[9px] font-black text-zinc-500 uppercase tracking-widest mb-2">Ideal Solution</p>
+                            <p className="text-[11px] font-black text-zinc-500 uppercase tracking-widest mb-2">Ideal Solution</p>
                             <p className="text-sm text-zinc-300 font-medium">{q.correctAnswer}</p>
                          </div>
                        )}
@@ -2434,7 +2434,7 @@ const AssessmentView = ({
                          <div className="p-4 bg-indigo-500/5 rounded-xl border border-indigo-500/20">
                             <div className="flex items-center gap-2 mb-2">
                               <Sparkles className="w-3 h-3 text-indigo-400" />
-                              <p className="text-[9px] font-black text-indigo-400 uppercase tracking-widest">AI Critique</p>
+                              <p className="text-[11px] font-black text-indigo-400 uppercase tracking-widest">AI Critique</p>
                             </div>
                             <p className="text-sm text-zinc-300 font-medium leading-relaxed italic">
                               {reviewHistoryItem.questionFeedback[q.id].feedback}
@@ -2446,7 +2446,7 @@ const AssessmentView = ({
                          <div className="p-4 bg-zinc-800 rounded-xl border border-zinc-700">
                             <div className="flex items-center gap-2 mb-2">
                               <Info className="w-3 h-3 text-zinc-400" />
-                              <p className="text-[9px] font-black text-zinc-400 uppercase tracking-widest">Expert Explanation</p>
+                              <p className="text-[11px] font-black text-zinc-400 uppercase tracking-widest">Expert Explanation</p>
                             </div>
                             <p className="text-sm text-zinc-300 font-medium leading-relaxed">
                               {q.explanation}
@@ -2665,11 +2665,11 @@ const PortfolioView = ({ user, showToast }: {
                    <div className="aspect-video rounded-3xl overflow-hidden mb-6 relative">
                      <img src={item.mediaUrl} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" alt={item.title} />
                      <div className="absolute top-4 left-4 flex gap-2">
-                       <div className="px-3 py-1 bg-black/60 backdrop-blur-md text-white text-[8px] font-black uppercase tracking-widest rounded-lg border border-white/10">
+                       <div className="px-3 py-1 bg-black/60 backdrop-blur-md text-white text-[10px] font-black uppercase tracking-widest rounded-lg border border-white/10">
                          {item.category || item.type}
                        </div>
                        {item.status === 'Verified' && (
-                         <div className="px-3 py-1 bg-emerald-500 text-white text-[8px] font-black uppercase tracking-widest rounded-lg flex items-center gap-1">
+                         <div className="px-3 py-1 bg-emerald-500 text-white text-[10px] font-black uppercase tracking-widest rounded-lg flex items-center gap-1">
                            <CheckCircle2 className="w-2.5 h-2.5" /> Verified Proof
                          </div>
                        )}
@@ -2694,7 +2694,7 @@ const PortfolioView = ({ user, showToast }: {
                          <FileText className="w-4 h-4 text-zinc-400" />
                        </div>
                        <div>
-                         <p className="text-[8px] font-black text-zinc-400 uppercase tracking-widest">Uploaded</p>
+                         <p className="text-[10px] font-black text-zinc-400 uppercase tracking-widest">Uploaded</p>
                          <p className="text-[10px] font-bold text-zinc-900 dark:text-white">{item.timestamp}</p>
                        </div>
                      </div>
@@ -2854,7 +2854,7 @@ const CertificateView = ({ user }: { user: User }) => {
             </div>
             <div className="w-full h-px bg-[#c8b97a] mb-2 opacity-40" />
             <p className="text-[10px] font-bold uppercase tracking-widest">{certificate.signatures[0].name}</p>
-            <p className="text-[8px] uppercase tracking-widest opacity-60">{certificate.signatures[0].title}</p>
+            <p className="text-[10px] uppercase tracking-widest opacity-60">{certificate.signatures[0].title}</p>
           </div>
 
           <div className="flex flex-col items-center">
@@ -2866,7 +2866,7 @@ const CertificateView = ({ user }: { user: User }) => {
                 <div className="w-full h-full rounded-full border-2 border-dashed border-[#c8b97a]/20 animate-[spin_20s_linear_infinite]" />
               </div>
             </div>
-            <p className="text-[8px] uppercase tracking-[0.3em] mt-4 font-bold">Official Seal</p>
+            <p className="text-[10px] uppercase tracking-[0.3em] mt-4 font-bold">Official Seal</p>
           </div>
 
           <div className="text-center w-48">
@@ -2875,7 +2875,7 @@ const CertificateView = ({ user }: { user: User }) => {
             </div>
             <div className="w-full h-px bg-[#c8b97a] mb-2 opacity-40" />
             <p className="text-[10px] font-bold uppercase tracking-widest">{certificate.signatures[1].name}</p>
-            <p className="text-[8px] uppercase tracking-widest opacity-60">{certificate.signatures[1].title}</p>
+            <p className="text-[10px] uppercase tracking-widest opacity-60">{certificate.signatures[1].title}</p>
           </div>
         </div>
 
@@ -2883,24 +2883,24 @@ const CertificateView = ({ user }: { user: User }) => {
         <div className="bg-[#0a0a1a] py-4 px-12 flex items-center justify-between border-t border-[#c8b97a]/20 relative z-10">
           <div className="flex gap-5 sm:p-6 md:p-8">
             <div>
-              <p className="text-[8px] uppercase tracking-widest opacity-50 mb-1">Cumulative GPA</p>
+              <p className="text-[10px] uppercase tracking-widest opacity-50 mb-1">Cumulative GPA</p>
               <p className="text-sm font-bold text-white">{certificate.gradeBand.gpa}</p>
             </div>
             <div>
-              <p className="text-[8px] uppercase tracking-widest opacity-50 mb-1">Overall Grade</p>
+              <p className="text-[10px] uppercase tracking-widest opacity-50 mb-1">Overall Grade</p>
               <p className="text-sm font-bold text-white">{certificate.gradeBand.overallGrade}</p>
             </div>
             <div>
-              <p className="text-[8px] uppercase tracking-widest opacity-50 mb-1">Distinction</p>
+              <p className="text-[10px] uppercase tracking-widest opacity-50 mb-1">Distinction</p>
               <p className="text-sm font-bold text-white">{certificate.gradeBand.distinctionLevel}</p>
             </div>
             <div>
-              <p className="text-[8px] uppercase tracking-widest opacity-50 mb-1">Projects Verified</p>
+              <p className="text-[10px] uppercase tracking-widest opacity-50 mb-1">Projects Verified</p>
               <p className="text-sm font-bold text-white">{certificate.gradeBand.projectCount}</p>
             </div>
           </div>
           <div className="text-right">
-            <p className="text-[8px] uppercase tracking-widest opacity-50 mb-1">Certificate ID</p>
+            <p className="text-[10px] uppercase tracking-widest opacity-50 mb-1">Certificate ID</p>
             <p className="text-[10px] font-mono text-white">{certificate.id}</p>
           </div>
         </div>
@@ -2908,7 +2908,7 @@ const CertificateView = ({ user }: { user: User }) => {
         {/* Verification Link */}
         <div className="absolute bottom-4 right-4 flex items-center gap-2 opacity-30 hover:opacity-100 transition-opacity cursor-pointer">
           <QrCode className="w-4 h-4" />
-          <span className="text-[8px] uppercase tracking-widest font-bold">Verify Authenticity</span>
+          <span className="text-[10px] uppercase tracking-widest font-bold">Verify Authenticity</span>
           <ExternalLink className="w-3 h-3" />
         </div>
       </div>
@@ -3046,13 +3046,13 @@ const SettingsView = ({
             
             <div className="flex-1 space-y-6">
               <div>
-                <p className="text-[9px] font-black text-zinc-400 dark:text-zinc-600 uppercase tracking-widest mb-2">Student Verification</p>
+                <p className="text-[11px] font-black text-zinc-400 dark:text-zinc-600 uppercase tracking-widest mb-2">Student Verification</p>
                 <h3 className="text-3xl font-black text-zinc-900 dark:text-white uppercase tracking-tight">{user.name}</h3>
                 <p className="text-zinc-500 text-xs font-bold font-mono mt-1 opacity-50">{user.email}</p>
               </div>
               
               <div className="space-y-3">
-                <p className="text-[9px] font-black text-zinc-400 dark:text-zinc-600 uppercase tracking-widest">Neural ID Presets</p>
+                <p className="text-[11px] font-black text-zinc-400 dark:text-zinc-600 uppercase tracking-widest">Neural ID Presets</p>
                 <div className="flex gap-3">
                   {[1, 2, 3, 4, 5].map((i) => {
                     const url = `https://api.dicebear.com/7.x/avataaars/svg?seed=${user.name + i}`;
@@ -3069,7 +3069,7 @@ const SettingsView = ({
 
           <div className="p-5 sm:p-6 md:p-8 flex items-center justify-between group hover:bg-zinc-50 dark:hover:bg-white/[0.02] transition-colors">
             <div>
-              <p className="text-[9px] font-black text-zinc-400 dark:text-zinc-600 uppercase tracking-widest mb-1">Display Name</p>
+              <p className="text-[11px] font-black text-zinc-400 dark:text-zinc-600 uppercase tracking-widest mb-1">Display Name</p>
               <input 
                 type="text"
                 value={user.name}
@@ -3102,7 +3102,7 @@ const SettingsView = ({
         <div className="bg-white dark:bg-zinc-900/40 backdrop-blur-3xl rounded-[2.5rem] border border-zinc-200 dark:border-white/[0.05] divide-y divide-zinc-200 dark:divide-white/[0.05] overflow-hidden shadow-2xl">
           <div className="p-10 flex flex-col md:flex-row md:items-center justify-between gap-5 sm:p-6 md:p-8">
             <div>
-              <p className="text-[9px] font-black text-zinc-400 dark:text-zinc-600 uppercase tracking-widest mb-2">Interface Theme</p>
+              <p className="text-[11px] font-black text-zinc-400 dark:text-zinc-600 uppercase tracking-widest mb-2">Interface Theme</p>
               <p className="text-zinc-900 dark:text-white font-black text-2xl uppercase tracking-tight">{theme}</p>
             </div>
             <div className="flex gap-2 p-1.5 bg-zinc-100 dark:bg-black/60 rounded-[1.5rem] border border-zinc-200 dark:border-white/[0.05]">
@@ -3122,7 +3122,7 @@ const SettingsView = ({
           </div>
           <div className="p-10">
             <div className="flex items-center justify-between mb-6">
-              <p className="text-[9px] font-black text-zinc-400 dark:text-zinc-600 uppercase tracking-widest">Neural Font Scaling</p>
+              <p className="text-[11px] font-black text-zinc-400 dark:text-zinc-600 uppercase tracking-widest">Neural Font Scaling</p>
               <span className="text-xl font-black text-zinc-900 dark:text-white font-mono">{fontSize}px</span>
             </div>
             <div className="relative flex items-center">
@@ -3133,7 +3133,7 @@ const SettingsView = ({
                 className="w-full h-1.5 bg-zinc-200 dark:bg-black rounded-full appearance-none cursor-pointer accent-zinc-900 dark:accent-white"
               />
             </div>
-            <div className="flex justify-between mt-4 text-[9px] text-zinc-400 dark:text-zinc-600 font-black uppercase tracking-widest">
+            <div className="flex justify-between mt-4 text-[11px] text-zinc-400 dark:text-zinc-600 font-black uppercase tracking-widest">
               <span>Standard (12)</span>
               <span>Industrial (24)</span>
             </div>
@@ -3150,7 +3150,7 @@ const SettingsView = ({
           <div className="p-10">
             <div className="flex items-center justify-between mb-8">
               <div>
-                <p className="text-[9px] font-black text-zinc-400 dark:text-zinc-600 uppercase tracking-widest mb-1">Access Protocol</p>
+                <p className="text-[11px] font-black text-zinc-400 dark:text-zinc-600 uppercase tracking-widest mb-1">Access Protocol</p>
                 <p className="text-zinc-900 dark:text-white font-black text-xl">Rotate Security Credentials</p>
               </div>
               <button 
@@ -3202,7 +3202,7 @@ const SettingsView = ({
           
           <div className="p-10 flex items-center justify-between group hover:bg-zinc-50 dark:hover:bg-white/[0.02] transition-colors">
             <div>
-              <p className="text-[9px] font-black text-zinc-400 dark:text-zinc-600 uppercase tracking-widest mb-1">Data Sovereignty</p>
+              <p className="text-[11px] font-black text-zinc-400 dark:text-zinc-600 uppercase tracking-widest mb-1">Data Sovereignty</p>
               <p className="text-zinc-900 dark:text-white font-black text-xl">Extract Intelligence Logs</p>
             </div>
             <button className="px-6 py-3 bg-zinc-100 dark:bg-zinc-950 text-zinc-900 dark:text-white rounded-[1.25rem] text-[10px] font-black uppercase tracking-widest hover:bg-zinc-900 hover:text-white dark:hover:bg-white dark:hover:text-black transition-all border border-zinc-200 dark:border-white/[0.05] flex items-center gap-3">
@@ -3211,7 +3211,7 @@ const SettingsView = ({
           </div>
           <div className="p-10 flex items-center justify-between group hover:bg-red-500/[0.02] transition-colors">
             <div>
-              <p className="text-[9px] font-black text-red-900 uppercase tracking-widest mb-1">Critical Termination</p>
+              <p className="text-[11px] font-black text-red-900 uppercase tracking-widest mb-1">Critical Termination</p>
               <p className="text-red-500 font-black text-xl">Decommission Account</p>
             </div>
             <button 
@@ -3229,15 +3229,15 @@ const SettingsView = ({
         <div className="absolute top-0 right-0 w-64 h-64 bg-zinc-800 dark:bg-zinc-100 blur-[80px] rounded-full -mr-32 -mt-32" />
         <div className="relative z-10 grid grid-cols-2 md:grid-cols-4 gap-6 md:p-12">
           <div>
-            <p className="text-[9px] font-black text-zinc-500 dark:text-zinc-400 uppercase tracking-widest mb-2">Quizzes Indexed</p>
+            <p className="text-[11px] font-black text-zinc-500 dark:text-zinc-400 uppercase tracking-widest mb-2">Quizzes Indexed</p>
             <p className="text-4xl md:text-5xl font-black tabular-nums">{history.length}</p>
           </div>
           <div>
-            <p className="text-[9px] font-black text-zinc-500 dark:text-zinc-400 uppercase tracking-widest mb-2">Mastery Index</p>
+            <p className="text-[11px] font-black text-zinc-500 dark:text-zinc-400 uppercase tracking-widest mb-2">Mastery Index</p>
             <p className="text-4xl md:text-5xl font-black tabular-nums">{avgScore}%</p>
           </div>
           <div>
-            <p className="text-[9px] font-black text-zinc-500 dark:text-zinc-400 uppercase tracking-widest mb-2">Current Streak</p>
+            <p className="text-[11px] font-black text-zinc-500 dark:text-zinc-400 uppercase tracking-widest mb-2">Current Streak</p>
             <p className="text-4xl md:text-5xl font-black tabular-nums flex items-baseline gap-3">
               {user.streak || 0}
               {(user.lastLostStreak || 0) > 1 && (user.streak || 0) <= 1 && (
@@ -3247,13 +3247,13 @@ const SettingsView = ({
               )}
             </p>
             {(user.longestStreak || 0) > 0 && (
-              <p className="text-[9px] font-black text-zinc-500 dark:text-zinc-400 uppercase tracking-widest mt-1">
+              <p className="text-[11px] font-black text-zinc-500 dark:text-zinc-400 uppercase tracking-widest mt-1">
                 Best: {user.longestStreak} Days
               </p>
             )}
           </div>
           <div>
-            <p className="text-[9px] font-black text-zinc-500 dark:text-zinc-400 uppercase tracking-widest mb-2">Verification Rank</p>
+            <p className="text-[11px] font-black text-zinc-500 dark:text-zinc-400 uppercase tracking-widest mb-2">Verification Rank</p>
             <p className={cn("text-4xl md:text-5xl font-black uppercase flex items-center gap-4", getVerificationRank(avgScore).color)}>
               {getVerificationRank(avgScore).rank}
               <span className="text-[10px] font-black bg-zinc-900/10 dark:bg-white/10 px-2 py-1 rounded-lg uppercase tracking-widest">v2.1</span>
@@ -3460,7 +3460,7 @@ const OnboardingPrompt = ({ user, onComplete }: { user: User, onComplete: (updat
                       <p className="text-[10px] font-black text-zinc-500 uppercase tracking-[0.2em] mb-4">Select Combination</p>
                       {Object.entries(upperSecondaryOptions).map(([category, opts]) => (
                         <div key={category} className="space-y-2">
-                          <p className="text-[9px] font-bold text-zinc-600 uppercase tracking-widest ml-1">{category}</p>
+                          <p className="text-[11px] font-bold text-zinc-600 uppercase tracking-widest ml-1">{category}</p>
                           <div className="flex flex-wrap gap-2">
                             {opts.map(opt => (
                               <button 
@@ -3789,15 +3789,276 @@ const AuthView = ({ onLogin }: { onLogin: (userData: any, token?: string, isSign
         </div>
 
         <div className="mt-12 text-center">
-          <p className="text-[9px] font-black text-zinc-700 uppercase tracking-[0.6em] opacity-50">Industrial Grade Education System</p>
+          <p className="text-[11px] font-black text-zinc-700 uppercase tracking-[0.6em] opacity-50">Industrial Grade Education System</p>
         </div>
       </motion.div>
     </div>
   );
 };
 
+const CommandPalette = ({ isOpen, onClose, onNavigate, user }: { 
+  isOpen: boolean, 
+  onClose: () => void, 
+  onNavigate: (tab: string) => void,
+  user: User 
+}) => {
+  const [query, setQuery] = useState('');
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    if (isOpen) {
+      setQuery('');
+      setTimeout(() => inputRef.current?.focus(), 100);
+    }
+  }, [isOpen]);
+
+  const commands = [
+    { id: 'dashboard', label: 'Go to Dashboard', icon: LayoutDashboard, category: 'Navigation', shortcut: 'G D' },
+    { id: 'library', label: 'Open Book Library', icon: Library, category: 'Navigation', shortcut: 'G L' },
+    { id: 'assessments', label: 'Start Assessment', icon: BookOpen, category: 'Navigation', shortcut: 'G A' },
+    { id: 'flashcards', label: 'Review Flashcards', icon: Type, category: 'Navigation', shortcut: 'G F' },
+    { id: 'analytics', label: 'View Analytics', icon: BarChart3, category: 'Navigation', shortcut: 'G S' },
+    { id: 'planner', label: 'Open Planner', icon: Calendar, category: 'Navigation', shortcut: 'G P' },
+    { id: 'portfolio', label: 'E-Portfolio', icon: FolderOpen, category: 'Navigation', shortcut: 'G E' },
+    { id: 'ai-chat', label: 'Ask AI Assistant', icon: Sparkles, category: 'AI Tools', shortcut: '?' },
+    { id: 'new-goal', label: 'Add New Goal', icon: Plus, category: 'Actions', shortcut: 'N' },
+  ];
+
+  const filtered = commands.filter(c => 
+    c.label.toLowerCase().includes(query.toLowerCase()) || 
+    c.category.toLowerCase().includes(query.toLowerCase())
+  );
+
+  if (!isOpen) return null;
+
+  return (
+    <div className="fixed inset-0 z-[300] flex items-start justify-center pt-[15vh] p-4 bg-black/60 backdrop-blur-sm">
+      <motion.div 
+        initial={{ opacity: 0, scale: 0.95, y: -20 }}
+        animate={{ opacity: 1, scale: 1, y: 0 }}
+        exit={{ opacity: 0, scale: 0.95, y: -20 }}
+        className="w-full max-w-2xl bg-white dark:bg-zinc-900 rounded-[2rem] border border-zinc-200 dark:border-zinc-800 shadow-2xl overflow-hidden"
+      >
+        <div className="flex items-center gap-4 px-6 py-5 border-b border-zinc-100 dark:border-zinc-800">
+          <Search className="w-5 h-5 text-zinc-400" />
+          <input 
+            ref={inputRef}
+            type="text"
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            placeholder="Type a command or search..."
+            className="flex-1 bg-transparent border-none outline-none text-lg font-bold text-zinc-900 dark:text-white placeholder:text-zinc-400"
+          />
+          <div className="flex items-center gap-2 px-2 py-1 bg-zinc-100 dark:bg-zinc-800 rounded-lg text-[10px] font-black text-zinc-500 uppercase tracking-widest">
+            ESC
+          </div>
+        </div>
+
+        <div className="max-h-[60vh] overflow-y-auto p-3">
+          {filtered.length > 0 ? (
+            <div className="space-y-4">
+              {['Navigation', 'AI Tools', 'Actions'].map(cat => {
+                const catItems = filtered.filter(f => f.category === cat);
+                if (catItems.length === 0) return null;
+                return (
+                  <div key={cat}>
+                    <h4 className="px-4 py-2 text-[10px] font-black text-zinc-400 dark:text-zinc-500 uppercase tracking-[0.2em]">{cat}</h4>
+                    {catItems.map(cmd => (
+                      <button
+                        key={cmd.id}
+                        onClick={() => {
+                          onNavigate(cmd.id);
+                          onClose();
+                        }}
+                        className="w-full flex items-center justify-between px-4 py-4 rounded-xl hover:bg-zinc-100 dark:hover:bg-zinc-800 text-left group transition-all"
+                      >
+                        <div className="flex items-center gap-4">
+                          <div className="w-10 h-10 rounded-xl bg-zinc-50 dark:bg-zinc-950 flex items-center justify-center border border-zinc-100 dark:border-zinc-800 group-hover:scale-110 transition-transform">
+                            <cmd.icon className="w-5 h-5 text-zinc-400 dark:text-zinc-500 group-hover:text-zinc-900 dark:group-hover:text-white transition-colors" />
+                          </div>
+                          <span className="text-sm font-bold text-zinc-700 dark:text-zinc-300 group-hover:text-zinc-900 dark:group-hover:text-white transition-colors">{cmd.label}</span>
+                        </div>
+                        <div className="flex items-center gap-1.5 opacity-40 group-hover:opacity-100 transition-opacity">
+                          {cmd.shortcut.split(' ').map(s => (
+                            <kbd key={s} className="px-1.5 py-0.5 bg-zinc-200 dark:bg-zinc-700 rounded text-[11px] font-black uppercase text-zinc-500 dark:text-zinc-400">{s}</kbd>
+                          ))}
+                        </div>
+                      </button>
+                    ))}
+                  </div>
+                );
+              })}
+            </div>
+          ) : (
+            <div className="py-12 text-center">
+              <p className="text-zinc-400 dark:text-zinc-500 font-bold uppercase tracking-widest text-xs">No results found for "{query}"</p>
+            </div>
+          )}
+        </div>
+
+        <div className="px-6 py-4 bg-zinc-50 dark:bg-zinc-950/50 border-t border-zinc-100 dark:border-zinc-800 flex items-center justify-between">
+           <div className="flex items-center gap-6">
+              <div className="flex items-center gap-2">
+                 <kbd className="px-1.5 py-0.5 bg-zinc-200 dark:bg-zinc-800 rounded text-[11px] font-black uppercase text-zinc-500">↑↓</kbd>
+                 <span className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest">Navigate</span>
+              </div>
+              <div className="flex items-center gap-2">
+                 <kbd className="px-1.5 py-0.5 bg-zinc-200 dark:bg-zinc-800 rounded text-[11px] font-black uppercase text-zinc-500">Enter</kbd>
+                 <span className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest">Select</span>
+              </div>
+           </div>
+           <div className="flex items-center gap-2">
+              <span className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest">Powered by</span>
+              <Sparkles className="w-3.5 h-3.5 text-indigo-500" />
+              <span className="text-[10px] font-black text-zinc-900 dark:text-white uppercase tracking-widest">AI Hub</span>
+           </div>
+        </div>
+      </motion.div>
+    </div>
+  );
+};
+
+const AchievementsView = ({ user, history }: { user: User, history: QuizHistoryItem[] }) => {
+  const avgScore = history.length > 0 
+    ? Math.round(history.reduce((a, b) => a + (b.score / b.totalPoints), 0) / history.length * 100)
+    : 0;
+
+  const achievements: Achievement[] = MOCK_ACHIEVEMENTS.map(a => {
+    let unlocked = false;
+    if (a.category === 'Streaks') unlocked = (user.streak || 0) >= a.requirement;
+    if (a.category === 'Mastery') unlocked = avgScore >= a.requirement;
+    if (a.category === 'Knowledge') unlocked = history.length >= a.requirement;
+    
+    return { ...a, unlockedAt: unlocked ? new Date().toISOString() : undefined };
+  });
+
+  return (
+    <div className="space-y-12 pb-24">
+      <header className="relative overflow-hidden bg-zinc-100 dark:bg-zinc-950 rounded-[3.5rem] p-10 md:p-16 border border-zinc-200 dark:border-white/[0.05] shadow-2xl">
+        <div className="absolute top-0 right-0 w-1/2 h-full bg-gradient-to-l from-indigo-500/5 to-transparent pointer-events-none" />
+        <div className="relative z-10">
+          <div className="flex items-center gap-4 mb-8">
+            <div className="px-3.5 py-1.5 bg-zinc-900 dark:bg-white text-white dark:text-black text-[11px] font-black uppercase tracking-[0.3em] rounded-full shadow-lg">Hall of Fame</div>
+            <div className="flex items-center gap-1.5 px-2.5 py-1.5 bg-white dark:bg-zinc-900/50 backdrop-blur-md text-zinc-500 dark:text-zinc-400 text-[10px] font-black uppercase tracking-widest rounded-full border border-zinc-200 dark:border-white/[0.05]">
+              <Trophy className="w-3.5 h-3.5 text-amber-500" /> {achievements.filter(a => a.unlockedAt).length} Unlocked
+            </div>
+          </div>
+          <h1 className="text-4xl md:text-7xl font-black text-zinc-900 dark:text-white tracking-tighter mb-4 leading-none uppercase">
+            Mastery<br />
+            <span className="text-zinc-400 dark:text-zinc-700">Achievements.</span>
+          </h1>
+          <p className="text-zinc-500 text-sm font-bold uppercase tracking-[0.2em]">Your journey to professional excellence, visualized.</p>
+        </div>
+      </header>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+        {achievements.map((achievement, i) => (
+          <motion.div
+            key={achievement.id}
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: i * 0.1 }}
+            className={cn(
+              "p-8 rounded-[3rem] border transition-all relative overflow-hidden group",
+              achievement.unlockedAt 
+                ? "bg-white dark:bg-zinc-900 border-zinc-200 dark:border-zinc-800 shadow-xl" 
+                : "bg-zinc-50 dark:bg-zinc-950 border-zinc-100 dark:border-zinc-900 opacity-60 grayscale"
+            )}
+          >
+            {achievement.unlockedAt && (
+              <div className="absolute top-0 right-0 w-32 h-32 bg-amber-500/5 blur-3xl -mr-16 -mt-16 group-hover:scale-150 transition-transform" />
+            )}
+            
+            <div className="flex items-start justify-between mb-8 relative z-10">
+              <div className={cn(
+                "w-16 h-16 rounded-[1.75rem] flex items-center justify-center text-3xl shadow-inner border transition-all",
+                achievement.unlockedAt 
+                  ? "bg-zinc-100 dark:bg-zinc-800 border-zinc-200 dark:border-zinc-700 scale-110" 
+                  : "bg-zinc-200 dark:bg-zinc-900 border-zinc-300 dark:border-zinc-800"
+              )}>
+                {achievement.icon}
+              </div>
+              {achievement.unlockedAt ? (
+                <div className="px-3 py-1 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 text-[10px] font-black uppercase tracking-[0.2em] rounded-lg border border-emerald-500/20">
+                  Unlocked
+                </div>
+              ) : (
+                <div className="px-3 py-1 bg-zinc-200 dark:bg-zinc-800 text-zinc-400 text-[10px] font-black uppercase tracking-[0.2em] rounded-lg border border-zinc-300 dark:border-zinc-700">
+                  Locked
+                </div>
+              )}
+            </div>
+
+            <h3 className="text-xl font-black text-zinc-900 dark:text-white uppercase tracking-tight mb-2 relative z-10">{achievement.title}</h3>
+            <p className="text-sm text-zinc-500 dark:text-zinc-500 font-bold mb-8 leading-relaxed relative z-10">{achievement.description}</p>
+            
+            <div className="pt-6 border-t border-zinc-100 dark:border-zinc-800 relative z-10">
+              <div className="flex justify-between items-center mb-2">
+                <span className="text-[11px] font-black text-zinc-400 uppercase tracking-widest">Progress</span>
+                <span className="text-[10px] font-black text-zinc-900 dark:text-white uppercase tracking-widest">
+                  {achievement.category === 'Streaks' && `${Math.min(user.streak || 0, achievement.requirement)}/${achievement.requirement}`}
+                  {achievement.category === 'Mastery' && `${Math.min(avgScore, achievement.requirement)}/${achievement.requirement}%`}
+                  {achievement.category === 'Knowledge' && `${Math.min(history.length, achievement.requirement)}/${achievement.requirement}`}
+                </span>
+              </div>
+              <div className="h-1.5 w-full bg-zinc-100 dark:bg-zinc-950 rounded-full overflow-hidden p-0.5 border border-zinc-200 dark:border-zinc-800">
+                <motion.div 
+                  initial={{ width: 0 }}
+                  animate={{ width: achievement.unlockedAt ? '100%' : `${(achievement.category === 'Streaks' ? (user.streak || 0) : achievement.category === 'Mastery' ? avgScore : history.length) / achievement.requirement * 100}%` }}
+                  className={cn(
+                    "h-full rounded-full",
+                    achievement.unlockedAt ? "bg-amber-500 shadow-[0_0_10px_rgba(245,158,11,0.5)]" : "bg-zinc-300 dark:bg-zinc-800"
+                  )}
+                />
+              </div>
+            </div>
+          </motion.div>
+        ))}
+      </div>
+    </div>
+  );
+};
+
 export default function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(() => localStorage.getItem('tvet_auth') === 'true');
+  const [isCommandPaletteOpen, setIsCommandPaletteOpen] = useState(false);
+
+  useEffect(() => {
+    let lastKey = '';
+    const handleKeyDown = (e: KeyboardEvent) => {
+      // Command Palette (Ctrl+K)
+      if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
+        e.preventDefault();
+        setIsCommandPaletteOpen(prev => !prev);
+      }
+      
+      // Sequential Shortcuts (G + Key)
+      if (lastKey === 'g') {
+        if (e.key === 'd') { e.preventDefault(); handleTabChange('dashboard'); }
+        if (e.key === 'l') { e.preventDefault(); handleTabChange('library'); }
+        if (e.key === 'a') { e.preventDefault(); handleTabChange('assessments'); }
+        if (e.key === 'f') { e.preventDefault(); handleTabChange('flashcards'); }
+        if (e.key === 's') { e.preventDefault(); handleTabChange('analytics'); }
+        if (e.key === 'p') { e.preventDefault(); handleTabChange('planner'); }
+        if (e.key === 'e') { e.preventDefault(); handleTabChange('portfolio'); }
+        lastKey = '';
+        return;
+      }
+
+      if (e.key === 'g') {
+        lastKey = 'g';
+        setTimeout(() => lastKey = '', 1000); // Reset after 1s
+      } else {
+        lastKey = '';
+      }
+
+      if (e.key === 'Escape') {
+        setIsCommandPaletteOpen(false);
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, []);
   const [user, setUser] = useState<User>(() => {
     try {
       const saved = localStorage.getItem('tvet_user');
@@ -4073,6 +4334,7 @@ export default function App() {
         case 'flashcards': return <FlashcardsView user={user} showToast={showToast} />;
         case 'planner': return <PlannerView user={user} showToast={showToast} />;
         case 'portfolio': return <PortfolioView user={user} showToast={showToast} />;
+        case 'achievements': return <AchievementsView user={user} history={history} />;
         case 'papers': return <PastPapers user={user} onStartQuiz={handleStartCustomQuiz} />;
         case 'library': return <BookLibrary user={user} />;        case 'settings': return (
           <SettingsView 
@@ -4117,6 +4379,17 @@ export default function App() {
 
   return (
     <div className="min-h-screen bg-white dark:bg-[#050505] font-sans text-zinc-900 dark:text-white flex transition-colors duration-500">
+      <AnimatePresence>
+        {isCommandPaletteOpen && (
+          <CommandPalette 
+            isOpen={isCommandPaletteOpen} 
+            onClose={() => setIsCommandPaletteOpen(false)} 
+            onNavigate={handleTabChange}
+            user={user}
+          />
+        )}
+      </AnimatePresence>
+
       {!showOnboarding && <AICopilot user={user} />}
 
       <AnimatePresence>        {showCourseAI && (
@@ -4172,6 +4445,7 @@ export default function App() {
             <SidebarItem icon={FolderOpen} label="E-Portfolio" active={activeTab === 'portfolio'} onClick={() => handleTabChange('portfolio')} />
             <SidebarItem icon={ClipboardCheck} label="Past Papers" active={activeTab === 'papers'} onClick={() => handleTabChange('papers')} />
             <SidebarItem icon={Library} label="Book Library" active={activeTab === 'library'} onClick={() => handleTabChange('library')} />
+            <SidebarItem icon={Trophy} label="Achievements" active={activeTab === 'achievements'} onClick={() => handleTabChange('achievements')} />
             <SidebarItem icon={Settings} label="Settings" active={activeTab === 'settings'} onClick={() => handleTabChange('settings')} />
           </nav>
 
@@ -4222,6 +4496,22 @@ export default function App() {
 
           <div className="flex-1" /> {/* Spacer */}
           <div className="flex items-center gap-4 relative">
+            <button 
+              onClick={() => setIsCommandPaletteOpen(true)}
+              className="p-2.5 text-zinc-500 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-900 rounded-2xl transition-colors hidden md:flex items-center gap-3 bg-zinc-50 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 pr-5"
+            >
+              <Search className="w-4 h-4" />
+              <span className="text-[10px] font-black uppercase tracking-widest text-zinc-400">Search Command</span>
+              <kbd className="ml-2 px-1.5 py-0.5 bg-zinc-200 dark:bg-zinc-800 rounded text-[11px] font-black uppercase text-zinc-500">Ctrl K</kbd>
+            </button>
+
+            <button 
+              onClick={() => setIsCommandPaletteOpen(true)}
+              className="md:hidden p-2.5 text-zinc-500 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-900 rounded-2xl transition-colors"
+            >
+              <Search className="w-5 h-5" />
+            </button>
+
             <button 
               onClick={() => setShowNotifications(!showNotifications)}
               className="p-2.5 text-zinc-500 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-900 rounded-2xl relative transition-colors"

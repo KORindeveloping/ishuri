@@ -285,7 +285,7 @@ export const PlannerView = ({ user, showToast }: {
                          <div className="space-y-1 md:space-y-1.5 overflow-hidden">
                             {tasks.slice(0, 3).map((t, i) => (
                                 <div key={i} className={cn(
-                                    "px-1.5 py-0.5 md:px-2 md:py-1 rounded-[4px] md:rounded-md text-[8px] md:text-[9px] font-bold truncate transition-all",
+                                    "px-1.5 py-0.5 md:px-2 md:py-1 rounded-[4px] md:rounded-md text-[8px] md:text-[11px] font-bold truncate transition-all",
                                     t.completed ? "opacity-50 line-through bg-zinc-100 dark:bg-zinc-800 text-zinc-500" :
                                     "bg-white dark:bg-zinc-800 shadow-sm border border-zinc-200 dark:border-zinc-700 text-zinc-800 dark:text-zinc-200"
                                 )}>
@@ -293,7 +293,7 @@ export const PlannerView = ({ user, showToast }: {
                                 </div>
                             ))}
                             {tasks.length > 3 && (
-                                <div className="text-[9px] md:text-[10px] font-black text-zinc-400 dark:text-zinc-500 px-1 mt-1">
+                                <div className="text-[11px] md:text-[10px] font-black text-zinc-400 dark:text-zinc-500 px-1 mt-1">
                                     +{tasks.length - 3} more
                                 </div>
                             )}
@@ -380,13 +380,13 @@ export const PlannerView = ({ user, showToast }: {
                                        <div className="flex-1 min-w-0">
                                           <div className="flex items-center gap-2 mb-2">
                                             <div className={cn(
-                                              "px-2 py-0.5 rounded-lg text-[9px] font-black uppercase tracking-widest inline-block text-white shadow-lg shadow-black/5",
+                                              "px-2 py-0.5 rounded-lg text-[11px] font-black uppercase tracking-widest inline-block text-white shadow-lg shadow-black/5",
                                               categoryColors[t.category as keyof typeof categoryColors]
                                             )}>
                                               {t.category}
                                             </div>
                                             {t.time && (
-                                              <div className="px-2 py-0.5 rounded-lg text-[9px] font-black uppercase tracking-widest inline-block bg-zinc-200 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400">
+                                              <div className="px-2 py-0.5 rounded-lg text-[11px] font-black uppercase tracking-widest inline-block bg-zinc-200 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400">
                                                 {t.time}
                                               </div>
                                             )}

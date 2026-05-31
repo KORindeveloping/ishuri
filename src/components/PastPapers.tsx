@@ -215,7 +215,7 @@ export const PastPapers = ({ user, onStartQuiz }: { user: User, onStartQuiz?: (q
                 </div>
                 <div className="text-right z-10">
                   <p className="text-[10px] font-black text-zinc-400 dark:text-zinc-600 uppercase tracking-widest mb-1">{paper.year}</p>
-                  <div className="px-2 py-0.5 bg-zinc-100 dark:bg-zinc-800 text-[8px] font-black text-zinc-500 uppercase tracking-widest rounded-lg">Official</div>
+                  <div className="px-2 py-0.5 bg-zinc-100 dark:bg-zinc-800 text-[10px] font-black text-zinc-500 uppercase tracking-widest rounded-lg">Official</div>
                 </div>
               </div>
 

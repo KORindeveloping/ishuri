@@ -91,6 +91,16 @@ export interface QuizHistoryItem {
   questionFeedback?: Record<string, { isCorrect: boolean, feedback: string, earnedPoints: number }>;
 }
 
+export interface Achievement {
+  id: string;
+  title: string;
+  description: string;
+  icon: string;
+  category: 'Streaks' | 'Mastery' | 'Knowledge' | 'Social';
+  requirement: number;
+  unlockedAt?: string;
+}
+
 // ─── Book Library ──────────────────────────────────────────────────────────────
 export interface Book {
   id: string;
